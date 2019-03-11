@@ -1,0 +1,126 @@
+body {
+  height: 100vh;
+  width: 100%;
+  background-image: url("../img/bg_contour.png");
+  overflow-x: hidden;
+  padding: 0;
+  margin: 0; }
+
+#app {
+  background: rgba(255, 255, 255, 0.6);
+  display: table;
+  width: 100%;
+  height: 100%; }
+
+#footer, #header {
+  color: white;
+  font-weight: 600;
+  letter-spacing: 2px;
+  background: #666;
+  box-shadow: inset 0px 2px 5px rgba(0, 0, 0, 0.8); }
+
+#header {
+  color: black;
+  background-color: rgba(0, 0, 0, 0.3);
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.8); }
+
+#alert_list {
+  -webkit-transition: 0.5s;
+  -moz-transition: 0.5s;
+  -ms-transition: 0.5s;
+  -o-transition: 0.5s;
+  transition: 0.5s;
+  background: yellow;
+  cursor: pointer;
+  box-shadow: 1px 3px 3px rgba(0, 0, 0, 0.7); }
+  #alert_list:hover, #alert_list:active, #alert_list:focus {
+    padding-top: 0.25em;
+    box-shadow: inset 1px 3px 3px rgba(0, 0, 0, 0.7); }
+
+#alert_contain {
+  padding: 0.75em;
+  width: 100%;
+  color: rgba(0, 0, 0, 0.6);
+  display: none; }
+
+#state-form {
+  margin: 0.75em 0 0.75em 0; }
+
+.page-row {
+  display: table-row;
+  min-height: 1px; }
+  .page-row .container {
+    height: 100%; }
+
+.page-row-expanded {
+  height: 100%; }
+
+div.inner {
+  padding: 0.25em;
+  height: 100%; }
+
+hr.delimiter {
+  height: 1px;
+  background-color: black; }
+
+p.state {
+  font-size: 0.875rem;
+  letter-spacing: 2px;
+  font-family: "tech", monospace; }
+
+img.logo {
+  height: 2.5rem; }
+
+.statusbar {
+  width: 100%;
+  margin-bottom: 1rem; }
+
+div.base-info {
+  padding-left: 1px;
+  padding-right: 1px; }
+
+div.circle {
+  color: black;
+  border-radius: 50%;
+  padding: 0.75rem; }
+
+.color-changer option {
+  padding-left: 2rem;
+  padding-right: 2rem; }
+
+.confirm-state {
+  margin-bottom: -1.4rem;
+  border: 1px solid black; }
+
+.title-sm {
+  font-size: 1.5rem;
+  padding: 0.675rem;
+  margin-top: -0.875rem; }
+
+.progress-stage {
+  flex-direction: column;
+  width: 8rem; }
+
+.stage-inner {
+  width: 2rem;
+  height: 2rem;
+  line-height: 2rem;
+  border: 2px solid #7d7d7d;
+  display: block;
+  text-align: center;
+  margin: 0 auto 10px auto;
+  border-radius: 50%;
+  background-color: white; }
+
+.err-cont {
+  margin-top: -15%; }
+
+.err-header {
+  font-size: 10rem; }
+
+.err-sub {
+  font-size: 1.6rem;
+  letter-spacing: 0.2rem;
+  text-transform: lowercase; }
+
+/*# sourceMappingURL=style.css.map */

@@ -1,0 +1,22 @@
+### CDL CORE CONFIG FILE
+
+debug: True
+
+timeout: # seconds
+  basic: 1 # ping interval
+  alive: 15 # device keepalive threshold
+  mqtt: 5  # broker keepalive value
+
+### SYSTEM CONFIG
+# touch this section wisely
+
+dev_types:
+  - term
+  - lock
+  - rgb
+  - pwr
+
+mqtt:
+  host: 127.0.0.1
+  port: 1883
+

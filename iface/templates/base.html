@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <link rel="stylesheet"
+          href="{% static 'css/bulma.css' %}">
+
+    <link rel="stylesheet"
+          href="{% static 'css/style.css' %}">
+
+    <link rel="stylesheet"
+          href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <script type="text/javascript"
+            src="{% static 'js/socket.io.js' %}"></script>
+
+    <script type="text/javascript"
+            src="{% static 'js/main.js' %}"></script>
+
+    <title>{% block title %}{% endblock %}</title>
+</head>
+<body>
+<div id="app">
+  <section class="page-row">
+    {% include 'header.html' %}
+  </section>
+  <section class="page-row page-row-expanded">
+    {% block content %}
+    {% endblock %}
+  </section>
+  <section class="page-row">
+    {% include 'footer.html' %}
+  </section>
+</div>
+</body>
+</html>
