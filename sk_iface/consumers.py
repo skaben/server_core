@@ -1,14 +1,9 @@
-import time
 from .event_contexts import DeviceEventContext
 from channels.generic.websocket import JsonWebsocketConsumer
-from sk_rest import models as API
+
 
 # TODO: move models here, get rid of rest
 
-mod = {
-    'lock': API.Lock,
-    'terminal': API.Terminal,
-}
 
 class EventConsumer(JsonWebsocketConsumer):
     """
@@ -23,13 +18,37 @@ class EventConsumer(JsonWebsocketConsumer):
         """
         with DeviceEventContext(msg) as dev:
             # initialize event context with received message
-            M = mod.get(dev.dev_type)
-            db = M.objects.filter(name=dev.dev_name)[0]
             if dev.old:
-                # todo: make not proof-of-concept!
-                db.ts = int(time.time())
-                db.save()
+                # update timestamp first
+                pass
+
             if dev.command == 'PONG':
+                # check timestamp
+                # update timestamp
+                pass
+            elif dev.command in ('ACK', 'NACK'):
+                # check for task_id
+                # put into separated high-priority channel
+                # ackmanager deal with it
+                pass
+            elif dev.command == 'CUP':
+                # client should be updated
+                # get device config
+                # add task_id
+                # send packet to mqtt via channel_layer
+                # await for ack/nack with task_id in separate channel
+                # retry X times
+                # except: log and update device as offline
+                pass
+            elif dev.command == 'SUP':
+                # server should be updated
+                # get_device
+                # validate data
+                # log data
+                # save device
+                # send response to mqtt via channel_layer
+                # send update to web via websocket
+                # except: log event
                 pass
             else:
                 print(f'command {dev} not implemented')
@@ -37,6 +56,3 @@ class EventConsumer(JsonWebsocketConsumer):
 
     def web(self, msg):
         print(f'received from web: {msg}')
-
-
-
