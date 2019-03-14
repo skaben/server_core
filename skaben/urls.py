@@ -17,8 +17,9 @@ from django.contrib import admin
 from django.urls import include, path
 
 urlpatterns = [
-    path('', include('iface.urls')),
-    path('mqtt/', include('mqtts.urls')),
+    path('', include('sk_iface.urls')),
+    path('api/', include('sk_rest.urls')),
+    path('mqtt/', include('sk_mqtts.urls')),
     path('admin/', admin.site.urls),
 ]
 

@@ -14,8 +14,8 @@ from multiprocessing import Queue
 import paho.mqtt.client as mqtt
 import logging as logger
 
-from mqtts.config import config
-from mqtts.contexts import PacketSender, PacketReceiver
+from sk_mqtts.config import config
+from sk_mqtts.contexts import PacketSender, PacketReceiver
 
 
 class MQTTServer:

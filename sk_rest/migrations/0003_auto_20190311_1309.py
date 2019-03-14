@@ -7,7 +7,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('iface', '0002_auto_20190307_1736'),
+        ('sk_rest', '0002_auto_20190307_1736'),
     ]
 
     operations = [
@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
             name='Permission',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('card_id', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='iface.Card')),
+                ('card_id', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='sk_rest.Card')),
             ],
         ),
         migrations.CreateModel(
@@ -72,17 +72,17 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='permission',
             name='lock_id',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='iface.Lock'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='sk_rest.Lock'),
         ),
         migrations.AddField(
             model_name='permission',
             name='state_id',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='iface.State'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='sk_rest.State'),
         ),
         migrations.AddField(
             model_name='lock',
             name='term_id',
-            field=models.ForeignKey(default=0, on_delete=django.db.models.deletion.CASCADE, to='iface.Terminal'),
+            field=models.ForeignKey(default=0, on_delete=django.db.models.deletion.CASCADE, to='sk_rest.Terminal'),
             preserve_default=False,
         ),
     ]

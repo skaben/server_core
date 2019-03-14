@@ -1,6 +1,6 @@
 # mqtt control via Channels
 
-import mqtts.views as views
+import sk_mqtts.views as views
 from django.urls import path, include
 
 urlpatterns = [

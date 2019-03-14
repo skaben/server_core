@@ -13,12 +13,13 @@ class Dumb(models.Model):
     """
 
     class Meta:
-        verbose_name = 'device: RGB/Dumb'
-        verbose_name_plural = 'devices: RGB/Dumbs'
+        verbose_name = 'device: RGB (Dumb)'
+        verbose_name_plural = 'devices: RGB (Dumbs)'
 
     ts = models.IntegerField(default=int(time.time()))
     ip = models.GenericIPAddressField()
     config = models.CharField(max_length=500) # config JSONable string
+
 
 class Terminal(models.Model):
 

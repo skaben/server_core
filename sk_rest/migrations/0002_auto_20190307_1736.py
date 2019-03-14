@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('iface', '0001_initial'),
+        ('sk_rest', '0001_initial'),
     ]
 
     operations = [
