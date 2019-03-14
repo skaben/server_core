@@ -16,7 +16,7 @@ import logging as logger
 
 from sk_mqtts.config import config
 from sk_mqtts.contexts import PacketSender, PacketReceiver
-
+from sk_mqtts.views import mqtt_to_event
 
 class MQTTServer:
 
@@ -102,23 +102,8 @@ class MQTTServer:
         try:
             with PacketReceiver() as event:
                 packet = event.create(msg)
-                if packet['command'] in ('ACK', 'NACK'):
-                    # close existing job, not affected by ts
-                    print(packet['task_id'], 'received!')
-                    logger.warning(f'not implemented yet: {event}')
-                    return
-                #if event.ts + config.timeout['alive'] < int(time.time()):
-                else:
-                    # enqueue new job
-                    try:
-                        print(packet)
-                    #    CSE = self.config.task_clientside
-                    #    t = CSE.enqueue(device_task,
-                    #                     packet,
-                    #                     ttl=self.config.rq['timeout'])
-                    #    logger.debug(f'new job. {t}')
-                    except Exception:
-                        logger.exception('failed to create new job')
+                mqtt_to_event(request=None,
+                              packet=packet)
         except:
             logger.exception(f'failed for {msg} :')
 

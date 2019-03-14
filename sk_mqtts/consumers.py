@@ -4,33 +4,26 @@ from channels.consumer import SyncConsumer
 
 class MQTTConsumer(SyncConsumer):
 
-    def app_control(self, cmd):
-        """
-
-            Control MQTT Server state
-
-        :param cmd: {'mqtt': 'start'|'stop'}
-        :return:
-        """
+    def mqtt_start(self, request):
         try:
-            c = cmd.get('mqtt', None)
-            if c == 'start':
-                if not server.disabled:
-                    raise RuntimeError('MQTT server already up and running')
-                server.enable()
-            elif c == 'stop':
-                if server.disabled:
-                    raise RuntimeError('MQTT server already stopped')
-                server.disable()
+            if not server.disabled:
+                raise RuntimeError('MQTT server already up and running')
+            server.enable()
         except RuntimeError as e:
             print(e)
-        except:
-            raise
+
+    def mqtt_stop(self, request):
+        try:
+            if server.disabled:
+                raise RuntimeError('MQTT server already stopped')
+            server.disable()
+        except RuntimeError as e:
+            print(e)
 
     def mqtt_send(self, message):
         """
 
-        :param message: json with dev_type, command, payload
+        :param message: json with dev_type, command, payload (dev_name is optional)
         :return:
         """
         print('consumed:', message)
