@@ -1,7 +1,208 @@
-{% extends "base.html" %}
+        {% extends "base.html" %}
 {% block title %}Index{% endblock %}
 {% block content %}
 <div class="container is-fullhd">
-  <div class="inner"></div>
+  <div class="inner columns">
+    <div class="inblock column">
+      <section class="accordions">
+        {% if locks %}
+        <article class="accordion is-active">
+          <div class="col-header accordion-header level toggle">
+            <div class="level-item level-left">
+              <p>
+                <i class="fas fa-lock"></i>
+                lock devices
+                [{{ locks|length }}]
+              <span>
+                online: 1
+              </span>
+              <span>
+                offline: 2
+              </span>
+              </p>
+            </div>
+            <div class="level-item level-right">
+              <a><i class="fas fa-bars" aria-label="toggle"></i></a>
+            </div>
+          </div>
+          <div class="accordion-body">
+            <div class="accordion-content">
+              {% for dev in locks %}
+              <div class="level dev_li">
+                <div class="level-item level-left">
+                  <div class="dev_c_icon">
+                    {% if dev.opened %}
+                    <i class="fas fa-lock-open fa-lg"></i>
+                    {% else %}
+                    <i class="fas fa-lock fa-lg"></i>
+                    {% endif %}
+                  </div>
+                  <div class="dev_c_content">
+                    {{ dev.descr|truncatechars:30  }}
+                  </div>
+                </div>
+                <div class="level-item level-right">
+                {% if dev.online %}
+                  <p class="status status-on level-item">online</p>
+                {% else %}
+                  <p class="status status-off level-item">OFFLINE!</p>
+                {% endif %}
+                  <a class="button is-dark is-small">Edit</a>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </article>
+        {% endif %}
+        {% if terms %}
+        <article class="accordion">
+          <div class="col-header accordion-header level toggle">
+            <div class="level-item level-left">
+              <p>
+                <i class="fas fa-desktop"></i>
+                terminal devices
+                [{{ terms|length }}]
+              <span>
+                online: 1
+              </span>
+              <span>
+                offline: 2
+              </span>
+              </p>
+            </div>
+            <div class="level-item level-right">
+              <a><i class="fas fa-bars" aria-label="toggle"></i></a>
+            </div>
+          </div>
+          <div class="accordion-body">
+            <div class="accordion-content">
+              {% for dev in terms %}
+              <div class="level dev_li">
+                <div class="level-item level-left">
+                  <div class="dev_c_icon">
+                    <i class="fas fa-lock fa-lg"></i>
+                  </div>
+                  <div class="dev_c_content">
+                    {{ dev.descr|truncatechars:30  }}
+                  </div>
+                </div>
+                <div class="level-item level-right">
+                {% if dev.online %}
+                  <p class="status status-on level-item">online</p>
+                {% else %}
+                  <p class="status status-off level-item">OFFLINE!</p>
+                {% endif %}
+                  <a class="button is-dark is-small">Edit</a>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </article>
+        {% endif %}
+        {% if dumbs %}
+        <article class="accordion">
+          <div class="col-header accordion-header level toggle">
+            <div class="level-item level-left">
+              <p>
+                <i class="fas fa-lightbulb"></i>
+                dumb (rgb) devices
+                [{{ dumb|length }}]
+              <span>
+                online: 1
+              </span>
+              <span>
+                offline: 2
+              </span>
+              </p>
+            </div>
+            <div class="level-item level-right">
+              <a><i class="fas fa-bars" aria-label="toggle"></i></a>
+            </div>
+          </div>
+          <div class="accordion-body">
+            <div class="accordion-content">
+              {% for dev in dumbs %}
+              <div class="level dev_li">
+                <div class="level-item level-left">
+                  <div class="dev_c_icon">
+                    <i class="fas fa-lock fa-lg"></i>
+                  </div>
+                  <div class="dev_c_content">
+                    {{ dev.descr|truncatechars:30  }}
+                  </div>
+                </div>
+                <div class="level-item level-right">
+                {% if dev.online %}
+                  <p class="status status-on level-item">online</p>
+                {% else %}
+                  <p class="status status-off level-item">OFFLINE!</p>
+                {% endif %}
+                  <a class="button is-dark is-small">Edit</a>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </article>
+        {% endif %}
+      </section>
+      {% if locks %}
+      <div class="level col_header">
+      </div>
+      {% endif %}
+
+    </div>
+    <div class="inblock column">
+      <div class="col_header">
+        <div class="level">
+          <div class="level-item level-left">
+            <p>лог последних событий </p>
+          </div>
+          <div class="level-item level-right">
+            <a id="btn">[просмотреть лог отдельно]</a>
+          </div>
+        </div>
+      </div>
+      
+      <div id="message_log">
+      </div>
+    </div>
+  </div>
+{% block script %}
+  <script>
+  document.addEventListener("DOMContentLoaded", function(event) {
+  //do work
+    var socket = new WebSocket('ws://' + window.location.host + '/ws/log');
+    socket.onopen = function open() {
+      console.log('WebSockets connection created.');
+    };
+
+    var btn = document.getElementById('btn');
+    btn.onclick = function() {
+      console.log('pressed');
+      socket.send('pipiska');
+    }
+
+    if (socket.readyState == WebSocket.OPEN) {
+      socket.onopen();
+    }
+    
+    // обработчик входящих сообщений
+    socket.onmessage = function(event) {
+      var incomingMessage = event.data;
+      showMessage(incomingMessage);
+    };
+    
+    // показать сообщение в div#subscribe
+    function showMessage(message) {
+      var messageElem = document.createElement('div');
+      messageElem.appendChild(document.createTextNode(message));
+      document.getElementById('message_log').appendChild(messageElem);
+    }
+  });
+  </script>
+{% endblock script %}
 </div>
 {% endblock %}
