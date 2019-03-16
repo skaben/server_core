@@ -3,4 +3,5 @@ from sk_iface import views
 
 urlpatterns = [
     path('', views.index, name='index'),
+    path('sendlog', views.sendlog)
 ]

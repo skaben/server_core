@@ -1,11 +1,11 @@
 from .event_contexts import DeviceEventContext
 from channels.generic.websocket import JsonWebsocketConsumer
-
+from channels.consumer import SyncConsumer
 
 # TODO: move models here, get rid of rest
 
 
-class EventConsumer(JsonWebsocketConsumer):
+class EventConsumer(SyncConsumer):
     """
         Receive and parse events
     """
@@ -17,6 +17,7 @@ class EventConsumer(JsonWebsocketConsumer):
         :return:
         """
         with DeviceEventContext(msg) as dev:
+
             # initialize event context with received message
             if dev.old:
                 # update timestamp first
@@ -54,5 +55,20 @@ class EventConsumer(JsonWebsocketConsumer):
                 print(f'command {dev} not implemented')
 
 
-    def web(self, msg):
-        print(f'received from web: {msg}')
+class WebEventConsumer(SyncConsumer):
+
+    # TODO: channels to websocket translation HOWTOOOOO
+
+    def receive_json(self, content, **kwargs):
+        print("Received event: {}".format(content))
+        self.send_json(content)
+
+    def receive(self, text_data):
+        print(text_data)
+        self.send(text_data)
+
+    def sendlog(self, msg=None):
+        if not msg:
+            return
+        print(f'log as: {msg}')
+        self.send(msg)

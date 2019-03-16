@@ -1,79 +1,12 @@
 <div class="inner" id="header">
   <div class="container is-fullhd">
-    <form id='state-form'>
-      <div class="level">
-        <div class="level-item">
-            <div id="alert_list" class="circle" title="показать все уровни тревоги">
-                <span class="fa fa-eye fa-2x"></span>
-            </div>
-        </div>
+    <div id="header_menu" class="level">
+      <div class="level-left">
         <div class="level-item has-text-centered">
-          <div class="base-info" title="текущее значение уровня тревоги">
-            <p class="heading">уровень тревоги</p>
-            <p class="title">1200</p>
-          </div>
+          <a class="menu" href="/admin">ADMIN</a>
         </div>
-        <div class="level-item has-text-centered">
-          <div class="base-info" title="сколько осталось до следующего уровня">
-            <p class="heading">осталось до <span style="color: red;">красный</span></p>
-            <p class="title">800</p>
-          </div>
-        </div>
-        <div class="level-item has-text-centered">
-          <div>
-            <p class="heading">изменить уровень (+/-)</p>
-          <div class="field">
-            <div class="control" title="положительное или отрицательное значение">
-              <input class="input is-warning"
-                     id='state-value'
-                     type="text"
-                     placeholder="введите число">
-            </div>
-          </div>
-          </div>
-        </div>
-        <div class="level-item has-text-centered">
-          <div>
-            <p class="heading">изменить цветовой статус</p>
-          <div class="select">
-            <select id='state-color' class="color-changer">
-                should be moutful of options
-            </select>
-          </div>
-          </div>
-        </div>
-        <div class="level-item">
-          <input class="button is-medium is-info confirm-state"
-                 type="submit"
-                 value="Подтвердить">
-        </div>
-      </div>
-    </form>
-    <div id="alert_contain">
-      <div class="level">
-        <div class="level-item">
-              What chat room would you like to enter?<br/>
-    <input id="room-name-input" type="text" size="100"/><br/>
-    <input id="room-name-submit" type="button" value="Enter"/>
-
-
-{% block script %}
-  <script>
-    var socket = new WebSocket('ws://' + window.location.host + '/locks/');
-
-    socket.onopen = function open() {
-      console.log('WebSockets connection created.');
-    };
-
-    if (socket.readyState == WebSocket.OPEN) {
-      socket.onopen();
-    }
-  </script>
-{% endblock script %}
         
-        </div>
       </div>
     </div>
-
   </div>
 </div>
