@@ -23,7 +23,7 @@ class MQTTConsumer(SyncConsumer):
     def mqtt_send(self, message):
         """
 
-        :param message: json with dev_type, command, payload (dev_name is optional)
+        :param message: json with dev_type, command, payload (dev_id is optional)
         :return:
         """
         print('consumed:', message)

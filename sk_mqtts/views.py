@@ -25,7 +25,7 @@ def mqtt_send(request):
                 'type': 'mqtt_send',
                 'command': 'ACK',
                 'dev_type': 'lock',
-                'dev_name': 'lock0',
+                'dev_id': 'lock0',
                 'task_id': '12314514'
                }
     async_to_sync(channel_layer.send)('mqtts', test_msg)

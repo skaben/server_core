@@ -17,9 +17,13 @@ class Dumb(models.Model):
         verbose_name_plural = 'devices: RGB (Dumbs)'
 
     ts = models.IntegerField(default=int(time.time()))
+    descr = models.CharField(max_length=120, default='simple dumb')
+    online = models.BooleanField(default=False)
     ip = models.GenericIPAddressField()
     config = models.CharField(max_length=500) # config JSONable string
 
+    def __str__(self):
+        return f'DUMB ID: {self.id} {self.descr}'
 
 class Terminal(models.Model):
 
@@ -28,7 +32,8 @@ class Terminal(models.Model):
         verbose_name_plural = 'devices: Terminals'
 
     ts = models.IntegerField(default=int(time.time()))
-    name = models.CharField(max_length=100, unique=True)
+    descr = models.CharField(max_length=120, default='simple terminal')
+    online = models.BooleanField(default=False)
     ip = models.GenericIPAddressField()
     override = models.BooleanField(default=False)
     powered = models.BooleanField(default=False)
@@ -43,6 +48,8 @@ class Terminal(models.Model):
     msg_header = models.CharField(max_length=100)
     msg_body = models.CharField(max_length=500)
 
+    def __str__(self):
+        return f'TERMINAL ID: {self.id} {self.descr}'
 
 class Lock(models.Model):
 
@@ -51,7 +58,8 @@ class Lock(models.Model):
         verbose_name_plural = 'devices: Locks'
 
     ts = models.IntegerField(default=int(time.time()))
-    name = models.CharField(max_length=100, unique=True)
+    descr = models.CharField(max_length=120, default='simple lock')
+    online = models.BooleanField(default=False)
     ip = models.GenericIPAddressField()
     override = models.BooleanField(default=False)
     sound = models.BooleanField(default=False)
@@ -61,6 +69,8 @@ class Lock(models.Model):
                                 blank=True,
                                 default=None,
                                 on_delete=models.CASCADE)
+    def __str__(self):
+        return f'LOCK ID {self.id} {self.descr}'
 
 #  COLORS AND PERMISSIONS
 

@@ -129,7 +129,7 @@ class PacketReceiver(BaseContext):
         self.data['payload'] = self._payload(message.get(1, None))
         self._check_args(('dev_type', 'command', 'payload'))
         # optional fields
-        self.data['dev_name'] = topic.get(1, None)
+        self.data['dev_id'] = topic.get(1, None)
 
         return self.data
 

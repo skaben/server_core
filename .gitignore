@@ -6,6 +6,7 @@ logs/
 tests/logs/
 .sass-cache
 *.lock
+migrations/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
