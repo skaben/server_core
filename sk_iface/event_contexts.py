@@ -56,7 +56,7 @@ class DeviceEventContext(EventContext):
         data = self.qs.__dict__
         packet = {
             'dev_type': data.pop('dev_type'),
-            'dev_id': data.pop('dev_id'),
+            'dev_name': data.pop('dev_name'),
             # TODO: should be tested carefully
         }
         try:
@@ -75,7 +75,7 @@ class DeviceEventContext(EventContext):
         M = self.model_list.get(self.dev_type, None)
         assert M, \
             Exception(f'unknown model type for {self.dev_type}')
-        self.qs = M.objects.filter(name=self.dev_id)[0]
+        self.qs = M.objects.filter(name=self.dev_name)[0]
         assert self.qs, \
             self.new_device()
         return self.qs

@@ -1,40 +1,28 @@
 body {
   height: 100vh;
   width: 100%;
-  background: whitesmoke;
   background-image: url("../img/bg_contour.png");
   overflow-x: hidden;
   padding: 0;
   margin: 0; }
 
 #app {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.6);
   display: table;
   width: 100%;
   height: 100%; }
 
 #footer, #header {
-  color: whitesmoke;
+  color: white;
   font-weight: 600;
   letter-spacing: 2px;
-  background: #666; }
+  background: #666;
+  box-shadow: inset 0px 2px 5px rgba(0, 0, 0, 0.8); }
 
 #header {
   color: black;
-  background-color: rgba(0, 0, 0, 0.7);
-  border-bottom: 2px solid lightgreen;
-  padding: 0.5rem; }
-
-#header_menu {
-  color: whitesmoke;
-  font-weight: 600;
-  letter-spacing: 0.2rem;
-  padding-left: 0.875rem; }
-  #header_menu a {
-    color: black;
-    transition: 0.3s; }
-    #header_menu a:hover {
-      color: whitesmoke; }
+  background-color: rgba(0, 0, 0, 0.3);
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.8); }
 
 #alert_list {
   -webkit-transition: 0.5s;
@@ -65,6 +53,10 @@ body {
     height: 100%; }
 
 .page-row-expanded {
+  height: 100%; }
+
+div.inner {
+  padding: 0.25em;
   height: 100%; }
 
 hr.delimiter {
@@ -118,53 +110,7 @@ div.circle {
   text-align: center;
   margin: 0 auto 10px auto;
   border-radius: 50%;
-  background-color: whitesmoke; }
-
-.inner {
-  background: whitesmoke;
-  height: 100%;
-  padding: 0;
-  margin: 0 !important; }
-
-.inblock {
-  height: 100%;
-  padding: 0.25rem; }
-
-.col-header {
-  width: 100%;
-  margin: 0 !important;
-  padding: 0.5rem;
-  color: whitesmoke;
-  background: grey !important;
-  border-bottom: 1px solid lightgreen; }
-  .col-header p {
-    font-weight: 600;
-    line-height: 1.5rem;
-    text-transform: uppercase; }
-    .col-header p i {
-      text-align: center;
-      margin: auto;
-      width: 2.5rem;
-      padding: 0.2rem;
-      padding-right: 0.875rem; }
-
-.dev_li {
-  margin: 0 !important;
-  border-bottom: 1px solid grey;
-  color: black;
-  font-weight: 400;
-  width: 100%;
-  min-height: 2rem; }
-
-.dev_c_icon {
-  width: 2rem;
-  margin: 0.5rem; }
-
-.status-on {
-  color: green; }
-
-.status-off {
-  color: red; }
+  background-color: white; }
 
 .err-cont {
   margin-top: -15%; }
