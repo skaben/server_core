@@ -24,9 +24,9 @@ def sendlog(request, msg=None):
     if msg == None:
         msg = {'message': 'test'}
     cmd = {
-        'type': 'sendlog',
+        'type': 'send.log',
     }
     cmd.update(msg)
-    print(f'sending {msg}')
-    async_to_sync(channel_layer.send)('events', msg)
+    print(f'sending {cmd}')
+    async_to_sync(channel_layer.send)('events', cmd)
     return HttpResponse(f'send test msg', content_type='text/plain')

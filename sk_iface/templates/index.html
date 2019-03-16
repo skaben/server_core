@@ -165,8 +165,14 @@
           </div>
         </div>
       </div>
-      
-      <div id="message_log">
+      <div id="message_log"
+           style="overflow-y: scroll;
+                  padding-left: 0.5rem;
+                  margin-top: 1rem;
+                  border: 2px solid green;
+                  height: 82vh;
+                  background: black;
+                  color: lightgreen;">
       </div>
     </div>
   </div>
@@ -182,7 +188,7 @@
     var btn = document.getElementById('btn');
     btn.onclick = function() {
       console.log('pressed');
-      socket.send('pipiska');
+      socket.send('testdata');
     }
 
     if (socket.readyState == WebSocket.OPEN) {
@@ -198,6 +204,7 @@
     // показать сообщение в div#subscribe
     function showMessage(message) {
       var messageElem = document.createElement('div');
+      messageElem.classList.add('message_msg');
       messageElem.appendChild(document.createTextNode(message));
       document.getElementById('message_log').appendChild(messageElem);
     }

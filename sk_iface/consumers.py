@@ -1,14 +1,25 @@
+import json
 from .event_contexts import DeviceEventContext
-from channels.generic.websocket import JsonWebsocketConsumer
+from asgiref.sync import async_to_sync
 from channels.consumer import SyncConsumer
+from channels.consumer import AsyncConsumer
+from channels.layers import get_channel_layer
 
 # TODO: move models here, get rid of rest
 
+channel_layer = get_channel_layer()
 
 class EventConsumer(SyncConsumer):
     """
         Receive and parse events
     """
+    groups = ['ws_send']
+
+    def connect(self):
+        self.channel_layer.group_add("ws_send", self.channel_name)
+
+    def disconnect(self, close_code):
+        self.channel_layer.group_discard("ws_send", self.channel_name)
 
     def device(self, msg):
         """
@@ -54,21 +65,53 @@ class EventConsumer(SyncConsumer):
             else:
                 print(f'command {dev} not implemented')
 
-
-class WebEventConsumer(SyncConsumer):
-
-    # TODO: channels to websocket translation HOWTOOOOO
-
-    def receive_json(self, content, **kwargs):
-        print("Received event: {}".format(content))
-        self.send_json(content)
-
-    def receive(self, text_data):
-        print(text_data)
-        self.send(text_data)
-
-    def sendlog(self, msg=None):
-        if not msg:
+    def send_log(self, data=None):
+        """
+            cross-connection with webeventconsumer for sending messages to weblog
+        :param data:
+        :return:
+        """
+        if not data:
+            print('no data')
             return
-        print(f'log as: {msg}')
-        self.send(msg)
+        print(f'EVENT CONSUMER SENDLOG as: {data}')
+        msg = {
+            'type': 'send.log',
+            'data': json.dumps(data),
+        }
+        async_to_sync(self.channel_layer.group_send)('ws_send', msg)
+
+
+class WebEventConsumer(AsyncConsumer):
+    # WARNING: it's the channel_layer from settings, not from routing
+    channel_layer_alias = "default"
+    groups = ["ws_send"]
+
+    async def websocket_connect(self, event):
+        await self.channel_layer.group_add("ws_send", self.channel_name)
+        await self.send({
+            "type": "websocket.accept",
+        })
+
+    async def websocket_disconnect(self, event):
+        print('websocket disconnect')
+        await self.send({
+            "type": "websocket.accept",
+        })
+
+    async def websocket_receive(self, event):
+        await self.channel_layer.send('events', {
+            'type': 'send.log',
+            'data': event,
+        })
+#        await self.send({
+#            "type": "websocket.send",
+#            "text": event["text"],
+#        })
+
+    async def send_log(self, data):
+        print(f'received: {data}')
+        await self.send({
+            "type": "websocket.send",
+            "text": 'RECEIVED, ONLY DUMP MISSING',
+        })

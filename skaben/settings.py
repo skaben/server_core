@@ -130,6 +130,7 @@ STATIC_URL = '/static/'
 ASGI_APPLICATION = "skaben.routing.application"
 
 # REDIS channel layer
+# channel_layer_aliases belongs to these channel_layers
 
 CHANNEL_LAYERS = {
     'default': {
@@ -137,7 +138,7 @@ CHANNEL_LAYERS = {
         'CONFIG': {
             'hosts': [('localhost', 6379)]
         }
-    }
+    },
 }
 
 # DRF

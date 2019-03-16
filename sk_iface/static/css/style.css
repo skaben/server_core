@@ -166,6 +166,9 @@ div.circle {
 .status-off {
   color: red; }
 
+.message_msg {
+  bottom: 0; }
+
 .err-cont {
   margin-top: -15%; }
 

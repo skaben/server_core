@@ -8,39 +8,6 @@
         
       </div>
     </div>
-{% block script %}
-  <script>
-    var socket = new WebSocket('ws://' + window.location.host + '/ws/info');
-
-    socket.onopen = function open() {
-      console.log('WebSockets connection created.');
-    };
-
-    if (socket.readyState == WebSocket.OPEN) {
-      socket.onopen();
-    }
-    
-    document.forms.publish.onsubmit = function() {
-      var outgoingMessage = this.message.value;
-      this.reset();
-      socket.send(outgoingMessage);
-      return false;
-    };
-
-  // обработчик входящих сообщений
-    socket.onmessage = function(event) {
-      var incomingMessage = event.data;
-      showMessage(incomingMessage);
-    };
-
-    // показать сообщение в div#subscribe
-    function showMessage(message) {
-      var messageElem = document.createElement('div');
-      messageElem.appendChild(document.createTextNode(message));
-      document.getElementById('msglog').appendChild(messageElem);
-    }
-  </script>
-{% endblock script %}
   
   </div>
 </div>

@@ -6,7 +6,7 @@ channel_layer = get_channel_layer()
 
 def mqtt_start(request):
     cmd = {
-            'type': 'mqtt_start',
+            'type': 'mqtt.start',
         }
     async_to_sync(channel_layer.send)('mqtts', cmd)
     return HttpResponse(f'starting mqtt server', content_type='text/plain')
@@ -14,7 +14,7 @@ def mqtt_start(request):
 
 def mqtt_stop(request):
     cmd = {
-            'type': 'mqtt_stop',
+            'type': 'mqtt.stop',
         }
     async_to_sync(channel_layer.send)('mqtts', cmd)
     return HttpResponse(f'stopping mqtt server', content_type='text/plain')
@@ -22,7 +22,7 @@ def mqtt_stop(request):
 
 def mqtt_send(request):
     test_msg = {
-                'type': 'mqtt_send',
+                'type': 'mqtt.send',
                 'command': 'ACK',
                 'dev_type': 'lock',
                 'dev_id': 'lock0',
