@@ -1,8 +1,9 @@
 @charset "utf-8"
 
 $white: whitesmoke
+$gray: #5c5c5c
 $transp-light: rgba(255,255,255,0.2)
-$transp-dark: rgba(0,0,0,0.7)
+$transp-dark: rgba(0,0,0,0.3)
 
 @mixin transition($duration)
   -webkit-transition: $duration
@@ -21,7 +22,7 @@ body
   margin: 0
 
 #app
-  background: $transp-light
+  background: $transp-dark
   display: table
   width: 100%
   height: 100%
@@ -35,10 +36,10 @@ body
 
 #header
   color: black
-  background-color: $transp-dark
-  border-bottom: 2px solid lightgreen
+  background-color: $white
   padding: 0.5rem
-//  box-shadow: 0px 2px 5px rgba(0,0,0,0.8)
+  padding-left: 0.875rem
+//  box-shadow: 0px 2px 2px rgba(0,0,0,0.4)
 
 #header_menu
   color: $white
@@ -139,7 +140,6 @@ div.circle
 // index inner divs
 
 .inner
-  background: $white
   height: 100%
   padding: 0
   margin: 0 !important
@@ -152,8 +152,8 @@ div.circle
   width: 100%
   margin: 0 !important
   padding: 0.5rem
-  color: $white
-  background: grey !important
+  color: whitesmoke
+  background: $gray !important
   border-bottom: 1px solid lightgreen
 
   p
@@ -168,7 +168,24 @@ div.circle
       padding: 0.2rem
       padding-right: 0.875rem
 
+.accordion
+  margin-right: 0.25rem
+  margin-left: 0
+  box-shadow: 2px 2px 2px rgba(0,0,0,0.3)
+  border: 1px solid $gray
+  background: $gray
+
+  &:first-child
+    margin-top: 1rem
+  &:last-child
+    margin-bottom: 1rem
+    padding-bottom: 0.5rem
+
 .dev_li
+  background: whitesmoke
+  line-height: 2rem
+  padding-left: 0.5rem
+  padding-right: 0.5rem
   margin: 0 !important
   border-bottom: 1px solid grey
   color: black
@@ -188,6 +205,28 @@ div.circle
 
 .message_msg
   bottom: 0
+
+#log_wrapper
+  margin-top: 1rem
+  margin-left: 0.25rem
+  background: rgba(0,0,0,0.5)
+  color: lightgreen
+  box-shadow: 2px 2px 2px rgba(0,0,0,0.3)
+
+#message_log
+  height: 82vh
+  border-top: 1px solid white
+  overflow-y: scroll
+  scrollbar-color: lightgreen grey
+  scrollbar-width: thin
+  padding: 0.5rem
+  padding-bottom: 1rem
+
+.message_msg
+  font-family: monospace
+  text-transform: lowercase
+  font-size: 0.875rem
+
 
 // errors
 

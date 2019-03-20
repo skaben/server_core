@@ -155,7 +155,8 @@
 
     </div>
     <div class="inblock column">
-      <div class="col_header">
+      <div id="log_wrapper">
+      <div class="col-header">
         <div class="level">
           <div class="level-item level-left">
             <p>лог последних событий </p>
@@ -165,14 +166,8 @@
           </div>
         </div>
       </div>
-      <div id="message_log"
-           style="overflow-y: scroll;
-                  padding-left: 0.5rem;
-                  margin-top: 1rem;
-                  border: 2px solid green;
-                  height: 82vh;
-                  background: black;
-                  color: lightgreen;">
+      <div id="message_log">
+      </div>
       </div>
     </div>
   </div>
@@ -197,15 +192,21 @@
     
     // обработчик входящих сообщений
     socket.onmessage = function(event) {
-      var incomingMessage = event.data;
-      showMessage(incomingMessage);
+      if (typeof event.data === 'string') {
+        msg = event.data.replace(/'/g, '"');
+        var jsonObject = JSON.parse(msg);
+        var timestamp = jsonObject.timestamp;
+        var content = jsonObject.content;
+        showMessage(timestamp, content);
+      }
     };
     
     // показать сообщение в div#subscribe
-    function showMessage(message) {
+    function showMessage(timestamp, content) {
       var messageElem = document.createElement('div');
       messageElem.classList.add('message_msg');
-      messageElem.appendChild(document.createTextNode(message));
+      messageElem.appendChild(document.createTextNode(timestamp));
+      messageElem.appendChild(document.createTextNode(content));
       document.getElementById('message_log').appendChild(messageElem);
     }
   });
