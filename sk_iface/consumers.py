@@ -10,6 +10,15 @@ from channels.layers import get_channel_layer
 
 channel_layer = get_channel_layer()
 
+class AckManager:
+
+    def open(self, task):
+        # open new task_id
+        task_id = task['data'].pop('task_id')
+        task_data = json.dumps(task['data'])
+
+
+
 class EventConsumer(SyncConsumer):
     """
         Receive and parse events
@@ -28,24 +37,36 @@ class EventConsumer(SyncConsumer):
         :param msg: message from Redis-backed channel layer
         :return:
         """
-        self._send_ws_log(msg)
+        self._log_ws('{dev_type}: {dev_id} sending {command}'.format(**msg))
         # next - send command
         with DeviceEventContext(msg) as dev:
-
             # initialize event context with received message
-            if dev.old:
-                # update timestamp first
+            # trying to get ORM object (or adding new device)
+            orm = dev.get()
+            if not orm:
+                # TODO: call new_device procedure
                 pass
+            # update timestamp first
+            orm.ts = dev.payload['ts']
 
             if dev.command == 'PONG':
-                # check timestamp
-                # update timestamp
-                pass
+                if dev.old:
+                    # return config
+                    response = dev.mqtt_response()
+                    response.update({
+                        'type': 'mqtt.send',
+                        'command': 'CUP',
+                        'task_id': '12345'
+                    })
+                    # holy cow, that's stupid channels
+                    async_to_sync(channel_layer.send)('mqtts', response)
+
             elif dev.command in ('ACK', 'NACK'):
                 # check for task_id
                 # put into separated high-priority channel
                 # ackmanager deal with it
                 pass
+
             elif dev.command == 'CUP':
                 # client should be updated
                 # get device config
@@ -55,6 +76,7 @@ class EventConsumer(SyncConsumer):
                 # retry X times
                 # except: log and update device as offline
                 pass
+
             elif dev.command == 'SUP':
                 # server should be updated
                 # get_device
@@ -68,20 +90,18 @@ class EventConsumer(SyncConsumer):
             else:
                 print(f'command {dev} not implemented')
 
-    def _send_ws_log(self, data=None):
+    def _log_ws(self, data=None):
         """
             cross-connection with webeventconsumer for sending messages to weblog
         :param data:
         :return:
         """
         if not data:
-            print('no data')
             return
         msg = {
-            "type": "send.log",
+            "type": "ws.log",
             "data": data,
         }
-        print('sending', msg['data'])
         async_to_sync(self.channel_layer.group_send)('ws_send', msg)
 
 
@@ -112,10 +132,11 @@ class WebEventConsumer(AsyncConsumer):
 #            "text": event["text"],
 #        })
 
-    async def send_log(self, data):
+    async def ws_log(self, data):
         timestamp = datetime.now().strftime('%X')
         data.update({'time': timestamp})
+
         await self.send({
             "type": "websocket.send",
-            "text": str(data)
+            "text": json.dumps(data)
         })

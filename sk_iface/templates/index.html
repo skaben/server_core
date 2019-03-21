@@ -1,4 +1,4 @@
-        {% extends "base.html" %}
+          {% extends "base.html" %}
 {% block title %}Index{% endblock %}
 {% block content %}
 <div class="container is-fullhd">
@@ -193,22 +193,29 @@
     // обработчик входящих сообщений
     socket.onmessage = function(event) {
       if (typeof event.data === 'string') {
-        msg = event.data.replace(/'/g, '"');
-        var jsonObject = JSON.parse(msg);
-        var timestamp = jsonObject.timestamp;
-        var content = jsonObject.content;
+        var jsonObject = JSON.parse(event.data);
+        var timestamp = jsonObject.time;
+        var content = JSON.stringify(jsonObject.data);
         showMessage(timestamp, content);
       }
     };
     
-    // показать сообщение в div#subscribe
+    const msg_log = document.getElementById("message_log")
+    let c = 0
+    
+    // show message in message log (with scroll to bottom)
     function showMessage(timestamp, content) {
+      const isScrolledToBottom = msg_log.scrollHeight - msg_log.clientHeight <= msg_log.scrollTop + 1
       var messageElem = document.createElement('div');
       messageElem.classList.add('message_msg');
-      messageElem.appendChild(document.createTextNode(timestamp));
+      messageElem.appendChild(document.createTextNode(timestamp + ' '));
       messageElem.appendChild(document.createTextNode(content));
-      document.getElementById('message_log').appendChild(messageElem);
+      msg_log.appendChild(messageElem);
+      if (isScrolledToBottom) {
+        msg_log.scrollTop = msg_log.scrollHeight - msg_log.clientHeight
+      }
     }
+
   });
   </script>
 {% endblock script %}
