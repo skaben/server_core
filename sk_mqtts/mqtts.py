@@ -18,7 +18,31 @@ from sk_mqtts.config import config
 from sk_mqtts.contexts import PacketSender, PacketReceiver
 from sk_mqtts.views import mqtt_to_event
 
-class MQTTServer:
+
+class MQTTPing(threading.Thread):
+
+    def __init__(self, pub):
+        super().__init__()
+        self.pub = pub
+
+    def run(self):
+        print('start pinging')
+        self.kill = None
+        while True:
+            if self.kill:
+                break
+            try:
+                for channel in config.dev_types:
+                    with PacketSender() as p:
+                        packet = p.create('PING',
+                                          dev_type=channel)
+                        self.pub.put(packet.encode())
+                    time.sleep(config.timeout.get('basic', 1))
+            except:
+                logger.exception('cannot send ping')
+
+
+class MQTTServer(threading.Thread):
 
     """
         listen to mqttserver
@@ -27,7 +51,8 @@ class MQTTServer:
     """
 
     def __init__(self, config, queue):
-        self.disabled = True
+        super().__init__()
+        self.running = None
         self.pub = queue
         self.config = config
         self.client = None
@@ -40,21 +65,10 @@ class MQTTServer:
         self.sub = []  # subscribed channels
         self.no_sub = []  # not subscribed channels
 
-    def enable(self):
-        self.disabled = None
-        msg = 'MQTT server start'
-        self.main = threading.Thread(target=self.run,
-                                     name='mqtt_main',
-                                     daemon=True)
-        self.main.start()
-        self.ping = threading.Thread(target=self._ping,
-                                     name='mqtt_ping',
-                                     daemon=True)
-        self.ping.start()
-        print(msg)
-        return msg
-
     def run(self):
+        print('MQTT server starting...')
+        self.running = True
+        ping = MQTTPing(self.pub)
         host = self.config.mqtt['host']
         port = self.config.mqtt['port']
         self.client = mqtt.Client(clean_session=True)
@@ -78,11 +92,11 @@ class MQTTServer:
         logger.info(f'subscribed to: {", ".join([s[0] for s in self.sub])}')
 
         # main routine
-        print('MQTT server started')
+        ping.start()
         try:
             while True:
-                if self.disabled:
-                    break
+                #if not self.running:
+                #    break
                 if self.pub.empty():
                     time.sleep(.01)
                 else:
@@ -142,25 +156,9 @@ class MQTTServer:
 
     def disable(self):
         msg = 'MQTT server stop'
-        self.is_connected = False
-        self.disabled = True
-        self.main.join(1)
-        self.ping.join(1)
         self.no_sub = []
         self.sub = []
         print(msg)
-
-    def _ping(self):
-        print('start pinging')
-        while True:
-            if self.disabled:
-                break
-            for channel in self.config.dev_types:
-                with PacketSender() as p:
-                    packet = p.create('PING',
-                                      dev_type=channel)
-                    self.pub.put(packet.encode())
-                time.sleep(self.config.timeout.get('basic', 1))
 
 
 mqtt_send_queue = Queue()

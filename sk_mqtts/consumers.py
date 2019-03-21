@@ -6,17 +6,17 @@ class MQTTConsumer(SyncConsumer):
 
     def mqtt_start(self, request):
         try:
-            if not server.disabled:
+            if server.running:
                 raise RuntimeError('MQTT server already up and running')
-            server.enable()
+            server.start()
         except RuntimeError as e:
             print(e)
 
     def mqtt_stop(self, request):
         try:
-            if server.disabled:
+            if not server.running:
                 raise RuntimeError('MQTT server already stopped')
-            server.disable()
+            server.stop()
         except RuntimeError as e:
             print(e)
 
@@ -26,10 +26,14 @@ class MQTTConsumer(SyncConsumer):
         :param message: json with dev_type, command, payload (dev_id is optional)
         :return:
         """
-        print('consumed:', message)
-        if server.disabled:
+
+        if not server.running:
             print('server not running. start server before sending message!')
             return False
+        else:
+            dev_id = message.get('dev_id', 'broadcast')
+            print('{command} to {dev_type} '.format(**message),
+                 f' id: {dev_id}')
         try:
             with PacketSender() as sender:
                 message.pop('type', None)

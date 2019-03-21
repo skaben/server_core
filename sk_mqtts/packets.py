@@ -6,10 +6,10 @@ class BasePacket:
     """
         Base packet class
     """
-    def __init__(self, dev_type, dev_id=None):
+    def __init__(self, dev_type, ts=int(time.time()), dev_id=None):
         self.data = dict()  # packet payload
         self.command = str()  # command, assign in child classes
-        self.ts = int(time.time())  # timestamp on start
+        self.ts = ts  # timestamp on start, should be external if client
         self.dev_type = dev_type  # group channel address
 
         # WARNING: dev_id here will be used for addressing.
@@ -41,8 +41,10 @@ class ACK(BasePacket):
         Confirm previous packet as success
         Should send ts of previous packet
     """
-    def __init__(self, dev_type, task_id, dev_id=None):
-        super().__init__(dev_type, dev_id)
+    def __init__(self, dev_type, task_id, dev_id=None, ts=int(time.time())):
+        super().__init__(dev_type=dev_type,
+                         dev_id=dev_id,
+                         ts=ts)
         self.command = 'ACK'
         self.task_id = task_id
 
@@ -52,8 +54,10 @@ class NACK(BasePacket):
         Confirm previous packet as unsuccess
         Should send ts of previous packet
     """
-    def __init__(self, dev_type, task_id, dev_id=None):
-        super().__init__(dev_type, dev_id)
+    def __init__(self, dev_type, task_id, dev_id=None, ts=int(time.time())):
+        super().__init__(dev_type=dev_type,
+                         dev_id=dev_id,
+                         ts=ts)
         self.command = 'NACK'
         self.task_id = task_id
 
@@ -64,8 +68,11 @@ class WAIT(BasePacket):
         before sending another PONG client should either
         wait timeout or receive nowait-packet (CUP/SUP)
     """
-    def __init__(self, dev_type, timeout, dev_id=None):
-        super().__init__(dev_type, dev_id)
+    def __init__(self, dev_type, timeout, dev_id=None, ts=int(time.time())):
+        super().__init__(dev_type=dev_type,
+                         dev_id=dev_id,
+                         ts=ts)
+
         if isinstance(timeout, float):
             timeout = int(timeout)
 
@@ -82,8 +89,9 @@ class PING(BasePacket):
     """
         Ping packet. Broadcast only.
     """
-    def __init__(self, dev_type):
-        super().__init__(dev_type)
+    def __init__(self, dev_type, ts=int(time.time())):
+        super().__init__(dev_type=dev_type,
+                         ts=ts)
         self.command = 'PING'
 
 
@@ -92,8 +100,10 @@ class PONG(BasePacket):
         PONG packet, send only in response to PING
         Should send timestamp value of PING
     """
-    def __init__(self, dev_type, dev_id, ts):
-        super().__init__(dev_type, dev_id)
+    def __init__(self, dev_type, dev_id, ts=int(time.time())):
+        super().__init__(dev_type=dev_type,
+                         dev_id=dev_id,
+                         ts=ts)
         self.command = 'PONG'
         self.ts = ts
 
@@ -103,13 +113,17 @@ class PayloadPacket(BasePacket):
     """
         Loaded packet basic class.
     """
-    def __init__(self, dev_type, payload, dev_id=None):
-        super().__init__(dev_type, dev_id)
+    def __init__(self, dev_type, payload, task_id,
+                 dev_id=None, ts=int(time.time())):
+        super().__init__(dev_type=dev_type,
+                         dev_id=dev_id,
+                         ts=ts)
         if isinstance(payload, str):
             try:
                 payload = pl_decode(payload)
             except:
                 raise Exception(f'cannot decode {payload}')
+        self.data.update({'task_id': task_id})
         self.data.update(**payload)
 
 
@@ -117,8 +131,13 @@ class CUP(PayloadPacket):
     """
         Client UPdate - update client config
     """
-    def __init__(self, dev_type, payload, dev_id=None):
-        super().__init__(dev_type, payload, dev_id)
+    def __init__(self, dev_type, payload, task_id,
+                 dev_id=None, ts=int(time.time())):
+        super().__init__(dev_type=dev_type,
+                         task_id=task_id,
+                         dev_id=dev_id,
+                         payload=payload,
+                         ts=ts)
         self.command = 'CUP'
 
 
@@ -126,7 +145,12 @@ class SUP(PayloadPacket):
     """
         Server UPdate - update server config
     """
-    def __init__(self, dev_type, payload, dev_id=None):
-        super().__init__(dev_type, payload, dev_id)
+    def __init__(self, dev_type, payload, task_id,
+                 dev_id=None, ts=int(time.time())):
+        super().__init__(dev_type=dev_type,
+                         task_id=task_id,
+                         dev_id=dev_id,
+                         payload=payload,
+                         ts=ts)
         self.command = 'SUP'
 
