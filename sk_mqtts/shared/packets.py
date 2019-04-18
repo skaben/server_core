@@ -1,6 +1,7 @@
 import time
 from .helpers import pl_decode, pl_encode, sjoin
 
+# TODO: beautify client ts passing as argument
 
 class BasePacket:
     """
@@ -9,7 +10,7 @@ class BasePacket:
     def __init__(self, dev_type, ts=int(time.time()), dev_id=None):
         self.data = dict()  # packet payload
         self.command = str()  # command, assign in child classes
-        self.ts = ts  # timestamp on start, should be external if client
+        self.ts = int(time.time()) # timestamp on start, should be external if client
         self.dev_type = dev_type  # group channel address
 
         # WARNING: dev_id here will be used for addressing.

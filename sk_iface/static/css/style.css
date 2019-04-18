@@ -46,17 +46,17 @@ body {
   cursor: pointer;
   box-shadow: 1px 3px 3px rgba(0, 0, 0, 0.7); }
   #alert_list:hover, #alert_list:active, #alert_list:focus {
-    padding-top: 0.25em;
+    padding-top: +.25em;
     box-shadow: inset 1px 3px 3px rgba(0, 0, 0, 0.7); }
 
 #alert_contain {
-  padding: 0.75em;
+  padding: .75em;
   width: 100%;
   color: rgba(0, 0, 0, 0.6);
   display: none; }
 
 #state-form {
-  margin: 0.75em 0 0.75em 0; }
+  margin: .75em 0 .75em 0; }
 
 .page-row {
   display: table-row;
@@ -74,7 +74,7 @@ hr.delimiter {
 p.state {
   font-size: 0.875rem;
   letter-spacing: 2px;
-  font-family: "tech", monospace; }
+  font-family: 'tech', monospace; }
 
 img.logo {
   height: 2.5rem; }
@@ -90,7 +90,7 @@ div.base-info {
 div.circle {
   color: black;
   border-radius: 50%;
-  padding: 0.75rem; }
+  padding: .75rem; }
 
 .color-changer option {
   padding-left: 2rem;
@@ -205,6 +205,27 @@ div.circle {
   text-transform: lowercase;
   font-size: 0.875rem; }
 
+.modal-bg {
+  height: 100%;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.3); }
+
+.asteriskField {
+  display: none; }
+
+.modal-card {
+  margin-top: 10vh; }
+
+.modal-checkboxes div {
+  width: 100%;
+  padding: 2px; }
+
+.inline-label {
+  padding-top: 10px;
+  font-family: monospace;
+  font-weight: 600;
+  text-transform: lowercase; }
+
 .err-cont {
   margin-top: -15%; }
 
@@ -225,5 +246,3 @@ body::-webkit-scrollbar-track {
 body::-webkit-scrollbar-thumb {
   background-color: darkgrey;
   outline: 1px solid slategrey; }
-
-/*# sourceMappingURL=style.css.map */

@@ -12,12 +12,13 @@ import time
 import threading
 from multiprocessing import Queue
 import paho.mqtt.client as mqtt
-import logging as logger
+import logging
 
 from sk_mqtts.config import config
-from sk_mqtts.contexts import PacketSender, PacketReceiver
+from sk_mqtts.shared.contexts import PacketSender, PacketReceiver
 from sk_mqtts.views import mqtt_to_event
 
+logger = logging.getLogger('skaben.sk_mqtts')
 
 class MQTTPing(threading.Thread):
 
@@ -89,8 +90,6 @@ class MQTTServer(threading.Thread):
             logger.exception('Exception in MQTT runner. exiting.')
             raise
 
-        logger.info(f'subscribed to: {", ".join([s[0] for s in self.sub])}')
-
         # main routine
         ping.start()
         try:
@@ -128,7 +127,7 @@ class MQTTServer(threading.Thread):
 
         try:
             # control channels only
-            self.subscribe(self.publish_to)
+            self.subscribe(self.listen_to)
         except:
             logger.exception("subscription failed")
             self.client.on_disconnect()
@@ -136,7 +135,7 @@ class MQTTServer(threading.Thread):
         self.is_connected = True
 
     def on_disconnect(self):
-        self.disable()
+        self.stop()
 
     def publish(self, message):
         if not isinstance(message, tuple):
@@ -153,8 +152,9 @@ class MQTTServer(threading.Thread):
             else:
                 self.no_sub.append(channel)  # for later use
                 logger.warning(f'failed to subscribe to {channel}')
+        logger.info(f'subscribed to: {", ".join([s[0] for s in self.sub])}')
 
-    def disable(self):
+    def stop(self):
         msg = 'MQTT server stop'
         self.no_sub = []
         self.sub = []

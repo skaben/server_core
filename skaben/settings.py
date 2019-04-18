@@ -33,6 +33,7 @@ ALLOWED_HOSTS = ['*']
 INSTALLED_APPS = [
     'channels',
     'rest_framework',
+    'crispy_forms',
     'django_filters',
     'sk_iface.apps.IfaceConfig',
     'sk_rest.apps.RESTConfig',
@@ -150,6 +151,66 @@ REST_FRAMEWORK = {
         'django_filters.rest_framework.DjangoFilterBackend',
     ),
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
-    ]
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
+    #    'rest_framework.renderers.BrowsableAPIRenderer',
+    )
+}
+
+# LOGGING
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(asctime)s :: <%(filename)s:%(lineno)s - '
+                      '%(funcName)s()>  %(levelname)s > %(message)s'
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': 'django_debug.log',
+            'formatter': 'simple'
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple'
+        },
+        'skaben_file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': 'main.log',
+            'formatter': 'verbose'
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'skaben': {
+            'level': 'DEBUG',
+            'handlers': ['skaben_file'],
+            'format': '%(asctime)s :: <%(filename)s:%(lineno)s'
+               '- %(funcName)s()>  %(levelname)s > %(message)s',
+            # required to avoid double logging with root logger
+            'propagate': False,
+        },
+    },
+}
+
+# APP VARIABLES
+
+APPCFG = {
+    'timeout': 10
 }

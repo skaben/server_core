@@ -2,6 +2,7 @@ import time
 import json
 #from sk_rest import urls as REST
 from sk_rest import models as API
+from django.conf import settings
 
 # TODO: make your own rest api
 
@@ -16,6 +17,8 @@ class EventContext:
     """
         basic context manager methods
     """
+
+    nosend_fields = ['descr', '_state', 'id', 'term_id_id']
 
     def __init__(self):
         self.data = dict()
@@ -40,8 +43,6 @@ class DeviceEventContext(EventContext):
         'terminal': API.Terminal,
     }
 
-    nosend_fields = ['descr', '_state', 'id']
-
     def __init__(self, event):
         super().__init__()
         event.pop('type', None)  # remove channel_layer info
@@ -55,23 +56,23 @@ class DeviceEventContext(EventContext):
 
         self.__dict__.update(event)
         self.ts = event['payload']['ts']
-        timeout = 2  # TEST purposes TODO: get from config
-        if self.ts + timeout < int(time.time()):
+        #timeout = 2  # TEST purposes TODO: get from config
+
+        if self.ts + settings.APPCFG.get('timeout', 30) < int(time.time()):
             self.old = True
 
     def get_conf(self, fields=None):
         if not self.qs:
             self.get()
-        db_data = self.qs.__dict__
-        for nonconf in self.nosend_fields:
-            db_data.pop(nonconf)
+        db_data = {k: v for k, v in self.qs.__dict__.items()
+                   if k not in self.nosend_fields}
         try:
             if not fields:
                 # just put all config in it
                 pl = db_data
             else:
                 # here comes filtering
-                pl = {k: v for k, v in db_data.items if k in fields}
+                pl = {k: v for k, v in db_data.items() if k in fields}
             payload = json.dumps(pl).replace("'", '"')
         except ValueError:
             # bad fields

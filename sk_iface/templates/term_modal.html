@@ -1,0 +1,45 @@
+    <div id="mterm{{dev.id}}" class="modal">
+      <div class="modal-background"></div>
+      <div class="modal-card">
+        <form id="form-term-{{ dev.id }}"
+              action="/term/{{dev.id}}/update/"
+              method="post">
+        {% csrf_token %}
+        <header class="modal-card-head">
+          <p id='modal-card-title-term-{{dev.id}}'
+             class="modal-card-title">
+             изменить конфигурацию терминала {{dev.id}}
+          </p>
+          <a class="delete" aria-label="close" rel="modal:close"></a>
+        </header>
+        <section class="modal-card-body">
+          {{ termform.as_p }}
+        </section>
+        <footer class="modal-card-foot">
+          <input class="button is-success"
+                 type="submit"
+                 value="Подтвердить">
+          <a class="button" rel="modal:close">Cancel</a>
+          <p id="resp-term-{{dev.id}}"></p>
+        </footer>
+        </form>
+        <script>
+        $(document).ready(function () {
+          $( "#form-term-{{dev.id}}" ).on( "submit", function( event ) {
+           // event.preventDefault();
+            var content = $(this).serialize();
+            
+            console.log( $( this ).serialize() );
+            var str = $( "#resp-term-{{dev.id}}" ).text(
+             'конфигурация отправлена, обновление состояния...');
+             
+            //TODO: websockets maybe
+            //websocket.send(content);
+            //console.log(websocket);
+          });
+        });
+        </script>
+      </div>
+    </div>
+<!-- Link to open the modal
+  <p><a href="#ex1" rel="modal:open">Open Modal</a></p> -->

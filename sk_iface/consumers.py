@@ -1,4 +1,5 @@
 import json
+import logging
 from datetime import datetime
 from .event_contexts import DeviceEventContext
 from asgiref.sync import async_to_sync
@@ -9,6 +10,32 @@ from channels.layers import get_channel_layer
 # TODO: move models here, get rid of rest
 
 channel_layer = get_channel_layer()
+
+import os
+
+#  helper is temporarily here, to be moved
+
+class LogWriter:
+    def __init__(self):
+        self.fname = 'wslogging'
+        if not os.path.exists(self.fname):
+            with open(self.fname, 'w+') as fh:
+                fh.write('')
+
+    def write(self, str):
+        with open(self.fname, 'w+') as fh:
+            fh.write(str + '\n')
+
+    def read(self, lines=None):
+        with open(self.fname, 'r') as fh:
+            data = fh.readlines()[::-1]
+
+        if not lines:
+            return data
+        else:
+            return data[:lines]
+
+lw = LogWriter()
 
 class AckManager:
 
@@ -59,6 +86,8 @@ class EventConsumer(SyncConsumer):
                         'task_id': '12345'
                     })
                     # holy cow, that's stupid channels
+                    self._log_ws('[!] sending configuration to '
+                                 '{dev_type}/{dev_id}'.format(**msg))
                     async_to_sync(channel_layer.send)('mqtts', response)
 
             elif dev.command in ('ACK', 'NACK'):
@@ -83,12 +112,12 @@ class EventConsumer(SyncConsumer):
                 # validate data
                 # log data
                 # save device
-                # send response to mqtt via channel_layer
+                # do not send response to mqtt via channel_layer - left unanswered
                 # send update to web via websocket
                 # except: log event
                 pass
             else:
-                print(f'command {dev} not implemented')
+                logging.error(f'command {dev} not implemented')
 
     def _log_ws(self, data=None):
         """
@@ -117,7 +146,7 @@ class WebEventConsumer(AsyncConsumer):
         })
 
     async def websocket_disconnect(self, event):
-        print('websocket disconnect')
+        logging.debug('websocket disconnect')
         await self.send({
             "type": "websocket.accept",
         })
@@ -133,10 +162,13 @@ class WebEventConsumer(AsyncConsumer):
 #        })
 
     async def ws_log(self, data):
+        logging.debug(f'ws log received: {data}')
         timestamp = datetime.now().strftime('%X')
         data.update({'time': timestamp})
-
+        text = json.dumps(data)
+        #lw.write(text)
         await self.send({
             "type": "websocket.send",
-            "text": json.dumps(data)
+            "text": text
         })
+
