@@ -1,4 +1,3 @@
-{% load rest_framework %}
     <div id="mlock{{dev.id}}" class="modal">
       <div class="modal-background"></div>
       <div class="modal-card">
@@ -6,8 +5,9 @@
           <p class="modal-card-title">изменить конфигурацию замка {{dev.id}} </p>
           <a class="delete" aria-label="close" rel="modal:close"></a>
         </header>
-        <form
-              action="/api/lock/update-partial/{{dev.id}}/"
+        <form class="form-lock"
+              id="form-lock-{{dev.id}}"
+              action="{% url 'update-lock' dev.id %}"
               method="post"
               novalidate>
         {% csrf_token %}
@@ -32,9 +32,13 @@
           </div>
           <div class="control">
             <label class="checkbox inline-label">
-              <input type="checkbox"
+              <input type="radio"
                      name="opened"
                      {% if dev.opened %} checked {% endif %} >
+              замок открыт
+              <input type="radio"
+                     name=""
+                     {% if not dev.opened %} checked {% endif %} >
               замок открыт
             </label>
           </div>
@@ -46,21 +50,50 @@
               OVERRIDE
             </label>
           </div>
-          <hr>
-          <label class="label">Связанный терминал</label>
-          <div class="select">
-            <select>
-                {% for term in lockform.term_id %}
-                  <option>{{ term }}</option>
-                {% endfor %}
-            </select>
-          </div>
         </section>
         <footer class="modal-card-foot">
           <input class="button is-success" type="submit" value="Подтвердить">
           <a class="button" rel="modal:close">Cancel</a>
+          <p id="resp-lock-{{dev.id}}"></p>
         </footer>
         </form>
+        <script>
+        $(document).ready(function () {
+            var $myForm = $('#form-lock-{{ dev.id }}');
+            var $respDiv = $("#resp-lock-{{ dev.id }}");
+            
+            $myForm.submit(function(event){
+                event.preventDefault()
+                var $formData = $(this).serialize()
+                var $thisURL = $myForm.attr('action')
+                $.ajax({
+                    method: "POST",
+                    url: $thisURL,
+                    data: $formData,
+                    success: handleFormSuccess,
+                    error: handleFormError,
+                })
+            })
+            
+            function handleFormSuccess(data, textStatus, jqXHR){
+                $respDiv.addClass('has-text-success');
+                $respDiv.text(data.result);
+                jsonObject = JSON.parse(data.data);
+                console.log(jsonObject);
+                $myForm.load(' ' + $myForm.attr('id'),
+                                 function(){$(this).children().unwrap()});
+                //console.log(jqXHR)
+            }
+
+            function handleFormError(jqXHR, textStatus, errorThrown){
+                $respDiv.addClass('has-text-danger');
+                $respDiv.text(data.result);
+                //console.log(jqXHR)
+                console.log(textStatus);
+                console.log(errorThrown);
+            }
+        });
+        </script>
       </div>
     </div>
 <!-- Link to open the modal

@@ -1,0 +1,85 @@
+<article id='terms-menu' class="accordion is-active">
+  <div class="col-header accordion-header level toggle">
+    <div class="level-item level-left">
+      <p class="sk_heading">
+        <i class="fas fa-terminal fa-lg"></i>
+        terminal devices [{{ context.terms|length }}]
+      </p>
+    </div>
+    <div class="level-item level-right">
+      <a><i class="fas fa-bars" aria-label="toggle"></i></a>
+    </div>
+  </div>
+  <div class="accordion-body">
+    <div class="accordion-content">
+      {% for dev in context.terms %}
+        <div class="level dev_li"
+             {% if dev.offline %}
+             style="background-color: rgba(200,200,200);"
+             {% endif %}
+          >
+          <div class="level-item level-left">
+              {% if dev.offline %}
+                 <i class="dev-status fas fa-exclamation-triangle
+                           has-text-danger fa-lg"
+                    title="device offline for {{ dev.offline }} seconds">
+                 </i>
+              {% else %}
+                 <i class="dev-status fas fa-dot-circle has-text-success fa-lg"
+                    title="device online"></i>
+              {% endif %}
+              {% if not dev.powered %}
+                <i class="dev-status fas fa-power-off fa-lg
+                          has-text-grey"
+                   title="power off"></i>
+              {% elif dev.blocked %}
+                <i class="dev-status fas fa-minus-circle fa-lg
+                          has-text-danger"
+                   title="blocked"></i>
+              {% elif dev.hacked %}
+                <i class="dev-status fas fa-bug fa-lg"
+                   title="hacked"></i>
+              {% elif dev.powered %}
+                <i class="dev-status fas fa-power-off fa-lg
+                          has-text-success"
+                   title="power on"></i>
+              {% else %}
+                <i class="dev-status fas fa-exclamation-triangle fa-lg"
+                   title="error when reading status check admin">
+                </i>
+              {% endif %}
+            <div class="level-item dev_c_content">
+              <a href="#mterm{{dev.id}}"
+                 rel="modal:open"
+                 class="device-a has-text-grey-darker"
+                 title="edit device">{{ dev.descr|truncatechars:30  }}</a>
+            </div>
+          </div>
+          <div class="level-item level-right">
+              {% if dev.override %}
+                <p class="has-text-danger"
+                   style="font-weight: 800;
+                          line-height: 2rem;
+                          padding-top: .25rem;
+                          padding-right: 2rem;
+                          font-family: monospace;
+                          font-size: 1rem;"
+                   title="manual override enabled">
+                  MANUAL
+                </p>
+                <i class="dev-status dev-status_toggle fas fa-toggle-on fa-lg"
+                   title="back to normal"></i>
+              {% else %}
+                <i class="dev-status dev-status_toggle fas fa-toggle-off fa-lg"
+                   title="fast toggle: set device blocked"></i>
+              {% endif %}
+            {% include 'term_modal.html' %}
+            <a class="button is-dark is-small"
+               href="#mterm{{dev.id}}"
+               rel="modal:open">Edit</a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+</article>

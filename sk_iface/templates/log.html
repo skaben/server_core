@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %} SKABEN logs {% endblock %}
+{% block content %}
+<div class="container is-fullhd">
+  <div class="inner columns">
+    <div class="inblock column"
+         style="background: white; padding: .75rem">
+      <p class="heading"> лог последних событий </p>
+      <div id="message_log">
+      {% for record in log_records %}
+        <div class="message_msg">
+          <{{ record.human_time }}> "{{ record.message }}"
+        </div>
+      {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

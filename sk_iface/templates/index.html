@@ -1,185 +1,51 @@
 {% extends "base.html" %}
-{% block title %}Index{% endblock %}
+{% block title %} SKABEN interface {% endblock %}
 {% block content %}
 <div class="container is-fullhd">
   <div class="inner columns">
     <div class="inblock column">
       <section class="accordions">
+        
         {% if context.locks %}
-        <article class="accordion is-active">
-          <div class="col-header accordion-header level toggle">
-            <div class="level-item level-left">
-              <p>
-                <i class="fas fa-lock"></i>
-                lock devices
-                [{{ context.locks|length }}]
-              <span>
-                online: 1
-              </span>
-              <span>
-                offline: 2
-              </span>
-              </p>
-            </div>
-            <div class="level-item level-right">
-              <a><i class="fas fa-bars" aria-label="toggle"></i></a>
-            </div>
-          </div>
-          <div class="accordion-body">
-            <div class="accordion-content">
-              {% for dev in context.locks %}
-              <div class="level dev_li">
-                <div class="level-item level-left">
-                  <div class="dev_c_icon">
-                    {% if dev.opened %}
-                    <i class="fas fa-lock-open fa-lg"></i>
-                    {% else %}
-                    <i class="fas fa-lock fa-lg"></i>
-                    {% endif %}
-                  </div>
-                  <div class="dev_c_content">
-                    {{ dev.descr|truncatechars:30  }}
-                  </div>
-                </div>
-                <div class="level-item level-right">
-                {% if dev.online %}
-                  <p class="status status-on level-item">online</p>
-                {% else %}
-                  <p class="status status-off level-item">OFFLINE!</p>
-                {% endif %}
-                  {% include 'lock_modal.html' %}
-                  <a class="button is-dark is-small"
-                     href="#mlock{{dev.id}}"
-                     rel="modal:open">Edit</a>
-                </div>
-              </div>
-              {% endfor %}
-            </div>
-          </div>
-        </article>
+        {% include 'locks_menu.html' %}
         {% endif %}
 
         {% if context.terms %}
-        <article class="accordion">
-          <div class="col-header accordion-header level toggle">
-            <div class="level-item level-left">
-              <p>
-                <i class="fas fa-desktop"></i>
-                terminal devices
-                [{{ context.terms|length }}]
-              <span>
-                online: 1
-              </span>
-              <span>
-                offline: 2
-              </span>
-              </p>
-            </div>
-            <div class="level-item level-right">
-              <a><i class="fas fa-bars" aria-label="toggle"></i></a>
-            </div>
-          </div>
-          <div class="accordion-body">
-            <div class="accordion-content">
-              {% for dev in context.terms %}
-              <div class="level dev_li">
-                <div class="level-item level-left">
-                  <div class="dev_c_icon">
-                    <i class="fas fa-lock fa-lg"></i>
-                  </div>
-                  <div class="dev_c_content">
-                    {{ dev.descr|truncatechars:30  }}
-                  </div>
-                </div>
-                <div class="level-item level-right">
-                {% if dev.online %}
-                  <p class="status status-on level-item">online</p>
-                {% else %}
-                  <p class="status status-off level-item">OFFLINE!</p>
-                {% endif %}
-                  {% include 'term_modal.html' %}
-                  <a class="button is-dark is-small"
-                     href="#mterm{{dev.id}}"
-                     rel="modal:open">Edit</a>
-                </div>
-              </div>
-              {% endfor %}
-            </div>
-          </div>
-        </article>
+        {% include 'terms_menu.html' %}
         {% endif %}
+        <!--
         {% if context.dumbs %}
-        <article class="accordion">
-          <div class="col-header accordion-header level toggle">
-            <div class="level-item level-left">
-              <p>
-                <i class="fas fa-lightbulb"></i>
-                dumb (rgb) devices
-                [{{ context.dumb|length }}]
-              <span>
-                online: 1
-              </span>
-              <span>
-                offline: 2
-              </span>
-              </p>
-            </div>
-            <div class="level-item level-right">
-              <a><i class="fas fa-bars" aria-label="toggle"></i></a>
-            </div>
-          </div>
-          <div class="accordion-body">
-            <div class="accordion-content">
-              {% for dev in context.dumbs %}
-              <div class="level dev_li">
-                <div class="level-item level-left">
-                  <div class="dev_c_icon">
-                    <i class="fas fa-lock fa-lg"></i>
-                  </div>
-                  <div class="dev_c_content">
-                    {{ dev.descr|truncatechars:30  }}
-                  </div>
-                </div>
-                <div class="level-item level-right">
-                {% if dev.online %}
-                  <p class="status status-on level-item">online</p>
-                {% else %}
-                  <p class="status status-off level-item">OFFLINE!</p>
-                {% endif %}
-                  <a class="button is-dark is-small">Edit</a>
-                </div>
-              </div>
-              {% endfor %}
-            </div>
-          </div>
-        </article>
+        {% include 'others_menu.html' %}
         {% endif %}
+        -->
+        
       </section>
-      {% if locks %}
-      <div class="level col_header">
-      </div>
-      {% endif %}
-      
     </div>
     <div class="inblock column">
       <div id="log_wrapper">
       <div class="col-header">
         <div class="level">
           <div class="level-item level-left">
-            <p>лог последних событий </p>
+            <p class="sk_heading">
+              <i class="fas fa-history fa-lg"></i>
+              лог последних событий </p>
           </div>
           <div class="level-item level-right">
-            <a id="btn">[просмотреть лог отдельно]</a>
+            <a class='sk_heading'
+               href="{% url 'log-records' %}"
+              id="btn">[просмотреть лог отдельно]</a>
           </div>
         </div>
       </div>
       <div id="message_log">
+      {% for record in context.log %}
+        <div class="message_msg">
+          {{ record.human_time }}> "{{ record.message }}"
+        </div>
+      {% endfor %}
       </div>
       </div>
     </div>
   </div>
-{% block script %}
-
-{% endblock script %}
 </div>
 {% endblock %}
