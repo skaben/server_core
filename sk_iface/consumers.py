@@ -1,49 +1,27 @@
 import json
+import time
 import logging
 from datetime import datetime
 from .event_contexts import DeviceEventContext
 from asgiref.sync import async_to_sync
-from channels.consumer import SyncConsumer
-from channels.consumer import AsyncConsumer
+from channels.consumer import SyncConsumer, AsyncConsumer
 from channels.layers import get_channel_layer
+
+from .forms import LogRecordForm
 
 # TODO: move models here, get rid of rest
 
 channel_layer = get_channel_layer()
-
-import os
+logger = logging.getLogger('skaben.sk_iface')
 
 #  helper is temporarily here, to be moved
 
-class LogWriter:
-    def __init__(self):
-        self.fname = 'wslogging'
-        if not os.path.exists(self.fname):
-            with open(self.fname, 'w+') as fh:
-                fh.write('')
-
-    def write(self, str):
-        with open(self.fname, 'w+') as fh:
-            fh.write(str + '\n')
-
-    def read(self, lines=None):
-        with open(self.fname, 'r') as fh:
-            data = fh.readlines()[::-1]
-
-        if not lines:
-            return data
-        else:
-            return data[:lines]
-
-lw = LogWriter()
-
-class AckManager:
-
-    def open(self, task):
-        # open new task_id
-        task_id = task['data'].pop('task_id')
-        task_data = json.dumps(task['data'])
-
+#class AckManager:
+#
+#    def open(self, task):
+#        # open new task_id
+#        task_id = task['data'].pop('task_id')
+#        task_data = json.dumps(task['data'])
 
 
 class EventConsumer(SyncConsumer):
@@ -57,6 +35,11 @@ class EventConsumer(SyncConsumer):
 
     def disconnect(self, close_code):
         self.channel_layer.group_discard("ws_send", self.channel_name)
+
+    def post_save(self, msg):
+        # handling post_save events
+        self._log_ws(f'post_save signal as {msg}')
+        self._update_ws(msg)
 
     def device(self, msg):
         """
@@ -75,7 +58,7 @@ class EventConsumer(SyncConsumer):
                 pass
             # update timestamp first
             orm.ts = dev.payload['ts']
-
+            orm.save(update_fields=['ts'])
             if dev.command == 'PONG':
                 if dev.old:
                     # return config
@@ -85,6 +68,7 @@ class EventConsumer(SyncConsumer):
                         'command': 'CUP',
                         'task_id': '12345'
                     })
+                    #####   !!!  self._update_ws(msg['dev_type'])
                     # holy cow, that's stupid channels
                     self._log_ws('[!] sending configuration to '
                                  '{dev_type}/{dev_id}'.format(**msg))
@@ -119,6 +103,21 @@ class EventConsumer(SyncConsumer):
             else:
                 logging.error(f'command {dev} not implemented')
 
+    def save_log_record(self, msg):
+        logger.info(msg)
+        if isinstance(msg, dict):
+            message = json.dumps(msg)
+        elif isinstance(msg, str):
+            message = msg
+        else:
+            logger.error(f'bad type of msg for logging: {type(msg)}:\n{msg}')
+        try:
+            log = LogRecordForm({'timestamp': int(time.time()),
+                                 'message': message})
+            log.save()
+        except:
+            logger.exception('exception with log record')
+
     def _log_ws(self, data=None):
         """
             cross-connection with webeventconsumer for sending messages to weblog
@@ -127,9 +126,19 @@ class EventConsumer(SyncConsumer):
         """
         if not data:
             return
+        self.save_log_record(data)
         msg = {
             "type": "ws.log",
             "data": data,
+        }
+        async_to_sync(self.channel_layer.group_send)('ws_send', msg)
+
+    def _update_ws(self, data=None):
+        if not data:
+            return
+        msg = {
+            'type': 'ws.update',
+            'content': data
         }
         async_to_sync(self.channel_layer.group_send)('ws_send', msg)
 
@@ -166,9 +175,15 @@ class WebEventConsumer(AsyncConsumer):
         timestamp = datetime.now().strftime('%X')
         data.update({'time': timestamp})
         text = json.dumps(data)
-        #lw.write(text)
         await self.send({
             "type": "websocket.send",
             "text": text
+        })
+
+    async def ws_update(self, data):
+        # data is dev_type
+        await self.send({
+            "type": "websocket.send",
+            "text": json.dumps(data)
         })
 

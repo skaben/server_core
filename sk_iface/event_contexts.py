@@ -1,16 +1,9 @@
 import time
 import json
-#from sk_rest import urls as REST
-from sk_rest import models as API
+from .models import Terminal, Lock
 from django.conf import settings
 
 # TODO: make your own rest api
-
-#serializers = {
-#    'lock': REST.LockSerializer,
-#    'terminal': REST.TerminalSerializer,
-#}
-
 
 class EventContext:
 
@@ -39,8 +32,9 @@ class DeviceEventContext(EventContext):
     """
 
     model_list = {
-        'lock': API.Lock,
-        'terminal': API.Terminal,
+        'lock': Lock,
+        'terminal': Terminal,
+        'term': Terminal,
     }
 
     def __init__(self, event):
@@ -58,7 +52,7 @@ class DeviceEventContext(EventContext):
         self.ts = event['payload']['ts']
         #timeout = 2  # TEST purposes TODO: get from config
 
-        if self.ts + settings.APPCFG.get('timeout', 30) < int(time.time()):
+        if self.ts + settings.APPCFG.get('alive', 60) < int(time.time()):
             self.old = True
 
     def get_conf(self, fields=None):
