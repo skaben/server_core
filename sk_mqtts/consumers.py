@@ -11,7 +11,7 @@ class MQTTConsumer(SyncConsumer):
                 raise RuntimeError('MQTT server already up and running')
             server.start()
         except RuntimeError as e:
-            logging.exception('[EXCEPTION]')
+            logging.exception('[!]')
 
     def mqtt_stop(self, request):
         try:
@@ -19,7 +19,7 @@ class MQTTConsumer(SyncConsumer):
                 raise RuntimeError('MQTT server already stopped')
             server.stop()
         except RuntimeError as e:
-            logging.exception('[EXCEPTION]')
+            logging.exception('[!]')
 
     def mqtt_send(self, message):
         """
