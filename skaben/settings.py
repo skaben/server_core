@@ -32,11 +32,11 @@ ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
     'channels',
-    'rest_framework',
-    'crispy_forms',
+    #'rest_framework',
+    #'crispy_forms',
     'django_filters',
     'sk_iface.apps.IfaceConfig',
-    'sk_rest.apps.RESTConfig',
+    #'sk_rest.apps.RESTConfig',
     'sk_mqtts.apps.MqttsConfig',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -212,5 +212,7 @@ LOGGING = {
 # APP VARIABLES
 
 APPCFG = {
-    'timeout': 10
+    'timeout': 1,  # between pings
+    'alive': 60,  #  set device offline after
+    'tz': 'Europe/Moscow' # timezone
 }
