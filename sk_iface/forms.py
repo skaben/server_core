@@ -1,8 +1,41 @@
 from django import forms
-from sk_rest import models
+from . import models
 
-from sk_rest.models import Lock
-from sk_rest.serializers import LockSerializer
+class PermissionForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    class Meta:
+        model = models.Permission
+        fields = ['state_id']
+
+class LogRecordForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    class Meta:
+        model = models.Log
+        fields = ['timestamp','message']
+
+
+class StateForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    class Meta:
+        model = models.State
+        fields = ['name', 'descr']
+
+
+class ValueForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    class Meta:
+        model = models.Value
+        fields = ['value', 'comment']
+
 
 class LockForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -10,7 +43,7 @@ class LockForm(forms.ModelForm):
 
     class Meta:
         model = models.Lock
-        fields = ['descr', 'sound', 'opened', 'override', 'term_id']
+        fields = ['descr', 'sound', 'blocked', 'opened', 'override', 'term_id']
 
 
 class TerminalForm(forms.ModelForm):
