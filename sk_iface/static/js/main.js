@@ -103,7 +103,7 @@
 
     $(document).on('click', '.details-toggle', function(e){
       e.preventDefault();
-      $($(this).attr('href')).slideToggle();
+      $($(this).attr('href')).slideToggle(220);
     });
 
     $('.dev_li').dblclick(function(){
