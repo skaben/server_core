@@ -1,3 +1,5 @@
+# bad code placing. REFACTORING
+
 from django.http import HttpResponse
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
@@ -25,7 +27,7 @@ def mqtt_send(request):
                 'type': 'mqtt.send',
                 'command': 'ACK',
                 'dev_type': 'lock',
-                'dev_id': 'lock0',
+                'uid': 'lock0',
                 'task_id': '12314514'
                }
     async_to_sync(channel_layer.send)('mqtts', test_msg)
@@ -44,7 +46,7 @@ def mqtt_to_event(request, packet=None):
         packet = {'test': 'test'}
 
     msg = {
-        'type': 'device',
+        'type': 'device.event',
     }
     msg.update(packet)
     async_to_sync(channel_layer.send)('events', msg)

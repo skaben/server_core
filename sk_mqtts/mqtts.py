@@ -18,6 +18,8 @@ from sk_mqtts.config import config
 from sk_mqtts.shared.contexts import PacketSender, PacketReceiver
 from sk_mqtts.views import mqtt_to_event
 
+from django.conf import settings
+
 logger = logging.getLogger('skaben.sk_mqtts')
 
 class MQTTPing(threading.Thread):
@@ -38,7 +40,7 @@ class MQTTPing(threading.Thread):
                         packet = p.create('PING',
                                           dev_type=channel)
                         self.pub.put(packet.encode())
-                    time.sleep(config.timeout.get('basic', 1))
+                    time.sleep(settings.APPCFG['timeout'])
             except:
                 logger.exception('cannot send ping')
 

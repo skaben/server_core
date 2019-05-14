@@ -24,7 +24,7 @@ class MQTTConsumer(SyncConsumer):
     def mqtt_send(self, message):
         """
 
-        :param message: json with dev_type, command, payload (dev_id is optional)
+        :param message: json with dev_type, command, payload (uid is optional)
         :return:
         """
 
@@ -32,9 +32,9 @@ class MQTTConsumer(SyncConsumer):
             logging.warning('server not running. start server before sending message!')
             return False
         else:
-            dev_id = message.get('dev_id', 'broadcast')
+            uid = message.get('uid', 'broadcast')
             logging.debug('snd: {command} to {dev_type} '.format(**message),
-                          f'id: {dev_id}')
+                          f'id: {uid}')
         try:
             with PacketSender() as sender:
                 message.pop('type', None)
