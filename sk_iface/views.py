@@ -17,6 +17,9 @@ channel_layer = get_channel_layer()
 
 def _get_context(k=None):
     context = dict()
+
+    # TODO: there should be normal forms!!
+
     context['locks'] = Lock.objects.order_by('id')
     context['dumbs'] = Dumb.objects.order_by('id')
     context['terms'] = Terminal.objects.order_by('id')
@@ -25,6 +28,13 @@ def _get_context(k=None):
     context['log'] = Log.objects.all().order_by('-id')[:20][::-1]
 
     _permlist = Permission.objects.all()
+    _txtlist = Text.objects.all()
+
+    context['texts'] = _txtlist
+
+    for term in context['terms']:
+        texts = _txtlist.filter(device=term.id)
+        setattr(term, 'texts', texts)
 
     for lock in context['locks']:
         cards = _permlist.filter(lock_id=lock.id)
@@ -51,16 +61,51 @@ def log(request):
     context = Log.objects.all().order_by('-id')
     return render(request, 'log.html', {'log_records': context})
 
+# TODO: form error manage
 
 def terminal(request, pk):
     terminal = Terminal.objects.get(pk=pk)
     if request.method == 'POST':
-        form = TerminalForm(request.POST, instance=terminal)
-        if form.is_valid():
-            form.save()
-            return JsonResponse({'result': 'good'})
+        postdata = request.POST.copy()
+        text_id = postdata.get('infotext')
+        status = postdata.get('status')
+        if text_id: # not default
+            text = Text.objects.get(pk=text_id)
+            text.device.set(postdata.get('id'), clear=True)
+            # TODO: should be managed by DB
+            postdata.update({'msg_body': text.content,
+                             'msg_header': text.title})
         else:
-            return JsonResponse({'result': 'bad'})
+            postdata.update({'msg_body': '-',
+                             'msg_header': '-'})
+        if status == 'normal':
+            postdata.update({'blocked': 0, 'hacked': 0})
+        elif status == 'hacked':
+            postdata.update({'hacked': 1, 'blocked': 0})
+        elif status == 'blocked':
+            postdata.update({'hacked': 0, 'blocked': 1})
+        postdata.update({'menu_list': 'default'})
+        form = TerminalForm(postdata, instance=terminal)
+        try:
+            if form.is_valid():
+                form.save(commit=False)
+                update_fields=[k for k in postdata if k in
+                               terminal.__dict__.keys()]
+                terminal.save(update_fields=update_fields)
+                serialized_term = serializers.serialize('json', [terminal, ])
+                # send config to device
+                async_to_sync(channel_layer.send)('events', {'type': 'server.event',
+                                                             'uid': terminal.uid,
+                                                             'dev_type': 'term',
+                                                            })
+                return JsonResponse({'result': 'updated successfully',
+                                     'data': serialized_term})
+            else:
+                logger.error(form.errors)
+                return JsonResponse({'error': 'form.errors'})
+        except:
+            logger.exception('cannot save terminal')
+            return JsonResponse({'data': 'bad'})
 
 
 def lock(request, pk):
@@ -92,7 +137,14 @@ def lock(request, pk):
                 postdata.update({'blocked': 1})
             form = LockForm(postdata, instance=lock)
             if form.is_valid():
-                form.save()
+                form.save(commit=False)
+                update_fields=[k for k in postdata if k in lock.__dict__.keys()]
+                lock.save(update_fields=update_fields)
+                async_to_sync(channel_layer.send)('events', {'type': 'server.event',
+                                                             'uid': instance.uid, 
+                                                             'dev_type': 'lock',
+                                                            })
+
                 serialized_lock = serializers.serialize('json', [lock, ])
                 return JsonResponse({'result': 'updated successfully',
                                      'data': serialized_lock})

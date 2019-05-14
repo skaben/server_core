@@ -13,7 +13,8 @@
   <div class="accordion-body">
     <div class="accordion-content">
       {% for dev in context.terms %}
-        <div class="level dev_li"
+        <div id="term-{{ dev.id }}"
+             class="level dev_li"
              {% if dev.offline %}
              style="background-color: rgba(200,200,200);"
              {% endif %}
@@ -28,31 +29,31 @@
                  <i class="dev-status fas fa-dot-circle has-text-success fa-lg"
                     title="device online"></i>
               {% endif %}
-              {% if not dev.powered %}
-                <i class="dev-status fas fa-power-off fa-lg
-                          has-text-grey"
-                   title="power off"></i>
-              {% elif dev.blocked %}
-                <i class="dev-status fas fa-minus-circle fa-lg
-                          has-text-danger"
-                   title="blocked"></i>
-              {% elif dev.hacked %}
-                <i class="dev-status fas fa-bug fa-lg"
-                   title="hacked"></i>
-              {% elif dev.powered %}
+
+              {% if dev.powered %}
                 <i class="dev-status fas fa-power-off fa-lg
                           has-text-success"
                    title="power on"></i>
               {% else %}
-                <i class="dev-status fas fa-exclamation-triangle fa-lg"
-                   title="error when reading status check admin">
+                <i class="dev-status fas fa-power-off fa-lg
+                          has-text-grey"
+                   title="power off"></i>
+              {% endif %}
+
+              {% if dev.blocked %}
+                <i class="dev-status fas fa-minus-circle fa-lg"
+                   title="device blocked"></i>
+              {% elif dev.hacked %}
+                <i class="dev-status fas fa-user-secret fa-lg has-text-danger"
+                   title="running, hacked"></i>
+              {% else %}
+                <i class="dev-status fas fa-shield-alt fa-lg has-text-success"
+                   title="running, protected">
                 </i>
               {% endif %}
+
             <div class="level-item dev_c_content">
-              <a href="#mterm{{dev.id}}"
-                 rel="modal:open"
-                 class="device-a has-text-grey-darker"
-                 title="edit device">{{ dev.descr|truncatechars:30  }}</a>
+              <p>{{ dev.descr|truncatechars:30 }}</p>
             </div>
           </div>
           <div class="level-item level-right">
@@ -73,12 +74,11 @@
                 <i class="dev-status dev-status_toggle fas fa-toggle-off fa-lg"
                    title="fast toggle: set device blocked"></i>
               {% endif %}
-            {% include 'term_modal.html' %}
-            <a class="button is-dark is-small"
-               href="#mterm{{dev.id}}"
-               rel="modal:open">Edit</a>
+           <a class="button is-dark is-small details-toggle"
+              href="#term-details-{{dev.id}}">Edit details</a>
           </div>
         </div>
+        {% include 'term_details.html' %}
         {% endfor %}
       </div>
     </div>

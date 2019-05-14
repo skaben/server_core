@@ -18,7 +18,6 @@ from django.urls import include, path
 
 urlpatterns = [
     path('', include('sk_iface.urls')),
-    #path('api/', include('sk_rest.urls')),
     path('mqtt/', include('sk_mqtts.urls')),
     path('admin/', admin.site.urls),
 ]

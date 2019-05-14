@@ -2,26 +2,15 @@ import json
 import time
 import logging
 from datetime import datetime
-from .event_contexts import DeviceEventContext
+from .event_contexts import DeviceEventContext, ServerEventContext
 from asgiref.sync import async_to_sync
 from channels.consumer import SyncConsumer, AsyncConsumer
 from channels.layers import get_channel_layer
 
 from .forms import LogRecordForm
 
-# TODO: move models here, get rid of rest
-
 channel_layer = get_channel_layer()
 logger = logging.getLogger('skaben.sk_iface')
-
-#  helper is temporarily here, to be moved
-
-#class AckManager:
-#
-#    def open(self, task):
-#        # open new task_id
-#        task_id = task['data'].pop('task_id')
-#        task_data = json.dumps(task['data'])
 
 
 class EventConsumer(SyncConsumer):
@@ -40,14 +29,33 @@ class EventConsumer(SyncConsumer):
         # handling post_save events
         self._log_ws(f'post_save signal as {msg}')
         self._update_ws(msg)
+        # DO NOT GENERATE mqtt response here
+        # sending CUP in response to SUP is bad idea
 
-    def device(self, msg):
+    def server_event(self, msg):
+        # sending CUP as separate method much better
+        self._log_ws(f'server_event as {msg}')
+        try:    
+            # TODO: send only fields that were updated!
+            with ServerEventContext(msg) as server:
+                response = server.mqtt_response()
+                logger.info(response)
+                response.update({'type': 'mqtt.send',  # label as mqtt packet
+                                 'command': 'CUP',  # client should be updated
+                                 'task_id': '12345'}) # task id for flow management
+                self._log_ws(f'[!] sending CUP')
+                async_to_sync(channel_layer.send)('mqtts', response)
+        except:
+            logger.exception('exception while sending config to client device')
+            raise
+
+    def device_event(self, msg):
         """
         Device event manager
         :param msg: message from Redis-backed channel layer
         :return:
         """
-        self._log_ws('{dev_type}: {dev_id} sending {command}'.format(**msg))
+        self._log_ws('{dev_type}: {uid} sending {command}'.format(**msg))
         # next - send command
         with DeviceEventContext(msg) as dev:
             # initialize event context with received message
@@ -56,55 +64,94 @@ class EventConsumer(SyncConsumer):
             if not orm:
                 # TODO: call new_device procedure
                 pass
-            # update timestamp first
-            orm.ts = dev.payload['ts']
+            # update timestamp anyway
+            orm.ts = dev.payload.pop('ts')
             orm.save(update_fields=['ts'])
-            if dev.command == 'PONG':
-                if dev.old:
-                    # return config
+            # sending update to front
+            update_msg = {'name': dev.dev_type, 'id': orm.id}
+            self._update_ws(update_msg)
+            #logger.debug(update_msg)
+            # managing event depends of command
+
+            # TODO: refactor CUP/SUP sending
+            try:
+                # no matter what - if you're old, you should get config from server first
+                #if dev.old:
+                #    dev.command = 'PONG'
+
+                if dev.command == 'PONG':
+                    if dev.old:
+                        # device outdated, sending config back
+                        response = dev.mqtt_response()
+                        response.update({
+                            'type': 'mqtt.send',
+                            'command': 'CUP',
+                            'task_id': '12345' # todo: redis backed task storage
+                        })
+                        #####   !!!  self._update_ws(msg['dev_type'])
+                        # holy cow, that's stupid channels
+                        self._log_ws('[!] sending configuration to '
+                                     '{dev_type}/{uid}'.format(**msg))
+                        async_to_sync(channel_layer.send)('mqtts', response)
+
+                elif dev.command in ('ACK', 'NACK'):
+                    # check for task_id
+                    # put into separated high-priority channel
+                    # ackmanager deal with it
+                    pass
+
+                elif dev.command == 'CUP':
+                    # client should be updated
+                    # get device config
+                    # add task_id
+                    # send packet to mqtt via channel_layer
+                    # await for ack/nack with task_id in separate channel
+                    # retry X times
+                    # except: log and update device as offline
                     response = dev.mqtt_response()
                     response.update({
-                        'type': 'mqtt.send',
-                        'command': 'CUP',
-                        'task_id': '12345'
-                    })
-                    #####   !!!  self._update_ws(msg['dev_type'])
-                    # holy cow, that's stupid channels
+                            'type': 'mqtt.send',
+                            'command': 'CUP',
+                            'task_id': '12345' # todo: redis backed task storage
+                        })
+                        #####   !!!  self._update_ws(msg['dev_type'])
+                        # holy cow, that's stupid channels
                     self._log_ws('[!] sending configuration to '
-                                 '{dev_type}/{dev_id}'.format(**msg))
+                                     '{dev_type}/{uid}'.format(**msg))
                     async_to_sync(channel_layer.send)('mqtts', response)
 
-            elif dev.command in ('ACK', 'NACK'):
-                # check for task_id
-                # put into separated high-priority channel
-                # ackmanager deal with it
-                pass
+                elif dev.command == 'SUP':
+                    # server should be updated
+                    # get_device
+                    # validate data
+                    # log data
+                    # save device
+                    update_fields = []
+                    for field in dev.payload.keys():
+                        # ignoring task_id for SUP
+                        if field == 'task_id':
+                            continue
+                        if not hasattr(orm, field):
+                            logging.error(f'Ignoring bad column for {dev.dev_type} : {field}')
+                        else:
+                            db_value = orm.__dict__.get(field)
+                            new_value = dev.payload[field]
+                            if db_value != new_value:
+                                #print(f'update to DB: {field} is {new_value}')
+                                setattr(orm, field, new_value)
+                                update_fields.append(field)
+                    if update_fields:
+                        orm.save(update_fields=update_fields)
+                    # do not send response to mqtt via channel_layer - left unanswered 
+                    # send update to web via websocket : DONE by signals
+                else:
+                    logging.error(f'command {dev} not implemented')
+            except:
+                logging.exception(f'exception while {dev.command}')
+                self._log_ws(f'FAILED {dev.command} for {dev_type}/{uid}')
 
-            elif dev.command == 'CUP':
-                # client should be updated
-                # get device config
-                # add task_id
-                # send packet to mqtt via channel_layer
-                # await for ack/nack with task_id in separate channel
-                # retry X times
-                # except: log and update device as offline
-                pass
-
-            elif dev.command == 'SUP':
-                # server should be updated
-                # get_device
-                # validate data
-                # log data
-                # save device
-                # do not send response to mqtt via channel_layer - left unanswered
-                # send update to web via websocket
-                # except: log event
-                pass
-            else:
-                logging.error(f'command {dev} not implemented')
 
     def save_log_record(self, msg):
-        logger.info(msg)
         if isinstance(msg, dict):
             message = json.dumps(msg)
         elif isinstance(msg, str):

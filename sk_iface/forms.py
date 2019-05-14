@@ -49,7 +49,7 @@ class LockForm(forms.ModelForm):
 class TerminalForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
+    
     class Meta:
         model = models.Terminal
         fields = ['descr',
@@ -58,7 +58,7 @@ class TerminalForm(forms.ModelForm):
                   'powered',
                   'hack_attempts',
                   'hack_wordcount',
-                  'hack_length',
+                  'hack_difficulty',
                   'menu_list',
                   'msg_body',
                   'msg_header',

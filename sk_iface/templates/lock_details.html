@@ -2,18 +2,18 @@
         <form class="form-lock"
               id="form-lock-{{dev.id}}"
               action="{% url 'update-lock' dev.id %}"
-              method="post"
-              novalidate>
+              method="post">
           {% csrf_token %}
         <section>
           <div class="control columns">
-            <div class="column is-one-fifth">
+            <div class="column is-one-quarter">
               <label class="label descr-label">
                 Описание
               </label>
             </div>
             <div class="column">
               <input title="Описание"
+                     required="required"
                      class="level-item input details-input"
                      name="descr"
                      type="text"
@@ -22,7 +22,7 @@
             </div>
           </div>
           <div class="control columns">
-            <div class="column is-one-fifth">
+            <div class="column is-one-quarter">
               <label class="label descr-label">Состояние</label>
             </div>
             <div class="column">
@@ -55,31 +55,39 @@
             </div>
           </div>
           <div class="control columns">
-            <div class="column is-one-third">
+            <div class="column is-one-quarter">
               <label class="label descr-label is-centered"
-                     title="через сколько секунд после открытия будет закрыт замок">
-                Время закрытия
+                     title='дополнительные параметры'>
+                Дополнительно
               </label>
             </div>
-            <div class="column">
-              <input title="Время закрытия"
-                     class="level-item input details-input"
+            <div class="column is-vcentered">
+                <input title="Время закрытия в секундах"
+                     class="input details-input"
                      name="timer"
                      type="number"
-                     maxlength="3"
+                     min="0"
+                     max="600"
                      placeholder="{{dev.timer}}"
                      value="{{dev.timer}}"
-                     style="width: 5rem;"
-              >
+                     style="width: 5rem; margin-right: 1rem;"
+                  >
+              <label class="inline-label checkbox"
+                     title="0 для отключения">
+                  закрытие по таймеру
+              </label>
             </div>
           </div>
-          <div class="control">
-            <label class="checkbox inline-label">
-              <input type="checkbox"
-                     name="sound"
-                     {% if dev.sound %} checked {% endif %} >
-              Звук активирован
-            </label>
+          <div class="control columns">
+            <div class="column is-one-quarter"></div>
+            <div class="column">
+              <label class="checkbox inline-label">
+                <input type="checkbox"
+                       name="sound"
+                       {% if dev.sound %} checked {% endif %} >
+                Звук активирован
+              </label>
+            </div>
           </div>
         </section>
           <hr class="details-hr has-background-grey-light">

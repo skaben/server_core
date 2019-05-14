@@ -28,7 +28,7 @@
       <p class='header-state-label'>СТАТУС БАЗЫ</p>
     </div>
     <div class="level-item">
-      <select name="name" class="color-state-input">
+      <select name="name" class="color-state-input details-input">
         {% for s in context.state %}
         <option value="{{ s.name }}"
                 style="background-color: {{ s.bg_color }};
@@ -41,7 +41,7 @@
       </select>
     </div>
     <div class="level-item">
-      <input class="button details-button is-danger is-small has-text-black"
+      <input class="button details-button is-danger has-text-black"
              type="submit"
              value="Подтвердить">
     </div>

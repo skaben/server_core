@@ -19,6 +19,7 @@
              {% endif %}
           >
          <div class="level-item level-left">
+
             {% if dev.offline %}
                <i class="dev-status fas fa-exclamation-triangle
                          has-text-danger fa-lg"
@@ -28,24 +29,26 @@
                <i class="dev-status fas fa-dot-circle has-text-success fa-lg"
                   title="device online"></i>
             {% endif %}
-            {% if dev.blocked %}
-                <i class="dev-status fas fa-minus-circle fa-lg
-                          has-text-danger"
-                   title="blocked"></i>
-            {% elif not dev.opened %}
-              <i class="dev-status fas fa-lock fa-lg"
-                 title="locked"></i>
-            {% else %}
-              <i class="dev-status fas fa-unlock-alt fa-lg"
-                 title="opened"></i>
-            {% endif %}
+
             {% if dev.sound %}
-              <i class="dev-status dev-status-sm far fa-bell"
+              <i class="dev-status dev-status-sm far fa-bell fa-lg"
                  title="sound on"></i>
             {% else %}
-              <i class="dev-status dev-status-sm far fa-bell-slash"
+              <i class="dev-status dev-status-sm far fa-bell-slash fa-lg"
                  title="sound off"></i>
             {% endif %}
+
+            {% if dev.blocked %}
+                <i class="dev-status fas fa-minus-circle fa-lg"
+                   title="blocked"></i>
+            {% elif not dev.opened %}
+              <i class="dev-status fas fa-lock fa-lg has-text-success"
+                 title="locked"></i>
+            {% else %}
+              <i class="dev-status fas fa-unlock-alt fa-lg has-text-danger"
+                 title="opened"></i>
+            {% endif %}
+
           <div class="level-item dev_c_content">
             <p>{{ dev.descr|truncatechars:30  }}</p>
           </div>

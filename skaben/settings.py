@@ -214,5 +214,6 @@ LOGGING = {
 APPCFG = {
     'timeout': 1,  # between pings
     'alive': 60,  #  set device offline after
+    'text_storage': 'misc/texts', # texts directory
     'tz': 'Europe/Moscow' # timezone
 }

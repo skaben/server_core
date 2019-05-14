@@ -12,13 +12,17 @@ def device_handler(device, update_fields, instance):
         'name': device,
         'id': instance.id,
     }
-    # TODO: error handling
-    print(msg)
-    #if not update_fields:
-    #    return
-    #if len(update_fields) == 1:
-    #    if 'ts' in update_fields:
-    #        return
+
+    # TODO
+    # currently - there's too many fields updating via Forms.
+    # number of fields should be shortened and true partial update achieved
+    if update_fields:
+        if len(update_fields) == 1 and 'ts' in update_fields:
+            return  # no action, it's ping
+        # converting frozenset
+        update_fields_set = tuple(uf for uf in update_fields)
+        msg.update({'updated': update_fields_set})
+
     async_to_sync(channel_layer.send)('events', msg)
 
 
@@ -28,10 +32,10 @@ def lock_handler(sender, update_fields, created, instance, **kwargs):
 
 @receiver(post_save, sender=Terminal)
 def term_handler(sender, update_fields, created, instance, **kwargs):
-    device_handler('term', update_fields)
+    device_handler('term', update_fields, instance)
 
 @receiver(post_save, sender=Dumb)
-def term_handler(sender, update_fields, created, instance, **kwargs):
+def dumb_handler(sender, update_fields, created, instance, **kwargs):
     device_handler('dumb', update_fields)
 
 @receiver(post_save, sender=State)

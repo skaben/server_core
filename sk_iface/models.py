@@ -3,6 +3,7 @@ import pytz
 from datetime import datetime
 from django.db import models
 from django.conf import settings
+from django.core.files.storage import FileSystemStorage
 
 
 def get_time(timestamp):
@@ -122,6 +123,7 @@ class Dumb(models.Model, DeviceMixin):
         verbose_name_plural = 'devices: RGB (Dumbs)'
 
     ts = models.IntegerField(default=int(time.time()))
+    uid = models.CharField(max_length=16, default='000000000000')
     descr = models.CharField(max_length=120, default='simple dumb')
     online = models.BooleanField(default=False)
     ip = models.GenericIPAddressField()
@@ -136,11 +138,22 @@ class Dumb(models.Model, DeviceMixin):
 
 class Terminal(models.Model, DeviceMixin):
 
+    easy = 6
+    normal = 8
+    hard = 12
+
+    difficulty_choices = (
+        (easy, 'easy'),
+        (normal, 'normal'),
+        (hard, 'hard'),
+    )
+
     class Meta:
         verbose_name = 'device: Terminal'
         verbose_name_plural = 'devices: Terminals'
 
     ts = models.IntegerField(default=int(time.time()))
+    uid = models.CharField(max_length=16, default='000000000000')
     descr = models.CharField(max_length=120, default='simple terminal')
     online = models.BooleanField(default=False)
     ip = models.GenericIPAddressField()
@@ -148,11 +161,12 @@ class Terminal(models.Model, DeviceMixin):
     powered = models.BooleanField(default=False)
     blocked = models.BooleanField(default=False)
     hacked = models.BooleanField(default=False)
-    opened = models.BooleanField(default=False) #
-    lowered = models.BooleanField(default=False) #
     hack_attempts = models.IntegerField(default=3)
-    hack_length = models.IntegerField(default=4)
+    hack_difficulty = models.IntegerField(
+                                choices=difficulty_choices,
+                                default=easy)
     hack_wordcount = models.IntegerField(default=15)
+    hack_chance = models.IntegerField(default=10)
     menu_list = models.CharField(max_length=12)
     msg_header = models.CharField(max_length=100)
     msg_body = models.CharField(max_length=500)
@@ -175,6 +189,7 @@ class Lock(models.Model, DeviceMixin):
 
     ts = models.IntegerField(default=int(time.time()))
     # cardlist as 'color': 'cardid'
+    uid = models.CharField(max_length=16, default='000000000000')
     descr = models.CharField(max_length=120, default='simple lock')
     online = models.BooleanField(default=False)
     ip = models.GenericIPAddressField()
@@ -223,7 +238,7 @@ class Permission(models.Model):
         verbose_name = 'Staff permission'
         verbose_name_plural = 'Staff permissions'
 
-    card_id =  models.ForeignKey(Card, on_delete=models.CASCADE)
+    card_id = models.ForeignKey(Card, on_delete=models.CASCADE)
     lock_id = models.ForeignKey(Lock, on_delete=models.CASCADE)
     state_id = models.ManyToManyField(State)
 
@@ -232,4 +247,33 @@ class Permission(models.Model):
                f'{self.card_id.surname} ' \
 
 
-# SIGNALS
+# OTHERS
+
+class Text(models.Model):
+
+    class Meta:
+        verbose_name = 'long info text'
+
+    device = models.ForeignKey(Terminal,
+                               blank=True,
+                               null=True,
+                               related_name='text_files',
+                               on_delete=models.CASCADE)
+    content = models.TextField()
+    title = models.CharField(max_length=50)
+    # lock timer for specific texts
+    timer = models.IntegerField(default=0, blank=True)
+
+    # if storing in filesystem
+    #content = models.FileField(storage=FileSystemStorage(
+    #    location=settings.APPCFG['text_storage']))
+
+    @property
+    def title(self):
+        return f'{self.content[:25]}...'
+
+    def __str__(self):
+        assigned = 'NOT ASSIGNED'
+        if self.device:
+            assigned = self.device.descr.upper()
+        return f'[{assigned}] {self.title}'
