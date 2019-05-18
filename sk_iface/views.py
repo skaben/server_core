@@ -10,6 +10,7 @@ logger = logging.getLogger('skaben.sk_iface')
 
 from .forms import LockForm, TerminalForm, StateForm, ValueForm
 from .models import *
+from .misc import GlobalStateManager
 
 channel_layer = get_channel_layer()
 
@@ -85,6 +86,9 @@ def terminal(request, pk):
         elif status == 'blocked':
             postdata.update({'hacked': 0, 'blocked': 1})
         postdata.update({'menu_list': 'default'})
+        # todo: get rid of it with normal form management
+        if not postdata.get('powered'):
+            postdata.update({'powered': False})
         form = TerminalForm(postdata, instance=terminal)
         try:
             if form.is_valid():
@@ -94,10 +98,11 @@ def terminal(request, pk):
                 terminal.save(update_fields=update_fields)
                 serialized_term = serializers.serialize('json', [terminal, ])
                 # send config to device
-                async_to_sync(channel_layer.send)('events', {'type': 'server.event',
-                                                             'uid': terminal.uid,
-                                                             'dev_type': 'term',
-                                                            })
+                send_msg =  {'type': 'server.event',
+                             'uid': terminal.uid,
+                             'dev_type': 'term',
+                            }
+                async_to_sync(channel_layer.send)('events', send_msg)
                 return JsonResponse({'result': 'updated successfully',
                                      'data': serialized_term})
             else:
@@ -135,16 +140,18 @@ def lock(request, pk):
                 postdata.update({'opened': 1, 'blocked': 0})
             elif status == 'blocked':
                 postdata.update({'blocked': 1})
+            if not postdata.get('sound'):
+                postdata.update({'sound': False})
             form = LockForm(postdata, instance=lock)
             if form.is_valid():
                 form.save(commit=False)
                 update_fields=[k for k in postdata if k in lock.__dict__.keys()]
                 lock.save(update_fields=update_fields)
-                async_to_sync(channel_layer.send)('events', {'type': 'server.event',
-                                                             'uid': instance.uid, 
-                                                             'dev_type': 'lock',
-                                                            })
-
+                send_msg = {'type': 'server.event',
+                            'uid': lock.uid,
+                            'dev_type': 'lock',
+                           }
+                async_to_sync(channel_layer.send)('events', send_msg)
                 serialized_lock = serializers.serialize('json', [lock, ])
                 return JsonResponse({'result': 'updated successfully',
                                      'data': serialized_lock})
@@ -170,24 +177,25 @@ def change_state(request):
         if value != last_value.value:
             value_form = ValueForm({'value': int(value),
                                     'comment': 'from web interface'})
+            if value_form:
+                value_form.save()
+
         try:
-            # avoiding duplicate post_save signal generation
-            with transaction.atomic():
-                if value_form:
-                    value_form.save()
-                if state_name != current_name:
-                    for s in states:
-                        # multi-'current' status should be avoided by any cost
-                        # double save to avoid saving all objects in queryset
-                        if s.current:
-                            s.current = False
-                            s.save()
-                        elif s.name == state_name:
-                            current_state = s
-            # well, Django doesn't generate signals after transaction.
-            # so, saving our precious outside the transaction
-            current_state.update(current=True)  # yay, post_save signal
-            # generated!
+            with GlobalStateManager() as manager:
+                manager.set_state(state_name, manual=True)
+                devices = manager.device_update_list()
+
+                for dt in devices.items():
+                    device_type = dt[0]
+                    bcast_devices = dt[1]
+                    # sending update message to every device in receivers list
+                    for device in bcast_devices:
+                        send_msg = {
+                            'type': 'server.event',
+                            'dev_type': device_type,
+                            'uid': device.uid
+                        }
+                        async_to_sync(channel_layer.send)('events', send_msg)
         except:
             raise
 

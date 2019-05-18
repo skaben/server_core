@@ -5,7 +5,6 @@ from django.db import models
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 
-
 def get_time(timestamp):
     utc_time = datetime.utcfromtimestamp(timestamp)
     local = pytz.utc.localize(utc_time, is_dst=None) \
@@ -86,12 +85,6 @@ class State(models.Model):
     threshold = models.IntegerField(default=-1)
     current = models.BooleanField(default=False)
 
-    def update(self, **kwargs):
-        for k in kwargs:
-            if k == 'current':
-                self.current = kwargs[k]
-        self.save()
-
     def __str__(self):
         s = f'State: {self.name} ({self.descr})'
         if self.current:
@@ -105,10 +98,18 @@ class DevConfig(models.Model):
         Configurations for different devices
     """
 
-    dev_type = models.CharField(max_length=50)
+    dev_subtype = models.CharField(max_length=50)
     state_name = models.CharField(max_length=30)
     config = models.CharField(max_length=300)
 
+
+class MenuItem(models.Model):
+
+    descr = models.CharField(max_length=120)
+    action_name = models.CharField(max_length=8)
+
+    def __str__(self):
+        return f'[{self.action_name}] {self.descr}'
 
 #  DEVICES
 
@@ -123,17 +124,52 @@ class Dumb(models.Model, DeviceMixin):
         verbose_name_plural = 'devices: RGB (Dumbs)'
 
     ts = models.IntegerField(default=int(time.time()))
-    uid = models.CharField(max_length=16, default='000000000000')
+    uid = models.CharField(max_length=16, unique=True)
     descr = models.CharField(max_length=120, default='simple dumb')
     online = models.BooleanField(default=False)
     ip = models.GenericIPAddressField()
-    dev_type = models.CharField(max_length=50, default='rgb')
+    dev_subtype = models.CharField(max_length=50, default='rgb')
     config = DevConfig.objects.filter(
         state_name=State.objects.filter(current=True),
-        dev_type=dev_type)
+        dev_subtype=dev_subtype)
+
+    def set_config_by_color(self, name):
+        pass
+#        self.config = DevConfig.objects.filter(
+#            state_name=State.objects.filter(name=name),
+#            dev_subtype=self.dev_subtype
+#        )
 
     def __str__(self):
         return f'DUMB ID: {self.id} {self.descr}'
+
+
+class Lock(models.Model, DeviceMixin):
+
+    class Meta:
+        verbose_name = 'device: Lock'
+        verbose_name_plural = 'devices: Locks'
+
+    ts = models.IntegerField(default=int(time.time()))
+    # cardlist as 'color': 'cardid'
+    uid = models.CharField(max_length=16, unique=True)
+    descr = models.CharField(max_length=120, default='simple lock')
+    online = models.BooleanField(default=False)
+    ip = models.GenericIPAddressField()
+    override = models.BooleanField(default=False)
+    sound = models.BooleanField(default=False)
+    opened = models.BooleanField(default=False)
+    blocked = models.BooleanField(default=False)
+    timer = models.IntegerField(default=10)
+    base_state = State.objects.filter(current=True)
+
+    @property
+    def active(self):
+        if self.ts + settings.APPCFG.get('alive', 60) >= int(time.time()):
+            return True
+
+    def __str__(self):
+        return f'<{self.id}> {self.descr}'
 
 
 class Terminal(models.Model, DeviceMixin):
@@ -148,12 +184,23 @@ class Terminal(models.Model, DeviceMixin):
         (hard, 'hard'),
     )
 
+    hack = 'hack'
+    alert = 'alert'
+    text = 'text'
+
+    menu_choices = (
+        (hack, 'hack access'),
+        (alert, 'lower alert'),
+        (text, 'read texts'),
+    )
+
+
     class Meta:
         verbose_name = 'device: Terminal'
         verbose_name_plural = 'devices: Terminals'
 
     ts = models.IntegerField(default=int(time.time()))
-    uid = models.CharField(max_length=16, default='000000000000')
+    uid = models.CharField(max_length=16, unique=True)
     descr = models.CharField(max_length=120, default='simple terminal')
     online = models.BooleanField(default=False)
     ip = models.GenericIPAddressField()
@@ -167,9 +214,17 @@ class Terminal(models.Model, DeviceMixin):
                                 default=easy)
     hack_wordcount = models.IntegerField(default=15)
     hack_chance = models.IntegerField(default=10)
-    menu_list = models.CharField(max_length=12)
+    menu_normal = models.ManyToManyField(MenuItem, related_name='menu_normal')
+    menu_hacked = models.ManyToManyField(MenuItem, related_name='menu_hacked')
     msg_header = models.CharField(max_length=100)
     msg_body = models.CharField(max_length=500)
+
+    lock_id = models.ForeignKey(Lock,
+                                null=True,
+                                blank=True,
+                                default=None,
+                                on_delete=models.CASCADE)
+
     base_state = State.objects.filter(current=True)
 
     @property
@@ -180,38 +235,6 @@ class Terminal(models.Model, DeviceMixin):
     def __str__(self):
         return f'TERMINAL ID: {self.id} {self.descr}'
 
-
-class Lock(models.Model, DeviceMixin):
-
-    class Meta:
-        verbose_name = 'device: Lock'
-        verbose_name_plural = 'devices: Locks'
-
-    ts = models.IntegerField(default=int(time.time()))
-    # cardlist as 'color': 'cardid'
-    uid = models.CharField(max_length=16, default='000000000000')
-    descr = models.CharField(max_length=120, default='simple lock')
-    online = models.BooleanField(default=False)
-    ip = models.GenericIPAddressField()
-    override = models.BooleanField(default=False)
-    sound = models.BooleanField(default=False)
-    opened = models.BooleanField(default=False)
-    blocked = models.BooleanField(default=False)
-    timer = models.IntegerField(default=10)
-    term_id = models.ForeignKey(Terminal,
-                                null=True,
-                                blank=True,
-                                default=None,
-                                on_delete=models.CASCADE)
-    base_state = State.objects.filter(current=True)
-
-    @property
-    def active(self):
-        if self.ts + settings.APPCFG.get('alive', 60) >= int(time.time()):
-            return True
-
-    def __str__(self):
-        return f'<{self.id}> {self.descr}'
 
 #  PERMISSIONS
 
@@ -245,6 +268,7 @@ class Permission(models.Model):
     def __str__(self):
         return f'[ {self.lock_id.descr.upper()} ] {self.card_id.position} ' \
                f'{self.card_id.surname} ' \
+
 
 
 # OTHERS

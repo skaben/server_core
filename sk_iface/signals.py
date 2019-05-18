@@ -36,7 +36,7 @@ def term_handler(sender, update_fields, created, instance, **kwargs):
 
 @receiver(post_save, sender=Dumb)
 def dumb_handler(sender, update_fields, created, instance, **kwargs):
-    device_handler('dumb', update_fields)
+    device_handler('dumb', update_fields, instance)
 
 @receiver(post_save, sender=State)
 def alert_handler(sender, **kwargs):
