@@ -43,7 +43,7 @@ class LockForm(forms.ModelForm):
 
     class Meta:
         model = models.Lock
-        fields = ['descr', 'sound', 'blocked', 'opened', 'override', 'term_id']
+        fields = ['descr', 'sound', 'blocked', 'opened', 'override']
 
 
 class TerminalForm(forms.ModelForm):
@@ -59,7 +59,6 @@ class TerminalForm(forms.ModelForm):
                   'hack_attempts',
                   'hack_wordcount',
                   'hack_difficulty',
-                  'menu_list',
                   'msg_body',
                   'msg_header',
                   'override']

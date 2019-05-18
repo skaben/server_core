@@ -9,17 +9,21 @@
 """
 
 import time
+import json
 import threading
 from multiprocessing import Queue
 import paho.mqtt.client as mqtt
 import logging
 
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
+
 from sk_mqtts.config import config
 from sk_mqtts.shared.contexts import PacketSender, PacketReceiver
-from sk_mqtts.views import mqtt_to_event
 
 from django.conf import settings
 
+channel_layer = get_channel_layer()
 logger = logging.getLogger('skaben.sk_mqtts')
 
 class MQTTPing(threading.Thread):
@@ -55,7 +59,7 @@ class MQTTServer(threading.Thread):
 
     def __init__(self, config, queue):
         super().__init__()
-        self.running = None
+        self.running = False
         self.pub = queue
         self.config = config
         self.client = None
@@ -65,6 +69,10 @@ class MQTTServer(threading.Thread):
         self.publish_to = self.config.dev_types
         self.listen_to = [(c + 'ask' + '/#', qos)
                           for c in self.config.dev_types]
+        # LEGACY: rgb
+        self.publish_to.append("RGB")
+        self.listen_to.append(("RGBASK", qos))
+        #
         self.sub = []  # subscribed channels
         self.no_sub = []  # not subscribed channels
 
@@ -104,6 +112,9 @@ class MQTTServer(threading.Thread):
                     message = self.pub.get()
                     if isinstance(message, tuple):
                         if not message[1].startswith('PING'):
+                            if message[0].startswith("dumb"):
+                                # LEGACY: rgb
+                                message = self._translate_rgb(message)
                             logger.debug(f'publishing {message}')
                         self.client.publish(*message)
                     else:
@@ -115,10 +126,11 @@ class MQTTServer(threading.Thread):
     def on_message(self, client, userdata, msg):
         # RECEIVING
         try:
+            # parsing dumb device (LEGACY)
             with PacketReceiver() as event:
                 packet = event.create(msg)
-                mqtt_to_event(request=None,
-                              packet=packet)
+                packet.update({'type': 'device.event'})
+                async_to_sync(channel_layer.send)('events', packet)
         except:
             logger.exception(f'failed for {msg} :')
 
@@ -157,10 +169,18 @@ class MQTTServer(threading.Thread):
         logger.info(f'subscribed to: {", ".join([s[0] for s in self.sub])}')
 
     def stop(self):
-        msg = 'MQTT server stop'
-        self.no_sub = []
-        self.sub = []
-        print(msg)
+        logger.info('server stop not implemented yet')
+        pass
+
+    def _translate_rgb(self, msg):
+        pl = json.loads(msg[1].split('/')[1]).get('payload')
+        if not pl:
+            logger.error(f'dumb device config missing in {msg}')
+        else:
+            conf_msg = ("RGB", pl.get('config')) # config string
+            logger.debug(f'message {msg} translated to {conf_msg}')
+            return conf_msg
+
 
 
 mqtt_send_queue = Queue()

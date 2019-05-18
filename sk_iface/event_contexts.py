@@ -1,6 +1,6 @@
 import time
 import json
-from .models import Terminal, Lock
+from .models import Terminal, Lock, Dumb
 from django.conf import settings
 
 # TODO: make your own rest api
@@ -11,12 +11,13 @@ class EventContext:
         basic context manager methods
     """
 
-    nosend_fields = ['descr', '_state', 'id', 'term_id_id']
+    nosend_fields = ['descr', '_state', 'id', 'online']
 
     model_list = {
         'lock': Lock,
         'terminal': Terminal,
         'term': Terminal,
+        'dumb': Dumb
     }
 
     def __init__(self):
@@ -62,7 +63,8 @@ class EventContext:
             }
             return mqtt_response
         except:
-            raise Exception('bad mqtt response')
+            raise
+            #raise Exception('bad mqtt response')
 
     def get(self):
         M = self.model_list.get(self.dev_type, None)
@@ -122,6 +124,5 @@ class ServerEventContext(EventContext):
         super().__init__()
         event.pop('type')
         self.dev_type = event.get('dev_type') 
-        # BUG should be UID instead of ID
         self.uid = event.get('uid')
 

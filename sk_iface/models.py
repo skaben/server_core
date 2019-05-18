@@ -98,9 +98,15 @@ class DevConfig(models.Model):
         Configurations for different devices
     """
 
+    class Meta:
+        verbose_name = 'device config for dumb devices'
+
     dev_subtype = models.CharField(max_length=50)
     state_name = models.CharField(max_length=30)
     config = models.CharField(max_length=300)
+
+    def __str__(self):
+        return f'{self.dev_subtype.upper()}-{self.state_name}'
 
 
 class MenuItem(models.Model):
@@ -129,16 +135,7 @@ class Dumb(models.Model, DeviceMixin):
     online = models.BooleanField(default=False)
     ip = models.GenericIPAddressField()
     dev_subtype = models.CharField(max_length=50, default='rgb')
-    config = DevConfig.objects.filter(
-        state_name=State.objects.filter(current=True),
-        dev_subtype=dev_subtype)
-
-    def set_config_by_color(self, name):
-        pass
-#        self.config = DevConfig.objects.filter(
-#            state_name=State.objects.filter(name=name),
-#            dev_subtype=self.dev_subtype
-#        )
+    config = models.CharField(max_length=150, default='')
 
     def __str__(self):
         return f'DUMB ID: {self.id} {self.descr}'
@@ -161,7 +158,6 @@ class Lock(models.Model, DeviceMixin):
     opened = models.BooleanField(default=False)
     blocked = models.BooleanField(default=False)
     timer = models.IntegerField(default=10)
-    base_state = State.objects.filter(current=True)
 
     @property
     def active(self):
@@ -224,8 +220,6 @@ class Terminal(models.Model, DeviceMixin):
                                 blank=True,
                                 default=None,
                                 on_delete=models.CASCADE)
-
-    base_state = State.objects.filter(current=True)
 
     @property
     def ishacked(self):

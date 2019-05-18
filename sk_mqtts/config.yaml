@@ -5,7 +5,7 @@ debug: True
 timeout: # seconds
   basic: 1 # ping interval
   alive: 15 # device keepalive threshold
-  mqtt: 5  # broker keepalive value
+  mqtt: 10  # broker keepalive value
 
 ### SYSTEM CONFIG
 # touch this section wisely

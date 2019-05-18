@@ -38,8 +38,8 @@ class EventConsumer(SyncConsumer):
         try:    
             # TODO: send only fields that were updated!
             with ServerEventContext(msg) as server:
+                # response with device type, uid and config from DB
                 response = server.mqtt_response()
-                logger.info(response)
                 response.update({'type': 'mqtt.send',  # label as mqtt packet
                                  'command': 'CUP',  # client should be updated
                                  'task_id': '12345'}) # task id for flow management
@@ -66,7 +66,11 @@ class EventConsumer(SyncConsumer):
                 pass
             # update timestamp anyway
             orm.ts = dev.payload.pop('ts')
-            orm.save(update_fields=['ts'])
+            update_fields = ['ts',]
+            if not orm.online:
+                orm.online = True
+                update_fields.append('online')
+            orm.save(update_fields=update_fields)
             # sending update to front
             update_msg = {'name': dev.dev_type, 'id': orm.id}
             self._update_ws(update_msg)
@@ -75,9 +79,10 @@ class EventConsumer(SyncConsumer):
 
             # TODO: refactor CUP/SUP sending
             try:
-                # no matter what - if you're old, you should get config from server first
-                #if dev.old:
-                #    dev.command = 'PONG'
+                # no matter what - if you're old,
+                # you should get config from server first
+                if dev.old:
+                    dev.command = 'PONG'
 
                 if dev.command == 'PONG':
                     if dev.old:

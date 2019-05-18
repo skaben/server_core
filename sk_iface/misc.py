@@ -20,7 +20,7 @@ class GlobalStateManager:
         return {
             'lock': self.locks.filter(online=True),
             'term': self.terms.filter(online=True),
-            'dumb': self.dumbs.filter(online=True)
+            'dumb': self.dumbs # no online for dumbs...
         }
 
     def set_state(self, name, manual=None):
@@ -65,8 +65,7 @@ class GlobalStateManager:
             for state in new_state:
                 state.current = True
                 state.save()
-            #self._set_dumb_config(name)
-            #new_state.update(current=True)
+            self._set_dumb_config(name)
         except:
             raise
 
@@ -174,10 +173,19 @@ class GlobalStateManager:
         new_val.save()
 
     def _set_dumb_config(self, name):
-        #for device in self.dumbs:
-        #    device.set_config_by_color(name)
-        #self.dumbs.update()
-        pass
+        with transaction.atomic():
+            dumb_conf = DevConfig.objects.filter(state_name=name).all()
+            #config.filter(
+            #    state_name=State.objects.filter(name=name),
+            #    dev_subtype='rgb'
+            #)
+            for device in self.dumbs:
+                # GET RID OF SUBTYPES, AAAA
+                config = dumb_conf.filter(
+                    dev_subtype=device.dev_subtype)\
+                    .first()
+                device.config = config.config
+                device.save()
 
     def __enter__(self):
         return self

@@ -185,9 +185,13 @@ def change_state(request):
                 manager.set_state(state_name, manual=True)
                 devices = manager.device_update_list()
 
+
+                # TODO: MANAGE TRUE BROADCAST for same packets
+
                 for dt in devices.items():
                     device_type = dt[0]
                     bcast_devices = dt[1]
+
                     # sending update message to every device in receivers list
                     for device in bcast_devices:
                         send_msg = {

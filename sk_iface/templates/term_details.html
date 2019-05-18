@@ -63,7 +63,9 @@
               <label class="checkbox inline-label">
                 <input type="checkbox"
                        name="powered"
-                       {% if dev.powered %} checked {% endif %} >
+                       value="true"
+                       {% if dev.powered %}
+                       checked {% endif %} >
                 подключено
               </label>
             </div>

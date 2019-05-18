@@ -34,9 +34,10 @@ def lock_handler(sender, update_fields, created, instance, **kwargs):
 def term_handler(sender, update_fields, created, instance, **kwargs):
     device_handler('term', update_fields, instance)
 
-@receiver(post_save, sender=Dumb)
-def dumb_handler(sender, update_fields, created, instance, **kwargs):
-    device_handler('dumb', update_fields, instance)
+# currently no need to update interface with dumb devices
+#@receiver(post_save, sender=Dumb)
+#def dumb_handler(sender, update_fields, created, instance, **kwargs):
+#    device_handler('dumb', update_fields, instance)
 
 @receiver(post_save, sender=State)
 def alert_handler(sender, **kwargs):
