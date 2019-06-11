@@ -3,6 +3,7 @@ from .packets import *
 
 CMD = {
         'PING': PING,  # heartbeat, broadcast
+        'LEGPING': PINGLegacy,
         'PONG': PONG,  # response to PING with PING timestamp
         'ACK': ACK,   # confirm success (to CUP/SUP)
         'NACK': NACK,  # confirm fail (to CUP/SUP)
@@ -93,7 +94,7 @@ class PacketReceiver(BaseContext):
             command from message payload
         """
         if arg not in CMD:
-            raise Exception(f'unknown command: {cmd}')
+            raise Exception('unknown command: {}'.format(arg))
         return arg
 
     def _payload(self, arg):
@@ -127,6 +128,7 @@ class PacketReceiver(BaseContext):
         self.data['dev_type'] = self._dtype(topic.get(0, None))
         self.data['command'] = self._command(message.get(0, None))
         self.data['payload'] = self._payload(message.get(1, None))
+
         self._check_args(('dev_type', 'command', 'payload'))
         # optional fields
         self.data['uid'] = topic.get(1, None)

@@ -3,6 +3,7 @@ import time
 import logging
 from datetime import datetime
 from .event_contexts import DeviceEventContext, ServerEventContext
+from .misc import GlobalStateManager
 from asgiref.sync import async_to_sync
 from channels.consumer import SyncConsumer, AsyncConsumer
 from channels.layers import get_channel_layer
@@ -43,12 +44,29 @@ class EventConsumer(SyncConsumer):
                 response.update({'type': 'mqtt.send',  # label as mqtt packet
                                  'command': 'CUP',  # client should be updated
                                  'task_id': '12345'}) # task id for flow management
-                self._log_ws(f'[!] sending CUP')
+                #self._log_ws(f'[!] sending CUP {response}')
                 async_to_sync(channel_layer.send)('mqtts', response)
         except:
             logger.exception('exception while sending config to client device')
             raise
 
+    def broadcast_event(self, msg):
+        logging.info('RECEIVED BROADCAST: {}'.format(msg))
+        if msg.get('dev_type') == 'pwr':
+            cmd = msg.get('payload')
+            if cmd == 'online':
+                self._log_ws('POWER device online')
+            elif cmd == 'aux':
+                self._log_ws('AUXILIARY power enabled')
+                with GlobalStateManager() as mgr:
+                    mgr.set_state('cyan')
+            elif cmd == 'pwr':
+                self._log_ws('POWER RESTORED')
+                # no manual=True, so state will be set by threshold 
+                with GlobalStateManager() as mgr:
+                    mgr.set_state('green') 
+
+    # maybe named_event for every device?
     def device_event(self, msg):
         """
         Device event manager
@@ -58,6 +76,9 @@ class EventConsumer(SyncConsumer):
         self._log_ws('{dev_type}: {uid} sending {command}'.format(**msg))
         # next - send command
         with DeviceEventContext(msg) as dev:
+            #
+            #  updating timestamp first
+            #
             # initialize event context with received message
             # trying to get ORM object (or adding new device)
             orm = dev.get()
@@ -74,10 +95,15 @@ class EventConsumer(SyncConsumer):
             # sending update to front
             update_msg = {'name': dev.dev_type, 'id': orm.id}
             self._update_ws(update_msg)
-            #logger.debug(update_msg)
+            #
             # managing event depends of command
+            #
+            if dev.command in ('ACK', 'NACK'):
+                # check for task_id
+                # put into separated high-priority channel
+                # ackmanager deal with it
+                return
 
-            # TODO: refactor CUP/SUP sending
             try:
                 # no matter what - if you're old,
                 # you should get config from server first
@@ -98,12 +124,6 @@ class EventConsumer(SyncConsumer):
                         self._log_ws('[!] sending configuration to '
                                      '{dev_type}/{uid}'.format(**msg))
                         async_to_sync(channel_layer.send)('mqtts', response)
-
-                elif dev.command in ('ACK', 'NACK'):
-                    # check for task_id
-                    # put into separated high-priority channel
-                    # ackmanager deal with it
-                    pass
 
                 elif dev.command == 'CUP':
                     # client should be updated
@@ -127,17 +147,32 @@ class EventConsumer(SyncConsumer):
 
                 elif dev.command == 'SUP':
                     # server should be updated
-                    # get_device
-                    # validate data
-                    # log data
-                    # save device
                     update_fields = []
                     for field in dev.payload.keys():
-                        # ignoring task_id for SUP
+                        # ignoring task id for sup
                         if field == 'task_id':
                             continue
+                        # managing alert level
+                        if field == 'alert':
+                            a = dev.payload.pop('alert')
+                            if a == 'lower':
+                                # BUG: not sending reload to web -_-
+                                with GlobalStateManager() as manager:
+                                    manager.set_state('green', manual=True) 
+                                self._log_ws('ALERT LOWERED')
+                                continue
+                            else:
+                                if not isinstance(a, tuple):
+                                    logging.error('[!] bad alert type: {}'.format(a))
+                                with GlobalStateManager() as manager:
+                                    manager.change_value(a[0], a[1])
+                                self._log_ws(f'{dev.dev_type}/{dev.uid} {a[1]}') # log commentary
+                                continue
+                        
                         if not hasattr(orm, field):
-                            logging.error(f'Ignoring bad column for {dev.dev_type} : {field}')
+                            # ???
+                            #logging.error(f'Ignoring bad column for {dev.dev_type} : {field}')
+                            continue
                         else:
                             db_value = orm.__dict__.get(field)
                             new_value = dev.payload[field]
@@ -147,13 +182,12 @@ class EventConsumer(SyncConsumer):
                                 update_fields.append(field)
                     if update_fields:
                         orm.save(update_fields=update_fields)
-                    # do not send response to mqtt via channel_layer - left unanswered 
-                    # send update to web via websocket : DONE by signals
                 else:
                     logging.error(f'command {dev} not implemented')
             except:
                 logging.exception(f'exception while {dev.command}')
-                self._log_ws(f'FAILED {dev.command} for {dev_type}/{uid}')
+                # TODO: shorten device uids and provide hyperlinks 
+                self._log_ws(f'FAILED {dev.command} for {dev.dev_type}/{dev.uid}')
 
 
     def save_log_record(self, msg):

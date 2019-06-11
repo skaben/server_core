@@ -41,15 +41,24 @@ class LockForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        for key in self.fields:
+            self.fields[key].required = False 
+
     class Meta:
         model = models.Lock
-        fields = ['descr', 'sound', 'blocked', 'opened', 'override']
+        fields = ['descr', 'sound', 'blocked', 'opened', 'override', 'timer']
 
 
 class TerminalForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-    
+
+        for key in self.fields:
+            self.fields[key].required = False 
+   
     class Meta:
         model = models.Terminal
         fields = ['descr',

@@ -1,6 +1,7 @@
 import time
 import json
-from .models import Terminal, Lock, Dumb
+import logging
+from .models import Terminal, Lock, Dumb, Permission
 from django.conf import settings
 
 # TODO: make your own rest api
@@ -11,7 +12,14 @@ class EventContext:
         basic context manager methods
     """
 
-    nosend_fields = ['descr', '_state', 'id', 'online']
+    nosend_fields = ['descr',
+                     '_state',
+                     'id',
+                     'uid',
+                     'online',
+                     'override',
+                     'ip',
+                     'offline']
 
     model_list = {
         'lock': Lock,
@@ -34,25 +42,16 @@ class EventContext:
     def get_conf(self, fields=None):
         if not self.qs:
             self.get()
-        db_data = {k: v for k, v in self.qs.__dict__.items()
-                   if k not in self.nosend_fields}
-        try:
-            # TODO
-            # OMG, that should be filtered by django instead
-            if not fields:
-                # just put all config in it
-                pl = db_data
-            else:
-                # here comes filtering
-                pl = {k: v for k, v in db_data.items() if k in fields}
-            payload = json.dumps(pl).replace("'", '"')
-        except ValueError:
-            # bad fields
-            raise
-        except:
-            # something else went wrong
-            raise
-        return payload
+        data_from_db = self.qs.to_dict()
+        logging.info(data_from_db)
+        if isinstance(self.qs, Terminal):
+            self.nosend_fields.extend(['menu_normal', 'menu_hacked', 'lock_id'])
+        elif isinstance(self.qs, Lock):
+            self.nosend_fields.extend(['access_list'])
+
+        data_from_db = {k:v for (k,v) in data_from_db.items()
+                        if k not in self.nosend_fields}
+        return data_from_db
 
     def mqtt_response(self):
         try:

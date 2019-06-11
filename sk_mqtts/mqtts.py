@@ -26,6 +26,30 @@ from django.conf import settings
 channel_layer = get_channel_layer()
 logger = logging.getLogger('skaben.sk_mqtts')
 
+
+class MQTTPingLegacy(threading.Thread):
+
+    def __init__(self, pub):
+        super().__init__()
+        self.pub = pub
+
+    def run(self):
+        print('start pinging legacy dumbs')
+        self.kill = None
+        while True:
+            if self.kill:
+                break
+            try:
+                for channel in ['RGB', 'PWR']:
+                    with PacketSender() as p:
+                        packet = p.create('LEGPING',
+                                          dev_type=channel)
+                        self.pub.put(packet.encode())
+                    time.sleep(settings.APPCFG['timeout'] * 10)
+            except:
+                logger.exception('cannot send ping')
+
+
 class MQTTPing(threading.Thread):
 
     def __init__(self, pub):
@@ -70,8 +94,8 @@ class MQTTServer(threading.Thread):
         self.listen_to = [(c + 'ask' + '/#', qos)
                           for c in self.config.dev_types]
         # LEGACY: rgb
-        self.publish_to.append("RGB")
         self.listen_to.append(("RGBASK", qos))
+        self.listen_to.append(("PWRASK", qos))
         #
         self.sub = []  # subscribed channels
         self.no_sub = []  # not subscribed channels
@@ -80,6 +104,7 @@ class MQTTServer(threading.Thread):
         print('MQTT server starting...')
         self.running = True
         ping = MQTTPing(self.pub)
+        ping_legacy = MQTTPingLegacy(self.pub)
         host = self.config.mqtt['host']
         port = self.config.mqtt['port']
         self.client = mqtt.Client(clean_session=True)
@@ -102,6 +127,7 @@ class MQTTServer(threading.Thread):
 
         # main routine
         ping.start()
+        ping_legacy.start()
         try:
             while True:
                 #if not self.running:
@@ -114,8 +140,7 @@ class MQTTServer(threading.Thread):
                         if not message[1].startswith('PING'):
                             if message[0].startswith("dumb"):
                                 # LEGACY: rgb
-                                message = self._translate_rgb(message)
-                            logger.debug(f'publishing {message}')
+                                self.send_dumb(message)
                         self.client.publish(*message)
                     else:
                         logger.error(f'bad message to publish: {message}')
@@ -126,7 +151,10 @@ class MQTTServer(threading.Thread):
     def on_message(self, client, userdata, msg):
         # RECEIVING
         try:
-            # parsing dumb device (LEGACY)
+            # parsing dumb devices (LEGACY)
+            # todo: should be rewrited
+            if not msg.topic.startswith(('lock', 'term')):
+                return self.receive_dumb(msg)
             with PacketReceiver() as event:
                 packet = event.create(msg)
                 packet.update({'type': 'device.event'})
@@ -156,6 +184,7 @@ class MQTTServer(threading.Thread):
             print(f'bad message: {message}')
             return
         else:
+            logger.debug(f'publishing {message}')
             self.pub.put(message)
 
     def subscribe(self, channels):
@@ -172,16 +201,39 @@ class MQTTServer(threading.Thread):
         logger.info('server stop not implemented yet')
         pass
 
-    def _translate_rgb(self, msg):
-        pl = json.loads(msg[1].split('/')[1]).get('payload')
-        if not pl:
-            logger.error(f'dumb device config missing in {msg}')
+    def send_dumb(self, msg):
+        # DUMB LEGACY
+        logging.debug(f'BROADCAST: {msg}')
+        cmd = json.loads(msg[1].split('/', 1)[1]).get('config')
+        if msg[0].endswith('rgb'):
+            cmd_sequence = cmd.split()
+            if not cmd_sequence:
+                logger.error(f'dumb device config missing in {msg}')
+            else:
+                for cmd in cmd_sequence:
+                    msg = ("RGB", '*' + cmd)#[1:]) # config string
+                    time.sleep(.3)
+                    self.pub.put(msg)
+        elif msg[0].endswith('pwr'):
+            self.pub.put(('PWR', cmd))
+
+    def receive_dumb(self, msg):
+        # DUMB LEGACY
+        event = {'type': 'broadcast.event'}
+        if msg.topic.startswith('PWRASK'):
+            event.update({'dev_type': 'pwr'})
+            if msg.payload.startswith(b'ASK'):
+                event['payload'] = 'online'
+            elif msg.payload.startswith(b'AUX'):
+                event['payload'] = 'aux'
+            elif msg.payload.startswith(b'PWR'):
+                event['payload'] = 'pwr'
+            async_to_sync(channel_layer.send)('events', event)
+        elif msg.payload.endswith(b'PONG'): # seems like rgb sending us commands
+            pong = msg.payload.decode('utf-8')
+            logging.debug(f'{int(time.time())} > {pong}')
         else:
-            conf_msg = ("RGB", pl.get('config')) # config string
-            logger.debug(f'message {msg} translated to {conf_msg}')
-            return conf_msg
-
-
+            logging.warning(f'incoming event type: {msg}')
 
 mqtt_send_queue = Queue()
 server = MQTTServer(config=config,

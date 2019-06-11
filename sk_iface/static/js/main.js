@@ -63,6 +63,7 @@
           var name = jsonObject.content.name;
           if (name === 'full') {
             // ok, that's simple and dirty hack
+            //reloadDiv('#app');
             window.location.reload(true);
           } else {
             var id = jsonObject.content.id;

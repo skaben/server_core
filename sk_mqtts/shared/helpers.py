@@ -16,9 +16,8 @@ def sjoin(strings):
 
 
 def pl_encode(pl):
-    # dict to str
     pl.pop('_sa_instance_state', None)
-    return json.dumps(pl).replace("'", '"')
+    return json.dumps(pl)#, ensure_ascii=False)
 
 
 def pl_decode(pl):

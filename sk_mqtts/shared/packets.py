@@ -1,4 +1,5 @@
 import time
+import logging
 from .helpers import pl_decode, pl_encode, sjoin
 
 # TODO: beautify client ts passing as argument
@@ -86,6 +87,16 @@ class WAIT(BasePacket):
         self.data['timeout'] = timeout
 
 
+class PINGLegacy(BasePacket):
+    """
+        Ping packet. Broadcast only.
+    """
+    def __init__(self, dev_type, ts=int(time.time())):
+        super().__init__(dev_type=dev_type,
+                         ts=ts)
+        self.command = '*/PING'
+
+
 class PING(BasePacket):
     """
         Ping packet. Broadcast only.
@@ -124,9 +135,11 @@ class PayloadPacket(BasePacket):
                 payload = pl_decode(payload)
             except:
                 raise Exception(f'cannot decode {payload}')
-        self.data.update({'task_id': task_id})
+        self.data.update({'task_id': str(task_id)})
         self.data.update(**payload)
 
+
+# TODO: review UID for cup/sup packets, please mind broadcasts
 
 class CUP(PayloadPacket):
     """

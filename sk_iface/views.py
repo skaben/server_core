@@ -1,4 +1,5 @@
 import logging
+import json
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, render_to_response
 from django.core import serializers
@@ -33,9 +34,9 @@ def _get_context(k=None):
 
     context['texts'] = _txtlist
 
-    for term in context['terms']:
-        texts = _txtlist.filter(device=term.id)
-        setattr(term, 'texts', texts)
+#    for term in context['terms']:
+#        texts = _txtlist.filter(terminal=term.id)
+#        setattr(term, 'texts', texts)
 
     for lock in context['locks']:
         cards = _permlist.filter(lock_id=lock.id)
@@ -70,15 +71,15 @@ def terminal(request, pk):
         postdata = request.POST.copy()
         text_id = postdata.get('infotext')
         status = postdata.get('status')
-        if text_id: # not default
-            text = Text.objects.get(pk=text_id)
-            text.device.set(postdata.get('id'), clear=True)
-            # TODO: should be managed by DB
-            postdata.update({'msg_body': text.content,
-                             'msg_header': text.title})
-        else:
-            postdata.update({'msg_body': '-',
-                             'msg_header': '-'})
+        #if text_id: # not default
+        #    text = Text.objects.get(pk=text_id)
+        #    text.device.set(postdata.get('id'), clear=True)
+        #    # TODO: should be managed by DB
+        #    postdata.update({'msg_body': text.content,
+        #                     'msg_header': text.title})
+        #else:
+        #    postdata.update({'msg_body': '-',
+        #                     'msg_header': '-'})
         if status == 'normal':
             postdata.update({'blocked': 0, 'hacked': 0})
         elif status == 'hacked':
@@ -118,6 +119,7 @@ def lock(request, pk):
     try:
         if request.method == 'POST':
             postdata = request.POST.copy()
+            logger.error(postdata)
             status = postdata.get('status')
             try:
                 states = State.objects.all()
@@ -139,7 +141,7 @@ def lock(request, pk):
             elif status == 'opened':
                 postdata.update({'opened': 1, 'blocked': 0})
             elif status == 'blocked':
-                postdata.update({'blocked': 1})
+                postdata.update({'blocked': 1, 'opened': 0})
             if not postdata.get('sound'):
                 postdata.update({'sound': False})
             form = LockForm(postdata, instance=lock)
@@ -183,23 +185,32 @@ def change_state(request):
         try:
             with GlobalStateManager() as manager:
                 manager.set_state(state_name, manual=True)
-                devices = manager.device_update_list()
+            #    unicast = manager.send_unicast()
+            #    broadcast = manager.send_broadcast()
 
-
-                # TODO: MANAGE TRUE BROADCAST for same packets
-
-                for dt in devices.items():
-                    device_type = dt[0]
-                    bcast_devices = dt[1]
-
-                    # sending update message to every device in receivers list
-                    for device in bcast_devices:
-                        send_msg = {
-                            'type': 'server.event',
-                            'dev_type': device_type,
-                            'uid': device.uid
-                        }
-                        async_to_sync(channel_layer.send)('events', send_msg)
+            #    # TODO: MANAGE TRUE BROADCAST for same packets
+            #    if unicast:
+            #        for msg in unicast:
+            #            async_to_sync(channel_layer.send)('events', send_msg)
+            #    # no need to get config for every device, sending directly
+            #    if broadcast:
+            #        for msg in broadcast:
+            #    #for b in broadcast.items():
+            #    #    #pl = json.dumps({'config': b}, ensure_ascii=False).encode('utf-8')
+            #    #    #if isinstance(pl, bytes):
+            #    #    #    pl = str(pl)
+            #    #    send_msg = {
+            #    #            'type': 'mqtt.send',
+            #    #            'dev_type': 'dumb',
+            #    #            # send broadcast instead of name is actually is good idea
+            #    #            'dev_id': b[0],  
+            #    #            'command': 'CUP',
+            #    #            'task_id': '12345',
+            #    #            'payload': json.dumps({'config': b[1]})
+            #    #    }
+            #    #    #logger.info(f':BROADCAST: {send_msg}')
+            #            async_to_sync(channel_layer.send)('mqtts', send_msg)
+            #        
         except:
             raise
 

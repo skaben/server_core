@@ -131,23 +131,6 @@
             </div>
           </div>
           <hr class="details-hr has-background-grey-light">
-              {% if context.texts %}
-                <label for="info-text" class="inline-label">выбор загруженного
-                  текста</label>
-                <select id='info-text' class='details-input' name="text">
-                  <option disabled selected value>---</option>
-                  {% for text in context.texts %}
-                  <option name="infotext" value="{{ text.id }}"
-                    {% if text.device.id == dev.id %}
-                      selected
-                    {% endif %}
-                  >
-                    {{ text.title }}
-                  </option>
-                  {% endfor %}
-                </select>
-              {% endif %}
-          <hr class="details-hr has-background-grey-light">
         </section>
         <footer>
           <div class="level">

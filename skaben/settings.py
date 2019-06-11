@@ -180,8 +180,14 @@ LOGGING = {
             'filename': 'django_debug.log',
             'formatter': 'simple'
         },
+        'db_file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': 'django_database.log',
+            'formatter': 'simple'
+        },
         'console': {
-            'level': 'DEBUG',
+            'level': 'INFO',
             'class': 'logging.StreamHandler',
             'formatter': 'simple'
         },
@@ -197,6 +203,10 @@ LOGGING = {
             'handlers': ['file'],
             'level': 'DEBUG',
             'propagate': True,
+        },
+        'django.db.backends': {
+            'handlers': ['db_file'],
+            'propagate': False
         },
         'skaben': {
             'level': 'DEBUG',

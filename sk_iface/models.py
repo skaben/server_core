@@ -1,9 +1,14 @@
 import time
 import pytz
+import json
 from datetime import datetime
 from django.db import models
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
+from django.db.models.fields.related import ManyToManyField
+from django.utils.encoding import force_text
+
+from .model_printable import PrintableModel
 
 def get_time(timestamp):
     utc_time = datetime.utcfromtimestamp(timestamp)
@@ -28,7 +33,7 @@ class DeviceMixin:
 
 # Create your models here.
 
-class Log(models.Model):
+class Log(PrintableModel):
 
     timestamp = models.IntegerField(default=int(time.time()))
     message = models.CharField(default='log message', max_length=1500)
@@ -41,7 +46,7 @@ class Log(models.Model):
         return f'{get_time(self.timestamp)} :: {self.message}'
 
 
-class Value(models.Model):
+class Value(PrintableModel):
 
     """
         current base alert level integer value
@@ -56,7 +61,7 @@ class Value(models.Model):
         return f'{self.value} {self.comment} at {get_time(self.timestamp)}'
 
 
-class State(models.Model):
+class State(PrintableModel):
 
     """
 
@@ -92,7 +97,7 @@ class State(models.Model):
         else:
             return s
 
-class DevConfig(models.Model):
+class DevConfig(PrintableModel):
 
     """
         Configurations for different devices
@@ -109,17 +114,77 @@ class DevConfig(models.Model):
         return f'{self.dev_subtype.upper()}-{self.state_name}'
 
 
-class MenuItem(models.Model):
+class MenuItem(PrintableModel):
 
     descr = models.CharField(max_length=120)
-    action_name = models.CharField(max_length=8)
+    action = models.CharField(max_length=8)
+
+#    @property
+#    def menu_type(self):
+#        normal = False
+#        hacked = False
+#        if self.id in self.menu_hacked.values_list('id', flat=True):
+#            hacked = True
+#        if self.id in self.menu_normal.values_list('id', flat=True):
+#            normal = True
+#        return {'normal': normal, 'hacked': hacked}
+
+    @property
+    def uid(self):
+        return self.id
 
     def __str__(self):
-        return f'[{self.action_name}] {self.descr}'
+        return f'[{self.action}] {self.descr}'
+
+
+class Text(PrintableModel):
+
+    class Meta:
+        verbose_name = 'long info text'
+
+    content = models.TextField()
+    title = models.CharField(max_length=50)
+    # lock timer for specific texts
+    timer = models.IntegerField(default=0, blank=True)
+
+    # if storing in filesystem
+    #content = models.FileField(storage=FileSystemStorage(
+    #    location=settings.APPCFG['text_storage']))
+
+    @property
+    def title(self):
+        return f'{self.content[:25]}...'
+
+    @property
+    def uid(self):
+        return self.id
+
+    def __str__(self):
+        s = f'{self.title}'
+        if self.timer:
+           s = f'[TIMER: {self.timer}] ' + s
+        return s
+
+#  PERMISSIONS
+
+class Card(PrintableModel):
+
+    class Meta:
+        verbose_name = 'Staff card'
+        verbose_name_plural = 'Staff cards'
+
+    code = models.CharField(max_length=8)
+    name = models.CharField(max_length=30)
+    surname = models.CharField(max_length=30)
+    position = models.CharField(max_length=30)
+
+    def __str__(self):
+        return f'<{self.code}> {self.position} {self.surname}'
+
 
 #  DEVICES
 
-class Dumb(models.Model, DeviceMixin):
+class Dumb(PrintableModel, DeviceMixin):
     """
         Simple dumb device, such as lights, sirens, rgb-leds
         Controls only by predefined config JSON
@@ -135,20 +200,19 @@ class Dumb(models.Model, DeviceMixin):
     online = models.BooleanField(default=False)
     ip = models.GenericIPAddressField()
     dev_subtype = models.CharField(max_length=50, default='rgb')
-    config = models.CharField(max_length=150, default='')
+#    config = models.CharField(max_length=150, default='')
 
     def __str__(self):
         return f'DUMB ID: {self.id} {self.descr}'
 
 
-class Lock(models.Model, DeviceMixin):
+class Lock(PrintableModel, DeviceMixin):
 
     class Meta:
         verbose_name = 'device: Lock'
         verbose_name_plural = 'devices: Locks'
 
     ts = models.IntegerField(default=int(time.time()))
-    # cardlist as 'color': 'cardid'
     uid = models.CharField(max_length=16, unique=True)
     descr = models.CharField(max_length=120, default='simple lock')
     online = models.BooleanField(default=False)
@@ -158,17 +222,22 @@ class Lock(models.Model, DeviceMixin):
     opened = models.BooleanField(default=False)
     blocked = models.BooleanField(default=False)
     timer = models.IntegerField(default=10)
+    access_list = models.ManyToManyField('Card', through='Permission')
 
     @property
-    def active(self):
-        if self.ts + settings.APPCFG.get('alive', 60) >= int(time.time()):
-            return True
+    def card_list(self):
+        state = State.objects.filter(current=True).first()
+        ids = []
+        # that was very hard.
+        for card in self.permission_set.filter(state_id=state):
+            ids.append(card.card.code)
+        return ids
 
     def __str__(self):
         return f'<{self.id}> {self.descr}'
 
 
-class Terminal(models.Model, DeviceMixin):
+class Terminal(PrintableModel, DeviceMixin):
 
     easy = 6
     normal = 8
@@ -212,8 +281,11 @@ class Terminal(models.Model, DeviceMixin):
     hack_chance = models.IntegerField(default=10)
     menu_normal = models.ManyToManyField(MenuItem, related_name='menu_normal')
     menu_hacked = models.ManyToManyField(MenuItem, related_name='menu_hacked')
-    msg_header = models.CharField(max_length=100)
-    msg_body = models.CharField(max_length=500)
+    msg_header = models.CharField(max_length=100, default='terminal SK-100')
+    msg_body = models.ManyToManyField(Text,
+                                      null=True,
+                                      blank=True,
+                                      default=None)
 
     lock_id = models.ForeignKey(Lock,
                                 null=True,
@@ -222,76 +294,43 @@ class Terminal(models.Model, DeviceMixin):
                                 on_delete=models.CASCADE)
 
     @property
-    def ishacked(self):
-        if self.hacked:
-            return True
+    def menu_items(self):
+        menu_items = []
+        for item in self.menu_hacked.all():
+            as_dict = item.to_dict()
+            if as_dict.get('action') == 'hack':
+                # cannot be hacked twice
+                continue
+            if item in self.menu_normal.all():
+                as_dict.update({'normal': True, 'hacked': True })
+            else:
+                as_dict.update({'normal': False, 'hacked': True})
+            menu_items.append(as_dict)
+        for item in self.menu_normal.all():
+            # rare scenario
+            if item not in self.menu_hacked.all():
+                as_dict = item.to_dict()
+                as_dict.update({'normal': True, 'hacked': False})
+            menu_items.append(as_dict)
+        return menu_items            
+            
 
     def __str__(self):
         return f'TERMINAL ID: {self.id} {self.descr}'
 
 
-#  PERMISSIONS
-
-class Card(models.Model):
+class Permission(PrintableModel):
 
     class Meta:
-        verbose_name = 'Staff card'
-        verbose_name_plural = 'Staff cards'
-
-    short_id = models.IntegerField()
-    long_id = models.CharField(max_length=16, default='a8a7a6a5a4a3a2a1')
-    name = models.CharField(max_length=30)
-    surname = models.CharField(max_length=30)
-    position = models.CharField(max_length=30)
-
-    def __str__(self):
-        return f'<{self.short_id}> {self.position} {self.surname}'
-
-
-class Permission(models.Model):
-
-    class Meta:
-        unique_together = ['card_id', 'lock_id']
+        unique_together = ['card', 'lock']  # todo: unique_together and manytomany
         verbose_name = 'Staff permission'
         verbose_name_plural = 'Staff permissions'
 
-    card_id = models.ForeignKey(Card, on_delete=models.CASCADE)
-    lock_id = models.ForeignKey(Lock, on_delete=models.CASCADE)
+    card = models.ForeignKey(Card, on_delete=models.CASCADE)
+    lock = models.ForeignKey(Lock, on_delete=models.CASCADE)
     state_id = models.ManyToManyField(State)
-
+    
     def __str__(self):
-        return f'[ {self.lock_id.descr.upper()} ] {self.card_id.position} ' \
-               f'{self.card_id.surname} ' \
+        return f'[ {self.lock.descr.upper()} ] {self.card.position} ' \
+               f'{self.card.surname} '
 
-
-
-# OTHERS
-
-class Text(models.Model):
-
-    class Meta:
-        verbose_name = 'long info text'
-
-    device = models.ForeignKey(Terminal,
-                               blank=True,
-                               null=True,
-                               related_name='text_files',
-                               on_delete=models.CASCADE)
-    content = models.TextField()
-    title = models.CharField(max_length=50)
-    # lock timer for specific texts
-    timer = models.IntegerField(default=0, blank=True)
-
-    # if storing in filesystem
-    #content = models.FileField(storage=FileSystemStorage(
-    #    location=settings.APPCFG['text_storage']))
-
-    @property
-    def title(self):
-        return f'{self.content[:25]}...'
-
-    def __str__(self):
-        assigned = 'NOT ASSIGNED'
-        if self.device:
-            assigned = self.device.descr.upper()
-        return f'[{assigned}] {self.title}'
