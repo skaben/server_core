@@ -9,9 +9,9 @@ from channels.layers import get_channel_layer
 
 logger = logging.getLogger('skaben.sk_iface')
 
-from .forms import LockForm, TerminalForm, StateForm, ValueForm
-from .models import *
-from .misc import GlobalStateManager
+from sk_iface.forms import LockForm, TerminalForm, StateForm, ValueForm
+from sk_iface.models import *
+from sk_iface.state_manager import GlobalStateManager
 
 channel_layer = get_channel_layer()
 
@@ -226,3 +226,4 @@ def sendlog(request, msg=None):
     async_to_sync(channel_layer.send)('events', cmd)
     return HttpResponse(f'send test msg', content_type='text/plain')
 
+# TECHNOHERESY IS ABOVE! Write down the viewsets for DRF!

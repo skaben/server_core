@@ -2,7 +2,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
-from .models import Dumb, Terminal, Lock, State
+from .models import Dumb, Terminal, Lock, State, Value
 
 channel_layer = get_channel_layer()
 
@@ -44,5 +44,13 @@ def alert_handler(sender, **kwargs):
     msg = {
         'type': 'post.save',
         'name': 'full'
+    }
+    async_to_sync(channel_layer.send)('events', msg)
+
+@receiver(post_save, sender=Value)
+def value_handler(sender, **kwargs):
+    msg = {
+        'type': 'post.save',
+        'name': 'value'
     }
     async_to_sync(channel_layer.send)('events', msg)

@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 """
 
 import os
+import datetime
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -32,11 +33,11 @@ ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
     'channels',
-    #'rest_framework',
+    'rest_framework',
     #'crispy_forms',
+    'corsheaders',
     'django_filters',
     'sk_iface.apps.IfaceConfig',
-    #'sk_rest.apps.RESTConfig',
     'sk_mqtts.apps.MqttsConfig',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -54,6 +55,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
 ]
 
 ROOT_URLCONF = 'skaben.urls'
@@ -81,10 +84,21 @@ WSGI_APPLICATION = 'skaben.wsgi.application'
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
 DATABASES = {
+    # new mysql backend
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'skaben',
+        'USER': 'django_skaben',
+        'PASSWORD': 'h1tNRun0',
+        'TEST': {
+            'ENGINE': 'django.db.backends.sqlite3',
+        },
+    },
+    # old sqlite backend
+    #'backup': {
+    #    'ENGINE': 'django.db.backends.sqlite3',
+    #    'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    #},
 }
 
 
@@ -150,14 +164,39 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': (
         'django_filters.rest_framework.DjangoFilterBackend',
     ),
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
-    ],
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+        #'rest_framework.permissions.IsAuthenticated',
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ),
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
     #    'rest_framework.renderers.BrowsableAPIRenderer',
     )
 }
+
+# JWT
+
+JWT_AUTH = {
+    'JWT_ALLOW_REFRESH': True,
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(seconds=3600),
+    'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(days=7),
+}
+
+
+# CORS
+
+#CORS_ALLOW_CREDENTIALS = True
+
+CORS_ORIGIN_WHITELIST = [
+    'http://192.168.0.124:4200',
+]
+
+CORS_URLS_REGEX = r'^/api/.*$'
 
 # LOGGING
 

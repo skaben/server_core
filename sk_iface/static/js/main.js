@@ -61,7 +61,9 @@
         if (jsonObject.type === 'ws.update') {
           console.log(jsonObject.content);
           var name = jsonObject.content.name;
-          if (name === 'full') {
+          if (name === 'value') {
+            reloadDiv('#header_menu');
+          } else if (name === 'full') {
             // ok, that's simple and dirty hack
             //reloadDiv('#app');
             window.location.reload(true);

@@ -9,17 +9,20 @@ from django.conf import settings
 class EventContext:
 
     """
-        basic context manager methods
+        Event Context is interface between decoded MQTT packet and database
+        All operations with ORM are performed in this context
+        Contains basic context manager methods
     """
 
     nosend_fields = ['descr',
                      '_state',
-                     'id',
-                     'uid',
-                     'online',
-                     'override',
-                     'ip',
-                     'offline']
+                     'ts',  # should be set by server time
+                     'id',  # server-side id
+                     'uid',  # no need
+                     'online',  # only server need it
+                     'override',  # only server need it
+                     'ip',  # only server need it
+                     'offline']  # virtual status
 
     model_list = {
         'lock': Lock,
@@ -43,15 +46,13 @@ class EventContext:
         if not self.qs:
             self.get()
         data_from_db = self.qs.to_dict()
-        logging.info(data_from_db)
         if isinstance(self.qs, Terminal):
             self.nosend_fields.extend(['menu_normal', 'menu_hacked', 'lock_id'])
         elif isinstance(self.qs, Lock):
             self.nosend_fields.extend(['access_list'])
-
-        data_from_db = {k:v for (k,v) in data_from_db.items()
-                        if k not in self.nosend_fields}
-        return data_from_db
+        payload = {k:v for (k,v) in data_from_db.items()
+                           if k not in self.nosend_fields}
+        return payload
 
     def mqtt_response(self):
         try:
@@ -104,7 +105,7 @@ class DeviceEventContext(EventContext):
         except KeyError:
             raise Exception(f'no such model: {self.dev_type}')
 
-        self.ts = self.payload.get('ts', 0)
+        self.ts = event.get('ts', 0)
 
         if self.ts + settings.APPCFG.get('alive', 60) < int(time.time()):
             self.old = True

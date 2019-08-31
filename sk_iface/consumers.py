@@ -2,13 +2,14 @@ import json
 import time
 import logging
 from datetime import datetime
-from .event_contexts import DeviceEventContext, ServerEventContext
-from .misc import GlobalStateManager
+from sk_iface.event_contexts import DeviceEventContext, ServerEventContext
+from sk_iface.state_manager import GlobalStateManager
+from sk_iface.scenarios import parse_scenario
 from asgiref.sync import async_to_sync
 from channels.consumer import SyncConsumer, AsyncConsumer
 from channels.layers import get_channel_layer
 
-from .forms import LogRecordForm
+from sk_iface.forms import LogRecordForm
 
 channel_layer = get_channel_layer()
 logger = logging.getLogger('skaben.sk_iface')
@@ -30,8 +31,6 @@ class EventConsumer(SyncConsumer):
         # handling post_save events
         self._log_ws(f'post_save signal as {msg}')
         self._update_ws(msg)
-        # DO NOT GENERATE mqtt response here
-        # sending CUP in response to SUP is bad idea
 
     def server_event(self, msg):
         # sending CUP as separate method much better
@@ -51,7 +50,10 @@ class EventConsumer(SyncConsumer):
             raise
 
     def broadcast_event(self, msg):
-        logging.info('RECEIVED BROADCAST: {}'.format(msg))
+        #logger.info('RECEIVED BROADCAST: {}'.format(msg))
+        if msg.get('payload') == 'conf':
+            with GlobalStateManager() as mgr:
+                mgr.send_broadcast(mgr.current.name, msg.get('dev_type')) 
         if msg.get('dev_type') == 'pwr':
             cmd = msg.get('payload')
             if cmd == 'online':
@@ -64,51 +66,51 @@ class EventConsumer(SyncConsumer):
                 self._log_ws('POWER RESTORED')
                 # no manual=True, so state will be set by threshold 
                 with GlobalStateManager() as mgr:
-                    mgr.set_state('green') 
+                    mgr.set_state('green')
 
-    # maybe named_event for every device?
     def device_event(self, msg):
         """
         Device event manager
         :param msg: message from Redis-backed channel layer
         :return:
         """
-        self._log_ws('{dev_type}: {uid} sending {command}'.format(**msg))
-        # next - send command
+        # more verbosity needed!
+        #if msg.get('command') != 'PONG':
+        #    self._log_ws('{dev_type}: {uid} sending {command}'.format(**msg))
+        # initialize event context with received message
         with DeviceEventContext(msg) as dev:
-            #
             #  updating timestamp first
-            #
-            # initialize event context with received message
             # trying to get ORM object (or adding new device)
             orm = dev.get()
             if not orm:
                 # TODO: call new_device procedure
-                pass
-            # update timestamp anyway
-            orm.ts = dev.payload.pop('ts')
-            update_fields = ['ts',]
-            if not orm.online:
-                orm.online = True
-                update_fields.append('online')
-            orm.save(update_fields=update_fields)
-            # sending update to front
-            update_msg = {'name': dev.dev_type, 'id': orm.id}
-            self._update_ws(update_msg)
-            #
-            # managing event depends of command
-            #
-            if dev.command in ('ACK', 'NACK'):
-                # check for task_id
-                # put into separated high-priority channel
-                # ackmanager deal with it
+                logger.warning('no such device')
                 return
 
             try:
                 # no matter what - if you're old,
                 # you should get config from server first
                 if dev.old:
+                    orm.ts = int(time.time()) # set timestamp to server time
                     dev.command = 'PONG'
+                else:
+                    orm.ts = dev.ts
+
+                update_fields = ['ts',]
+
+                if not orm.online:
+                    orm.online = True
+                    update_fields.append('online')
+                orm.save(update_fields=update_fields)
+                # sending update to front
+                update_msg = {'name': dev.dev_type, 'id': orm.id}
+                self._update_ws(update_msg)
+
+                if dev.command in ('ACK', 'NACK'):
+                    # check for task_id
+                    # put into separated high-priority channel
+                    # ackmanager deal with it
+                    return
 
                 if dev.command == 'PONG':
                     if dev.old:
@@ -126,21 +128,12 @@ class EventConsumer(SyncConsumer):
                         async_to_sync(channel_layer.send)('mqtts', response)
 
                 elif dev.command == 'CUP':
-                    # client should be updated
-                    # get device config
-                    # add task_id
-                    # send packet to mqtt via channel_layer
-                    # await for ack/nack with task_id in separate channel
-                    # retry X times
-                    # except: log and update device as offline
                     response = dev.mqtt_response()
                     response.update({
                             'type': 'mqtt.send',
                             'command': 'CUP',
                             'task_id': '12345' # todo: redis backed task storage
                         })
-                        #####   !!!  self._update_ws(msg['dev_type'])
-                        # holy cow, that's stupid channels
                     self._log_ws('[!] sending configuration to '
                                      '{dev_type}/{uid}'.format(**msg))
                     async_to_sync(channel_layer.send)('mqtts', response)
@@ -148,44 +141,36 @@ class EventConsumer(SyncConsumer):
                 elif dev.command == 'SUP':
                     # server should be updated
                     update_fields = []
-                    for field in dev.payload.keys():
-                        # ignoring task id for sup
+                    keys = list(dev.payload.keys())
+                    logger.info(f'received SUP from {dev.dev_type}/{dev.uid}\n'
+                                f'{dev.payload}')
+                    for field in keys:
                         if field == 'task_id':
                             continue
-                        # managing alert level
-                        if field == 'alert':
-                            a = dev.payload.pop('alert')
-                            if a == 'lower':
-                                # BUG: not sending reload to web -_-
-                                with GlobalStateManager() as manager:
-                                    manager.set_state('green', manual=True) 
-                                self._log_ws('ALERT LOWERED')
-                                continue
-                            else:
-                                if not isinstance(a, tuple):
-                                    logging.error('[!] bad alert type: {}'.format(a))
-                                with GlobalStateManager() as manager:
-                                    manager.change_value(a[0], a[1])
-                                self._log_ws(f'{dev.dev_type}/{dev.uid} {a[1]}') # log commentary
-                                continue
-                        
                         if not hasattr(orm, field):
-                            # ???
-                            #logging.error(f'Ignoring bad column for {dev.dev_type} : {field}')
+                            # no such field in related model, some BS arrived
+                            #logger.error(f'Ignoring bad column for {dev.dev_type} : {field}')
+                            continue
+                        # managing alert level
+                        if field == 'message':
+                            result = parse_scenario(dev.payload[field], dev)
+                            self._log_ws(result)
                             continue
                         else:
-                            db_value = orm.__dict__.get(field)
+                            # update ORM field by field
+                            db_value = getattr(orm, field)
                             new_value = dev.payload[field]
                             if db_value != new_value:
-                                #print(f'update to DB: {field} is {new_value}')
                                 setattr(orm, field, new_value)
                                 update_fields.append(field)
+                    # and saving, finally, with update fields
                     if update_fields:
+                        logger.debug(update_fields)
                         orm.save(update_fields=update_fields)
                 else:
-                    logging.error(f'command {dev} not implemented')
+                    logger.error(f'command {dev} not implemented')
             except:
-                logging.exception(f'exception while {dev.command}')
+                logger.exception(f'exception while {dev.command}')
                 # TODO: shorten device uids and provide hyperlinks 
                 self._log_ws(f'FAILED {dev.command} for {dev.dev_type}/{dev.uid}')
 
@@ -196,7 +181,7 @@ class EventConsumer(SyncConsumer):
         elif isinstance(msg, str):
             message = msg
         else:
-            logger.error(f'bad type of msg for logging: {type(msg)}:\n{msg}')
+            logger.error(f'bad type of msg for logger: {type(msg)}:\n{msg}')
         try:
             log = LogRecordForm({'timestamp': int(time.time()),
                                  'message': message})
@@ -241,7 +226,7 @@ class WebEventConsumer(AsyncConsumer):
         })
 
     async def websocket_disconnect(self, event):
-        logging.debug('websocket disconnect')
+        logger.debug('websocket disconnect')
         await self.send({
             "type": "websocket.accept",
         })
@@ -257,7 +242,7 @@ class WebEventConsumer(AsyncConsumer):
 #        })
 
     async def ws_log(self, data):
-        logging.debug(f'ws log received: {data}')
+        logger.debug(f'ws log received: {data}')
         timestamp = datetime.now().strftime('%X')
         data.update({'time': timestamp})
         text = json.dumps(data)

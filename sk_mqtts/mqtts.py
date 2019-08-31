@@ -19,13 +19,15 @@ from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 
 from sk_mqtts.config import config
-from sk_mqtts.shared.contexts import PacketSender, PacketReceiver
+
+import skabenproto as sk
 
 from django.conf import settings
 
 channel_layer = get_channel_layer()
 logger = logging.getLogger('skaben.sk_mqtts')
 
+# separate MQTT server to shared
 
 class MQTTPingLegacy(threading.Thread):
 
@@ -41,11 +43,12 @@ class MQTTPingLegacy(threading.Thread):
                 break
             try:
                 for channel in ['RGB', 'PWR']:
-                    with PacketSender() as p:
-                        packet = p.create('LEGPING',
-                                          dev_type=channel)
-                        self.pub.put(packet.encode())
-                    time.sleep(settings.APPCFG['timeout'] * 10)
+                    with sk.PacketEncoder() as p:
+                        packet = p.load('LEGPING',
+                                        dev_type=channel)
+                        encoded = p.encode(packet)
+                        self.pub.put(encoded)
+                    time.sleep(settings.APPCFG['timeout'] * 3)
             except:
                 logger.exception('cannot send ping')
 
@@ -64,10 +67,11 @@ class MQTTPing(threading.Thread):
                 break
             try:
                 for channel in config.dev_types:
-                    with PacketSender() as p:
-                        packet = p.create('PING',
+                    with sk.PacketEncoder() as p:
+                        packet = p.load('PING',
                                           dev_type=channel)
-                        self.pub.put(packet.encode())
+                        encoded = p.encode(packet)
+                        self.pub.put(encoded)
                     time.sleep(settings.APPCFG['timeout'])
             except:
                 logger.exception('cannot send ping')
@@ -80,6 +84,9 @@ class MQTTServer(threading.Thread):
         publish to mqttclient
         yeah, that simple
     """
+    dumb_dict = dict()  # DUMB LEGACY
+    rgb_send_conf = None  # DUMB LEGACY
+    pwr_send_conf = None  # DUMB LEGACY
 
     def __init__(self, config, queue):
         super().__init__()
@@ -99,6 +106,8 @@ class MQTTServer(threading.Thread):
         #
         self.sub = []  # subscribed channels
         self.no_sub = []  # not subscribed channels
+        # DUMB LEGACY
+        self.dumb_timeout = int(settings.APPCFG['timeout'] * 5)
 
     def run(self):
         print('MQTT server starting...')
@@ -155,12 +164,17 @@ class MQTTServer(threading.Thread):
             # todo: should be rewrited
             if not msg.topic.startswith(('lock', 'term')):
                 return self.receive_dumb(msg)
-            with PacketReceiver() as event:
-                packet = event.create(msg)
-                packet.update({'type': 'device.event'})
-                async_to_sync(channel_layer.send)('events', packet)
+            with sk.PacketDecoder() as decoder:
+                event = decoder.decode(msg)
+                event.update({'type': 'device.event'})
+                return self.send_event(event)
+            #with PacketReceiver() as event:
+            #    packet = event.create(msg)
+            #    packet.update({'type': 'device.event'})
+            #    async_to_sync(channel_layer.send)('events', packet)
         except:
             logger.exception(f'failed for {msg} :')
+            raise
 
     def on_connect(self, client, userdata, flags, rc):
         if rc != 0:
@@ -201,6 +215,10 @@ class MQTTServer(threading.Thread):
         logger.info('server stop not implemented yet')
         pass
 
+    def send_event(self, event):
+        async_to_sync(channel_layer.send)('events', event)
+        return True
+
     def send_dumb(self, msg):
         # DUMB LEGACY
         logging.debug(f'BROADCAST: {msg}')
@@ -210,28 +228,59 @@ class MQTTServer(threading.Thread):
             if not cmd_sequence:
                 logger.error(f'dumb device config missing in {msg}')
             else:
+                self.rgb_send_conf = False
                 for cmd in cmd_sequence:
                     msg = ("RGB", '*' + cmd)#[1:]) # config string
                     time.sleep(.3)
                     self.pub.put(msg)
         elif msg[0].endswith('pwr'):
+            self.pwr_send_conf = False
             self.pub.put(('PWR', cmd))
 
     def receive_dumb(self, msg):
         # DUMB LEGACY
         event = {'type': 'broadcast.event'}
         if msg.topic.startswith('PWRASK'):
-            event.update({'dev_type': 'pwr'})
+            event['dev_type'] = 'pwr'
             if msg.payload.startswith(b'ASK'):
                 event['payload'] = 'online'
             elif msg.payload.startswith(b'AUX'):
                 event['payload'] = 'aux'
             elif msg.payload.startswith(b'PWR'):
                 event['payload'] = 'pwr'
-            async_to_sync(channel_layer.send)('events', event)
-        elif msg.payload.endswith(b'PONG'): # seems like rgb sending us commands
-            pong = msg.payload.decode('utf-8')
-            logging.debug(f'{int(time.time())} > {pong}')
+            elif msg.payload.endswith(b'PONG'):
+                last_ts = self.dumb_dict.get('power') 
+                if last_ts and last_ts > int(time.time()) + int(self.dumb_timeout):
+                    self.dumb_dict.update({'power': int(time.time())})
+                    return True  # he's cool
+                else:
+                    self.dumb_dict.update({'power': int(time.time())})
+                    event['payload'] = 'conf'
+                    if self.pwr_send_conf:
+                        # already sending config
+                        return True
+                    else:
+                        self.pwr_send_conf = True
+            return self.send_event(event)
+        elif msg.topic.startswith('RGBASK'):
+            if msg.payload.endswith(b'PONG'):
+                print(self.dumb_dict)
+                event['dev_type'] = 'rgb'
+                pong = msg.payload.decode('utf-8').split('/')
+                duid = pong[0]
+                ts = self.dumb_dict.get(duid)
+                new_ts = int(time.time()) + int(self.dumb_timeout)
+                if ts and int(ts) > int(time.time()):
+                    self.dumb_dict.update({duid: new_ts})
+                    return True
+                else:
+                    self.dumb_dict.update({duid: new_ts})
+                    event['payload'] = 'conf'
+                    if self.rgb_send_conf:
+                        return True  # already sending config
+                    else:
+                        self.rgb_send_conf = True
+                        return self.send_event(event)
         else:
             logging.warning(f'incoming event type: {msg}')
 

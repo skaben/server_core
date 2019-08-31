@@ -80,10 +80,10 @@ class GlobalStateManager:
                           hack_wordcount=16,
                           hack_chance=10,
                           hack_attempts=4)
-        for term in self.terms:
-            term.msg_body.clear()
-            term.menu_hacked.clear()
-            term.menu_normal.clear()
+        #for term in self.terms:
+        #    term.msg_body.clear()
+        #    term.menu_hacked.clear()
+        #    term.menu_normal.clear()
         self.set_as_current('white')
 
     def blue(self):
@@ -207,10 +207,13 @@ class GlobalStateManager:
         else:
             logger.error('no devices set for broadcast')
 
-    def send_broadcast(self, name):
+    def send_broadcast(self, name, dev_type=None):
         res = []
         broadcast = self.broadcast_devices(name)
         for b in broadcast.items():
+            if dev_type:
+                if b[0] != dev_type:
+                    continue
             send_msg = { 
                     'type': 'mqtt.send',
                     'dev_type': 'dumb',
@@ -246,13 +249,15 @@ class GlobalStateManager:
             logger.debug(f'sending {res}')
             async_to_sync(channel_layer.send)('events', message)
 
-    def change_value(self, alert, comment='new value'):
-        value = self.value + int(alert)
+    def change_value(self, alert, comment):
+        cur_value = int(Value.objects.all().latest('id').value)
+        value = cur_value + int(alert)
         new_value = Value.objects.create(value=value,
                                          comment=comment)
-        logging.info('changed alert value to {}'.format(new_value))
+        logger.info('changed alert value to {}'.format(new_value))
         new_value.save()
-        self.state_based_on_value(new_value) 
+        if self.current.name in self.playable:
+            self.state_based_on_value(new_value.value)
 
     def __enter__(self):
         return self

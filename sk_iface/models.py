@@ -8,7 +8,7 @@ from django.core.files.storage import FileSystemStorage
 from django.db.models.fields.related import ManyToManyField
 from django.utils.encoding import force_text
 
-from .model_printable import PrintableModel
+from sk_iface.model_printable import PrintableModel
 
 def get_time(timestamp):
     utc_time = datetime.utcfromtimestamp(timestamp)
@@ -117,7 +117,8 @@ class DevConfig(PrintableModel):
 class MenuItem(PrintableModel):
 
     descr = models.CharField(max_length=120)
-    action = models.CharField(max_length=8)
+    action = models.CharField(max_length=16)
+    callback = models.CharField(max_length=16)
 
 #    @property
 #    def menu_type(self):
@@ -134,7 +135,7 @@ class MenuItem(PrintableModel):
         return self.id
 
     def __str__(self):
-        return f'[{self.action}] {self.descr}'
+        return f'[{self.action}] {self.descr} <{self.callback}>'
 
 
 class Text(PrintableModel):
@@ -222,16 +223,15 @@ class Lock(PrintableModel, DeviceMixin):
     opened = models.BooleanField(default=False)
     blocked = models.BooleanField(default=False)
     timer = models.IntegerField(default=10)
-    access_list = models.ManyToManyField('Card', through='Permission')
 
     @property
     def card_list(self):
+        # unload list of Card codes for lock end-device
+        acl = []
         state = State.objects.filter(current=True).first()
-        ids = []
-        # that was very hard.
-        for card in self.permission_set.filter(state_id=state):
-            ids.append(card.card.code)
-        return ids
+        for permission in self.permission_set.filter(state_id=state):
+            acl.append(permission.card)
+        return [card.code for card in acl]
 
     def __str__(self):
         return f'<{self.id}> {self.descr}'
@@ -241,11 +241,13 @@ class Terminal(PrintableModel, DeviceMixin):
 
     easy = 6
     normal = 8
+    medium = 10
     hard = 12
 
     difficulty_choices = (
         (easy, 'easy'),
         (normal, 'normal'),
+        (medium, 'medium'),
         (hard, 'hard'),
     )
 
@@ -272,6 +274,7 @@ class Terminal(PrintableModel, DeviceMixin):
     override = models.BooleanField(default=False)
     powered = models.BooleanField(default=False)
     blocked = models.BooleanField(default=False)
+    block_time = models.IntegerField(default=10)
     hacked = models.BooleanField(default=False)
     hack_attempts = models.IntegerField(default=3)
     hack_difficulty = models.IntegerField(
@@ -287,11 +290,11 @@ class Terminal(PrintableModel, DeviceMixin):
                                       blank=True,
                                       default=None)
 
-    lock_id = models.ForeignKey(Lock,
-                                null=True,
-                                blank=True,
-                                default=None,
-                                on_delete=models.CASCADE)
+#    lock_id = models.ForeignKey(Lock,
+#                                null=True,
+#                                blank=True,
+#                                default=None,
+#                                on_delete=models.CASCADE)
 
     @property
     def menu_items(self):
@@ -322,7 +325,7 @@ class Terminal(PrintableModel, DeviceMixin):
 class Permission(PrintableModel):
 
     class Meta:
-        unique_together = ['card', 'lock']  # todo: unique_together and manytomany
+        unique_together = ('card', 'lock')
         verbose_name = 'Staff permission'
         verbose_name_plural = 'Staff permissions'
 
