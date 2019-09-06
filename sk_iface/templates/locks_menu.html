@@ -50,7 +50,9 @@
             {% endif %}
 
           <div class="level-item dev_c_content">
-            <p>{{ dev.descr|truncatechars:30  }}</p>
+              <p><span style="font-size:.75rem">[{{dev.uid}}]</span>
+                  {{ dev.descr|truncatechars:30 }}
+            </p>
           </div>
         </div>
         <div class="level-item level-right">
