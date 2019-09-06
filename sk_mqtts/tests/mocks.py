@@ -1,5 +1,4 @@
 from sk_mqtts.mqtts import MQTTServer
-from sk_mqtts.config import config
 from multiprocessing import Queue
 
 from django.conf import settings
@@ -7,6 +6,7 @@ from django.conf import settings
 import skabenproto as sk
 
 q = Queue()
+config = settings.APPCFG
 
 class Server(MQTTServer):
 

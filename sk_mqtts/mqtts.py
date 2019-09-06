@@ -18,8 +18,6 @@ import logging
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 
-from sk_mqtts.config import config
-
 import skabenproto as sk
 
 from django.conf import settings
@@ -72,7 +70,7 @@ class MQTTPing(threading.Thread):
                                           dev_type=channel)
                         encoded = p.encode(packet)
                         self.pub.put(encoded)
-                    time.sleep(settings.APPCFG['timeout'])
+                    time.sleep(settings.APPCFG['timeouts']['ping'])
             except:
                 logger.exception('cannot send ping')
 
@@ -92,14 +90,14 @@ class MQTTServer(threading.Thread):
         super().__init__()
         self.running = False
         self.pub = queue
-        self.config = config
+        self.cfg = settings.APPCFG
         self.client = None
         qos = 0  # set QoS level
         self.is_connected = False
         # mqtt channels
-        self.publish_to = self.config.dev_types
+        self.publish_to = self.cfg['device_types']
         self.listen_to = [(c + 'ask' + '/#', qos)
-                          for c in self.config.dev_types]
+                          for c in self.cfg['device_types']]
         # LEGACY: rgb
         self.listen_to.append(("RGBASK", qos))
         self.listen_to.append(("PWRASK", qos))
@@ -107,15 +105,15 @@ class MQTTServer(threading.Thread):
         self.sub = []  # subscribed channels
         self.no_sub = []  # not subscribed channels
         # DUMB LEGACY
-        self.dumb_timeout = int(settings.APPCFG['timeout'] * 5)
+        self.dumb_timeout = int(self.cfg['timeouts']['ping'] * 5)
 
     def run(self):
         print('MQTT server starting...')
         self.running = True
         ping = MQTTPing(self.pub)
         ping_legacy = MQTTPingLegacy(self.pub)
-        host = self.config.mqtt['host']
-        port = self.config.mqtt['port']
+        host = self.cfg['mqtt']['host']
+        port = self.cfg['mqtt']['port']
         self.client = mqtt.Client(clean_session=True)
         self.client.on_connect = self.on_connect
         self.client.on_message = self.on_message
@@ -123,7 +121,8 @@ class MQTTServer(threading.Thread):
         try:
             self.client.connect(host=host,
                                 port=port,
-                                keepalive=self.config.timeout['mqtt'])
+                                keepalive=settings.APPCFG['timeouts'][
+                                    'broker_keepalive'])
             logger.info(f'connecting to MQTT broker at {host}:{port}...')
             self.client.loop_start()
         except ConnectionRefusedError:
