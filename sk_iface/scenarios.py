@@ -2,7 +2,7 @@ import logging
 import time
 
 from sk_iface.state_manager import GlobalStateManager
-from sk_iface.models import MenuItem
+from sk_iface.models import MenuItem, Lock
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 
@@ -10,26 +10,48 @@ channel_layer = get_channel_layer()
 
 
 class CallbackManager():
-    def __init__(self, device=None):
-        self.dev = device
+    def __init__(self, **kw):
+        self.kwargs = kw
+    
+    def _reload(self):
+        msg = {
+            'type': 'post.save',
+            'name': 'full'
+        }
+        async_to_sync(channel_layer.send)('events', msg)
+ 
+    def _switch_doors(self, val):
+        res = []
+        with GlobalStateManager() as manager:
+            manager.locks.update(opened=val)
+            for device in manager.locks:
+                send_msg = {
+                    'type': 'server.event',
+                    'dev_type': 'lock',
+                    'uid': device.uid
+                }
+                res.append(send_msg)
+            for message in res:
+                async_to_sync(channel_layer.send)('events', message)
+        self._reload()
 
-    def magos_pass(self):
-        logging.info('passcode received')
+    def open_doors(self):
+        logging.info('opening all doors')
+        self._switch_doors(True)
+        return 'doors forced open'
 
-    def easier(self):
-        logging.info('set minigame easier')
-
-    def all_doors(self):
-        logging.info('switch all doors')
-        # open all doors
-        pass
+    def close_doors(self):
+        logging.info('closing all doors')
+        self._switch_doors(False)
+        return 'doors forced closed'
 
     def serv_off(self):
         logging.info('servs offline')
-        pass
+        self._reload()
+        return '! SERVITORS OFFLINE !' * 50
 
 
-manager = CallbackManager()
+cb_manager = CallbackManager()
 callbacks = MenuItem.objects.filter(callback__isnull=False).values('callback')
 
 # session variables
@@ -70,7 +92,7 @@ def parse_scenario(msg, dev, orm):
     if msg == magos_password: 
         if pl.get('comment') == 'gas':
             # send custom config to RGB
-            return '! GAS REROUTED !' * 30
+            return '! GAS REROUTED !' * 50
         else:
             orm.hacked = True
             orm.save(update_fields=('hacked',)) 
@@ -102,12 +124,12 @@ def parse_scenario(msg, dev, orm):
 #            _err = f'callback name not exists: {callback}'
 #            logging.error(_err)
 #            return _err
-        if not hasattr(manager, name):
+        if not hasattr(cb_manager, callback):
             _err = f'Callback Manager has no method for <{name}>'
             logging.error(_err)
             return _err
         else:
-            return getattr(manager, name)(device=dev)
+            return getattr(cb_manager, callback)()
             
          
             
