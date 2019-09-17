@@ -29,13 +29,12 @@ class EventConsumer(SyncConsumer):
 
     def post_save(self, msg):
         # handling post_save events
-        self._log_ws(f'post_save signal as {msg}')
+        #self._log_ws(f'post_save signal as {msg}')
         self._update_ws(msg)
 
     def server_event(self, msg):
-        # sending CUP as separate method much better
-        self._log_ws(f'server_event as {msg}')
-        try:    
+        #self._log_ws(f'server_event as {msg}')
+        try:
             # TODO: send only fields that were updated!
             with ServerEventContext(msg) as server:
                 # response with device type, uid and config from DB
@@ -43,7 +42,7 @@ class EventConsumer(SyncConsumer):
                 response.update({'type': 'mqtt.send',  # label as mqtt packet
                                  'command': 'CUP',  # client should be updated
                                  'task_id': '12345'}) # task id for flow management
-                #self._log_ws(f'[!] sending CUP {response}')
+                self._log_ws(f'[!] sending CUP {response}')
                 async_to_sync(channel_layer.send)('mqtts', response)
         except:
             logger.exception('exception while sending config to client device')
@@ -81,10 +80,12 @@ class EventConsumer(SyncConsumer):
         with DeviceEventContext(msg) as dev:
             #  updating timestamp first
             # trying to get ORM object (or adding new device)
-            orm = dev.get()
-            if not orm:
-                # TODO: call new_device procedure
-                logger.warning('no such device')
+            try:
+                orm = dev.get()
+            # TODO: user exception, not built-in
+            except NameError:
+                self._log_ws(f'unregistered {dev.dev_type.upper()} with '
+                             f'{dev.uid}')
                 return
 
             try:
@@ -147,22 +148,23 @@ class EventConsumer(SyncConsumer):
                     for field in keys:
                         if field == 'task_id':
                             continue
-                        if not hasattr(orm, field):
-                            # no such field in related model, some BS arrived
-                            #logger.error(f'Ignoring bad column for {dev.dev_type} : {field}')
-                            continue
-                        # managing alert level
+                       # managing alert level
                         if field == 'message':
-                            result = parse_scenario(dev.payload[field], dev)
+                            result = parse_scenario(dev.payload[field], dev, orm)
                             self._log_ws(result)
                             continue
                         else:
-                            # update ORM field by field
-                            db_value = getattr(orm, field)
-                            new_value = dev.payload[field]
-                            if db_value != new_value:
-                                setattr(orm, field, new_value)
-                                update_fields.append(field)
+                            if not hasattr(orm, field):
+                                # no such field in related model, some BS arrived
+                                #logger.error(f'Ignoring bad column for {dev.dev_type} : {field}')
+                                continue
+                            else:
+                                # update ORM field by field
+                                db_value = getattr(orm, field)
+                                new_value = dev.payload[field]
+                                if db_value != new_value:
+                                    setattr(orm, field, new_value)
+                                    update_fields.append(field)
                     # and saving, finally, with update fields
                     if update_fields:
                         logger.debug(update_fields)

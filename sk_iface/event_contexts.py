@@ -67,11 +67,15 @@ class EventContext:
             #raise Exception('bad mqtt response')
 
     def get(self):
-        M = self.model_list.get(self.dev_type, None)
-        assert M, \
-            Exception(f'unknown model type for {self.dev_type}')
-        self.qs = M.objects.get(uid=self.uid)
-        # todo: add new device if not
+        try:
+            M = self.model_list.get(self.dev_type, None)
+        except:
+            raise Exception(f'unknown model type for {self.dev_type}')
+        try:
+            self.qs = M.objects.get(uid=self.uid)
+        except M.DoesNotExist:
+            # todo: user exception not built-in
+            raise NameError
         return self.qs
 
     def __enter__(self):

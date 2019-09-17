@@ -56,6 +56,7 @@ class MQTTPing(threading.Thread):
     def __init__(self, pub):
         super().__init__()
         self.pub = pub
+        self.config = settings.APPCFG
 
     def run(self):
         print('start pinging')
@@ -64,13 +65,13 @@ class MQTTPing(threading.Thread):
             if self.kill:
                 break
             try:
-                for channel in config.dev_types:
+                for channel in self.config['device_types']:
                     with sk.PacketEncoder() as p:
                         packet = p.load('PING',
                                           dev_type=channel)
                         encoded = p.encode(packet)
                         self.pub.put(encoded)
-                    time.sleep(settings.APPCFG['timeouts']['ping'])
+                    time.sleep(self.config['timeouts']['ping'])
             except:
                 logger.exception('cannot send ping')
 
@@ -86,7 +87,7 @@ class MQTTServer(threading.Thread):
     rgb_send_conf = None  # DUMB LEGACY
     pwr_send_conf = None  # DUMB LEGACY
 
-    def __init__(self, config, queue):
+    def __init__(self, queue):
         super().__init__()
         self.running = False
         self.pub = queue
@@ -218,6 +219,14 @@ class MQTTServer(threading.Thread):
         async_to_sync(channel_layer.send)('events', event)
         return True
 
+    def send_aux(self, channel, msg):
+        if channel not in self.cfg['device_types']:
+            logging.error(f'aux channel not configured for {channel}')
+            return
+        logging.debug(f'sending control command to auxiliary channel: {msg}')
+        cmd = json.loads(msg[1].split('/', 1)[1]).get('message')
+        self.pub.put((channel, cmd))
+
     def send_dumb(self, msg):
         # DUMB LEGACY
         logging.debug(f'BROADCAST: {msg}')
@@ -263,7 +272,6 @@ class MQTTServer(threading.Thread):
             return self.send_event(event)
         elif msg.topic.startswith('RGBASK'):
             if msg.payload.endswith(b'PONG'):
-                print(self.dumb_dict)
                 event['dev_type'] = 'rgb'
                 pong = msg.payload.decode('utf-8').split('/')
                 duid = pong[0]
@@ -284,5 +292,4 @@ class MQTTServer(threading.Thread):
             logging.warning(f'incoming event type: {msg}')
 
 mqtt_send_queue = Queue()
-server = MQTTServer(config=config,
-                    queue=mqtt_send_queue)
+server = MQTTServer(queue=mqtt_send_queue)

@@ -35,6 +35,10 @@ class DeviceMixin:
 
 class Log(PrintableModel):
 
+    class Meta:
+        verbose_name = 'Хроника событий'
+        verbose_name_plural = 'Хроника событий'
+
     timestamp = models.IntegerField(default=int(time.time()))
     message = models.CharField(default='log message', max_length=1500)
 
@@ -51,6 +55,10 @@ class Value(PrintableModel):
     """
         current base alert level integer value
     """
+
+    class Meta:
+        verbose_name = 'Тревога: изменение уровня'
+        verbose_name_plural = 'Тревога: изменения уровня'
 
     value = models.IntegerField(default=0)
     comment = models.CharField(default='changed by admin', max_length=250)
@@ -80,8 +88,8 @@ class State(PrintableModel):
     """
 
     class Meta:
-        verbose_name = 'Global Alert state'
-        verbose_name_plural = 'Global Alert states'
+        verbose_name = 'Тревога: статус'
+        verbose_name_plural = 'Тревога: статусы'
 
     name = models.CharField(max_length=30)  # alert level color name
     descr = models.CharField(max_length=300)
@@ -104,7 +112,7 @@ class DevConfig(PrintableModel):
     """
 
     class Meta:
-        verbose_name = 'device config for dumb devices'
+        verbose_name = 'Конфиг: неуправляемые ус-ва'
 
     dev_subtype = models.CharField(max_length=50)
     state_name = models.CharField(max_length=30)
@@ -116,9 +124,13 @@ class DevConfig(PrintableModel):
 
 class MenuItem(PrintableModel):
 
+    class Meta:
+        verbose_name = 'Игровой пункт меню'
+        verbose_name_plural = 'Игровые пункты меню'
+
     descr = models.CharField(max_length=120)
     action = models.CharField(max_length=16)
-    callback = models.CharField(max_length=16)
+    callback = models.CharField(max_length=16, blank=True)
 
 #    @property
 #    def menu_type(self):
@@ -140,28 +152,40 @@ class MenuItem(PrintableModel):
 
 class Text(PrintableModel):
 
-    class Meta:
-        verbose_name = 'long info text'
+    image = 'img'
+    text = 'text'
 
-    content = models.TextField()
-    title = models.CharField(max_length=50)
+    type_choices = (
+        (image, 'image file name'),
+        (text, 'plain text'),
+    )
+
+    class Meta:
+        verbose_name = 'Игровой документ'
+        verbose_name_plural = 'Игровые документы'
+
+    header = models.CharField(max_length=50)
+    content = models.TextField()  # image name for images
+    doctype = models.CharField(max_length=50,
+                               choices=type_choices,
+                               default=text)
     # lock timer for specific texts
     timer = models.IntegerField(default=0, blank=True)
-
     # if storing in filesystem
     #content = models.FileField(storage=FileSystemStorage(
     #    location=settings.APPCFG['text_storage']))
 
     @property
     def title(self):
-        return f'{self.content[:25]}...'
+        # backward compat.
+        return self.header
 
     @property
     def uid(self):
         return self.id
 
     def __str__(self):
-        s = f'{self.title}'
+        s = f'<{self.doctype}> {self.header}'
         if self.timer:
            s = f'[TIMER: {self.timer}] ' + s
         return s
@@ -171,8 +195,8 @@ class Text(PrintableModel):
 class Card(PrintableModel):
 
     class Meta:
-        verbose_name = 'Staff card'
-        verbose_name_plural = 'Staff cards'
+        verbose_name = 'Игровой код доступа'
+        verbose_name_plural = 'Игровые коды доступа'
 
     code = models.CharField(max_length=8)
     name = models.CharField(max_length=30)
@@ -192,8 +216,8 @@ class Dumb(PrintableModel, DeviceMixin):
     """
 
     class Meta:
-        verbose_name = 'device: RGB (Dumb)'
-        verbose_name_plural = 'devices: RGB (Dumbs)'
+        verbose_name = 'Устройство (пасс.): RGB '
+        verbose_name_plural = 'Устройства (пасс.): RGB'
 
     ts = models.IntegerField(default=int(time.time()))
     uid = models.CharField(max_length=16, unique=True)
@@ -210,8 +234,8 @@ class Dumb(PrintableModel, DeviceMixin):
 class Lock(PrintableModel, DeviceMixin):
 
     class Meta:
-        verbose_name = 'device: Lock'
-        verbose_name_plural = 'devices: Locks'
+        verbose_name = 'Устройство (акт.): Замок'
+        verbose_name_plural = 'Устройства (акт.): Замки'
 
     ts = models.IntegerField(default=int(time.time()))
     uid = models.CharField(max_length=16, unique=True)
@@ -263,8 +287,8 @@ class Terminal(PrintableModel, DeviceMixin):
 
 
     class Meta:
-        verbose_name = 'device: Terminal'
-        verbose_name_plural = 'devices: Terminals'
+        verbose_name = 'Устройство (акт.): Терминал'
+        verbose_name_plural = 'Устройства (акт.): Терминалы'
 
     ts = models.IntegerField(default=int(time.time()))
     uid = models.CharField(max_length=16, unique=True)
@@ -285,6 +309,7 @@ class Terminal(PrintableModel, DeviceMixin):
     menu_normal = models.ManyToManyField(MenuItem, related_name='menu_normal')
     menu_hacked = models.ManyToManyField(MenuItem, related_name='menu_hacked')
     msg_header = models.CharField(max_length=100, default='terminal SK-100')
+    status_header = models.CharField(max_length=100, default='', blank=True)
     msg_body = models.ManyToManyField(Text,
                                       null=True,
                                       blank=True,
@@ -326,8 +351,8 @@ class Permission(PrintableModel):
 
     class Meta:
         unique_together = ('card', 'lock')
-        verbose_name = 'Staff permission'
-        verbose_name_plural = 'Staff permissions'
+        verbose_name = 'Игровые права доступа карт'
+        verbose_name_plural = 'Игровые права доступа карт'
 
     card = models.ForeignKey(Card, on_delete=models.CASCADE)
     lock = models.ForeignKey(Lock, on_delete=models.CASCADE)

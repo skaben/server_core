@@ -280,6 +280,6 @@ APPCFG = {
         'lock',
         'rgb',
         'pwr',
-        'aux'
+        'aux_1'
     ]
 }
