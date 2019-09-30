@@ -50,7 +50,6 @@ class CallbackManager():
         self._reload()
         return '! SERVITORS OFFLINE !' * 50
 
-
 cb_manager = CallbackManager()
 callbacks = MenuItem.objects.filter(callback__isnull=False).values('callback')
 
@@ -92,6 +91,16 @@ def parse_scenario(msg, dev, orm):
     if msg == magos_password: 
         if pl.get('comment') == 'gas':
             # send custom config to RGB
+            gas_str = '/RGB/SLD/00FF00/S /STR/SLD/1/S /LGT/SLD/1/S'
+            msg = {
+                'type': 'mqtt.send',
+                'dev_type': 'dumb',
+                'uid': 'gas',
+                'command': 'CUP',
+                'task_id': '123123',
+                'payload': {'config': gas_str}
+            }
+            async_to_sync(channel_layer.send)('mqtts', msg)
             return '! GAS REROUTED !' * 50
         else:
             orm.hacked = True
@@ -103,6 +112,8 @@ def parse_scenario(msg, dev, orm):
             async_to_sync(channel_layer.send)('events', send_msg)
             return 'magos password entered, terminal hacked'
     if msg == tech_password:
+        if pl.get('comment') == 'serv_rep':
+            return '! REPAIR SERVITORS ACTIVATED !' * 50
         orm.hack_difficulty = orm.easy
         orm.save(update_fields=('hack_difficulty',))
         # TODO: uniform message sending

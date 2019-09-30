@@ -216,6 +216,27 @@ def change_state(request):
 
     return JsonResponse({'result': 'success'})
 
+def fill_permissions(request):
+    cards = Card.objects.all()
+    locks = Lock.objects.all()
+    states = State.objects.all()
+    try:
+        for device in locks:
+            for card in cards:
+                permission = Permission(lock=device, card=card)
+                permission.save()
+                permission.state_id.add(states)
+                permission.update()
+    except:
+        logging.exception('failed to add permission')
+
+    msg = {
+        'type': 'post.save',
+        'name': 'full'
+    }
+    async_to_sync(channel_layer.send)('events', msg)
+    return HttpResponse(f'refilling permissions...', content_type='text/plain')
+
 def sendlog(request, msg=None):
     if msg == None:
         msg = {'message': 'test'}

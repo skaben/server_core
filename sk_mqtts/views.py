@@ -34,6 +34,8 @@ def mqtt_send(request):
     return HttpResponse(f'send msg {test_msg}', content_type='text/plain')
 
 
+# TODO: send any MQTT command via web-interface
+
 def mqtt_to_event(request, packet=None):
     """
         passes mqtt data to Redis-backed channel layer, where it should be parsed!

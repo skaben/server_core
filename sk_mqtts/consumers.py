@@ -1,7 +1,6 @@
 import time
 from .mqtts import server
 import logging
-from sk_mqtts.shared.contexts import PacketSender
 from channels.consumer import SyncConsumer
 import skabenproto as sk
 
@@ -39,12 +38,10 @@ class MQTTConsumer(SyncConsumer):
                 uid = message.get('uid', 'brd')
                 dev_type = message.get('dev_type')
                 with sk.PacketEncoder() as encoder:
-                    print(message)
                     message.pop('type')
                     cmd = message.pop('command')
                     packet = encoder.load(cmd, **message)
                     encoded = encoder.encode(packet)
-                    print(encoded)
                     server.publish(encoded)
 
                 logger.debug(f'send to {uid} <{dev_type}>: {cmd}')

@@ -267,7 +267,8 @@ APPCFG = {
     'tz': 'Europe/Moscow', # timezone
     'debug': True,
     'mqtt': {
-        'host': '127.0.0.1',
+        #'host': '127.0.0.1',
+        'host': '192.168.0.200',
         'port': 1883
     },
     'timeouts': {
@@ -280,6 +281,7 @@ APPCFG = {
         'lock',
         'rgb',
         'pwr',
-        'aux_1'
+        'aux_1',
+        'gas'
     ]
 }

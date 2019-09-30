@@ -40,7 +40,7 @@ class MQTTPingLegacy(threading.Thread):
             if self.kill:
                 break
             try:
-                for channel in ['RGB', 'PWR']:
+                for channel in ('RGB', 'PWR'):
                     with sk.PacketEncoder() as p:
                         packet = p.load('LEGPING',
                                         dev_type=channel)
@@ -240,10 +240,21 @@ class MQTTServer(threading.Thread):
                 for cmd in cmd_sequence:
                     msg = ("RGB", '*' + cmd)#[1:]) # config string
                     time.sleep(.3)
+                    print(msg)
                     self.pub.put(msg)
         elif msg[0].endswith('pwr'):
             self.pwr_send_conf = False
             self.pub.put(('PWR', cmd))
+        elif msg[0].endswith('gas'):
+            cmd_sequence = cmd.split()
+            if not cmd_sequence:
+                logger.error('gas send failed')
+            else:
+                for cmd in cmd_sequence:
+                    msg = ("GAS", '*' + cmd)
+                    time.sleep(.3)
+                    print(msg)
+                    self.pub.put(msg)
 
     def receive_dumb(self, msg):
         # DUMB LEGACY

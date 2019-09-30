@@ -18,13 +18,7 @@ class GlobalStateManager:
         self.terms = Terminal.objects.all()
         self.dumbs = Dumb.objects.all()
         self.states = State.objects.all()
-#        self.test()
         self.current = self.states.filter(current=True).first()
-
-    def test(self):
-        for lock in self.locks:
-            logger.info(lock.to_dict())
-        #return self.get_lock_permissions(1)
 
     def set_state(self, name, manual=None):
         # normal procedure
@@ -40,7 +34,7 @@ class GlobalStateManager:
                     self.state(name)
                 else:
                     # set state based on current alert value
-                    V = Value.objects.all().latest('id')
+                    V = Value.objects.latest('id')
                     return self.state_based_on_value(V.value)
             else:
                 return self.state(name)
@@ -80,10 +74,6 @@ class GlobalStateManager:
                           hack_wordcount=16,
                           hack_chance=10,
                           hack_attempts=4)
-        #for term in self.terms:
-        #    term.msg_body.clear()
-        #    term.menu_hacked.clear()
-        #    term.menu_normal.clear()
         self.set_as_current('white')
 
     def blue(self):
@@ -106,11 +96,11 @@ class GlobalStateManager:
         self.set_as_current('cyan')
 
     def green(self):
-        self.locks.exclude(override=True).update(
+        self.locks.update(
             opened=False,
             sound=True,
         )
-        self.terms.exclude(override=True).update(
+        self.terms.update(
             powered=True,
             blocked=False,
             hacked=False,
@@ -121,32 +111,26 @@ class GlobalStateManager:
         self.set_as_current('green')
 
     def yellow(self):
-        self.locks.exclude(override=True).update(
+        self.locks.update(
             opened=False,
             sound=True,
         )
-        self.terms.exclude(override=True).update(
+        self.terms.update(
             powered=True,
             blocked=False,
             hacked=False,
-            hack_wordcount=16,
-            hack_attempts=4,
-            hack_difficulty=8
         )
         self.set_as_current('yellow')
 
     def red(self):
-        self.locks.exclude(override=True).update(
+        self.locks.update(
             opened=False,
             sound=True,
         )
-        self.terms.exclude(override=True).update(
+        self.terms.update(
             powered=True,
             blocked=False,
             hacked=False,
-            hack_wordcount=16,
-            hack_attempts=4,
-            hack_difficulty=10,
         )
         self.set_as_current('red')
 
@@ -158,11 +142,8 @@ class GlobalStateManager:
         )
         self.terms.update(
             powered=True,
-            blocked=False,
+            blocked=True,
             hacked=False,
-            hack_wordcount=16,
-            hack_attempts=4,
-            hack_difficulty=12,
         )
         self.set_as_current('black')
 
@@ -221,6 +202,7 @@ class GlobalStateManager:
                     'uid': b[0],  
                     'command': 'CUP',
                     'task_id': '12345',
+                    #'payload': {'config': b[1]},
                     'payload': json.dumps({'config': b[1]})
             }
             # send broadcast instead of name is actually is good idea
