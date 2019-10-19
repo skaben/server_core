@@ -1,1 +1,0 @@
-from skaben.settings import *

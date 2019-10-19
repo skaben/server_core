@@ -1,0 +1,99 @@
+version: "3"
+
+services:
+
+  app:
+    build:
+      context: .
+    image: skaben:latest
+    volumes:
+      - ./app:/app
+      - ./logs/django:/logs
+    command: >
+      sh -c "python manage.py wait_for_db &&
+             python3 manage.py migrate &&
+             daphne -b 0.0.0.0 -p 8001 app.asgi:application"
+    environment:
+      - DB_HOST=db
+      - DB_NAME=skaben
+      - DB_USER=postgres
+      - DB_PASS=superpass123
+      - REDIS_HOST=redis
+      - REDIS_PORT=5379
+      - REDIS_AUTH_USER=skaben_red
+      - REDIS_AUTH_PASS=superpass
+      - DJANGO_SETTINGS_MODULE=app.settings.devel
+    depends_on:
+      - db
+    networks:
+      - core_network
+
+#  worker:
+#    image: skaben:latest
+#    volumes:
+#      - ./app:/app
+#      - ./logs/workers:/logs
+#    command: >
+#      sh -c "echo YA_WORKER_YA_NE_NASTROEN"
+#    environment:
+#      - DJANGO_SETTINGS_MODULE=app.settings.devel
+#    depends_on:
+#      - redis
+#      - mosquitto
+#    networks:
+#      - core_network
+
+  mosquitto:
+    image: woahbase/alpine-mosquitto:latest
+    environment:
+      - USERNAME=mosquitto
+      - PASSWORD=insecurepass
+    volumes:
+      - ./cfg/mosquitto/config:/mosquitto/config
+      - ./cfg/mosquitto/data:/mosquitto/data
+      - ./logs/mosquitto:/mosquitto/log
+    ports:
+      - 1883:1883
+      - 8883:8883
+    networks:
+      - core_network
+
+  db:
+    image: postgres:10-alpine
+    environment:
+      - POSTGRES_DB=skaben
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=superpass123
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - core_network
+
+  nginx:
+    image: nginx:latest
+    ports: 
+      - 80:80
+      - 443:443
+    volumes:
+      - ./cfg/nginx/conf.d:/etc/nginx/conf.d/
+    depends_on:
+      - app
+    networks:
+      - core_network
+
+  redis:
+    image: redis:latest
+    command: >
+        sh -c "redis-server /usr/local/etc/redis/redis.conf"
+    volumes:
+      - ./cfg/redis:/usr/local/etc/redis/redis.conf
+      - ./cfg/redis/thp_enabled:/sys/kernel/mm/transparent_hugepage/enabled
+    ports:
+      - 6379:6379
+
+volumes:
+  pgdata: {}
+
+networks:
+  core_network:
+    driver: bridge
