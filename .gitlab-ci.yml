@@ -1,7 +1,7 @@
 build:
   stage: build 
   image: 
-    name: docker/compose
+    name: docker/compose:1.21.2
     entrypoint: ["/bin/sh", "-c"]
   variables:
     DOCKER_HOST: tcp://docker:2375
