@@ -1,14 +1,12 @@
-image: docker
-
-services:
-- docker:dind
-
-stages:
-  - test
-
-job_test:
-  stage: test
+build:
+  stage: build 
+  image: 
+    name: docker/compose:1.21.2
+    entrypoint: ["/bin/sh", "-c"]
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+  services:
+    - docker:dind
   script:
-    - apt-get install -y python-pip
-    - pip install docker-compose
-    - docker-compose up -d --build
+    - docker version # verify docker cli is there. Also prints server info 
+    - docker-compose version # verify the docker-compose cli is there
