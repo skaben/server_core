@@ -1,4 +1,4 @@
-image: docker:git
+image: docker/compose:latest
 
 services:
 - docker:dind
@@ -6,9 +6,6 @@ services:
 variables:
   DOCKER_HOST: tcp://docker:2375
   DOCKER_DRIVER: overlay
-
-before_script:
-- apk add --update python py-pip python-dev && pip install docker-compose
 
 stages:
   - test
