@@ -8,8 +8,8 @@ services:
     image: skaben:latest
     volumes:
       - ./app:/app
-      - ./logs/django:/logs
       - ./static:/static
+      - ./logs/django:/logs
     command: >
       sh -c "python manage.py wait_for_db &&
              python3 manage.py migrate &&

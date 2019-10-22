@@ -8,7 +8,6 @@ services:
     image: skaben:latest
     volumes:
       - ./app:/app
-      - ./logs/django:/logs
       - ./static:/static
     command: >
       sh -c "python manage.py wait_for_db &&
