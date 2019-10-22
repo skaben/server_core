@@ -215,7 +215,7 @@ class AccessCode(models.Model):
 class Dumb(models.Model, DeviceMixin):
     """
         Simple dumb device, such as lights, sirens, rgb-leds
-        Controls only by predefined config in DevConfig
+        Controls only by predefined config in ConfigString
     """
 
     class Meta:
@@ -224,11 +224,13 @@ class Dumb(models.Model, DeviceMixin):
 
     ts = models.IntegerField(default=int(time.time()))
     uid = models.CharField(max_length=16, unique=True)
-    descr = models.CharField(max_length=120, default='simple dumb')
+    descr = models.CharField(max_length=255, default='simple dumb')
     online = models.BooleanField(default=False)
     ip = models.GenericIPAddressField()
-    dev_subtype = models.CharField(max_length=50, default='rgb')
-#    config = models.CharField(max_length=150, default='')
+    subtype = models.CharField(max_length=32, default='rgb')
+    config = models.ManyToManyField(ConfigString,
+                                    blank=False,
+                                    default='noop')
 
     def __str__(self):
         return f'DUMB ID: {self.id} {self.descr}'
