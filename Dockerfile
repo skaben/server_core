@@ -18,6 +18,5 @@ RUN mkdir /app /logs
 WORKDIR /app
 COPY ./app /app
 
-RUN useradd skaben
-RUN chown skaben:root -R /logs
+RUN useradd --uid 1000 skaben
 USER skaben
