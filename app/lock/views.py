@@ -6,9 +6,7 @@ from core.models import Lock
 from lock import serializers
 
 
-class LockViewSet(viewsets.GenericViewSet,
-                  mixins.ListModelMixin,
-                  mixins.CreateModelMixin):
+class LockViewSet(viewsets.ModelViewSet):
     """ Manage tags in database """
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
