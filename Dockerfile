@@ -14,7 +14,7 @@ RUN python -m venv /venv && \
     python -m pip install --upgrade pip && \
     python -m pip install --no-cache-dir -r /requirements.txt
 
-RUN mkdir /app /logs
+RUN mkdir /app 
 WORKDIR /app
 COPY ./app /app
 
