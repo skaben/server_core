@@ -1,5 +1,12 @@
 from .base import *
 
+STATIC_ROOT = "/static/"
+
+ALLOWED_HOSTS.extend([
+    '192.168.0.200',
+    '127.0.0.1'
+])
+
 LOGGING['loggers'].update({
         'app': {
             'handlers': ['console'],
