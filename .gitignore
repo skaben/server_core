@@ -1,7 +1,9 @@
 # Project specific
+.idea/
 .passwd
 cfg/mosquitto/
 logs/
+static/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

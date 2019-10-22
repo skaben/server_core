@@ -9,6 +9,7 @@ services:
     volumes:
       - ./app:/app
       - ./logs/django:/logs
+      - ./static:/static
     command: >
       sh -c "python manage.py wait_for_db &&
              python3 manage.py migrate &&
@@ -23,6 +24,8 @@ services:
       - REDIS_AUTH_USER=skaben_red
       - REDIS_AUTH_PASS=superpass
       - DJANGO_SETTINGS_MODULE=app.settings.devel
+    ports:
+      - "8001:8001"
     depends_on:
       - db
     networks:
@@ -76,6 +79,8 @@ services:
       - 443:443
     volumes:
       - ./cfg/nginx/conf.d:/etc/nginx/conf.d/
+      - ./logs/nginx:/var/log/nginx
+      - ./static:/static
     depends_on:
       - app
     networks:
@@ -93,6 +98,7 @@ services:
 
 volumes:
   pgdata: {}
+  static_data: {}
 
 networks:
   core_network:
