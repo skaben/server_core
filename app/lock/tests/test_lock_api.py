@@ -63,11 +63,9 @@ class TestPrivateLocksApi(APITestCase):
         lock = device_factory('lock')
         self.client.post(LOCK_URL, lock.get_payload())
         present = Lock.objects.get(uid=lock.uid)
-        URL = '/'.join((LOCK_URL, str(present.id)))
-        res = self.client.delete(URL, present.id)
-        deleted = Lock.objects.get(uid=lock.uid).exists()
-        print(deleted)
+        URL = LOCK_URL + str(present.id) + '/'
+        res = self.client.delete(URL)
 
-        assert res.status_code == status.HTTP_200_OK
-        assert deleted
-
+        assert res.status_code in (status.HTTP_204_NO_CONTENT,
+                                   status.HTTP_200_OK,
+                                   status.HTTP_202_ACCEPTED)
