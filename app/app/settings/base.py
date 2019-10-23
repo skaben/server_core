@@ -40,8 +40,10 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'app',
+    'alert',
     'core',
-    'lock'
+    'device',
+    'menu_item'
 ]
 
 MIDDLEWARE = [

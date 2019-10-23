@@ -112,7 +112,7 @@ class AlertState(models.Model):
 class ConfigString(models.Model):
 
     """
-        Dumb Device configuration string
+        Tamed Device configuration string
     """
 
     class Meta:
@@ -212,15 +212,15 @@ class AccessCode(models.Model):
 
 #  DEVICES
 
-class Dumb(models.Model, DeviceMixin):
+class Tamed(models.Model, DeviceMixin):
     """
         Simple dumb device, such as lights, sirens, rgb-leds
         Controls only by predefined config in ConfigString
     """
 
     class Meta:
-        verbose_name = 'Устройство (пасс.): RGB '
-        verbose_name_plural = 'Устройства (пасс.): RGB'
+        verbose_name = 'Устройство пассивное'
+        verbose_name_plural = 'Устройства пассивные'
 
     ts = models.IntegerField(default=int(time.time()))
     uid = models.CharField(max_length=16, unique=True)
@@ -257,13 +257,22 @@ class Lock(models.Model, DeviceMixin):
     timer = models.IntegerField(default=10)
 
     @property
-    def card_list(self):
+    def acl(self):
         # unload list of Card codes for lock end-device
-        acl = []
+        acl = list()
         state = AlertState.objects.filter(current=True).first()
         for permission in self.permission_set.filter(state_id=state):
             acl.append(permission.card)
         return [card.code for card in acl]
+
+    @property
+    def acl_full(self):
+        acl = dict()
+        for state in AlertState.objects.all():
+            acl[state.name] = list()
+            for permission in self.permission_set.filter(state_id=state):
+                acl[state.name].append(permission.card.code)
+        return acl
 
     def __str__(self):
         return f'<{self.id}> {self.descr}'

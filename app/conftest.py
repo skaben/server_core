@@ -1,13 +1,6 @@
-import pytest
 from unittest import mock
 from pprint import pformat
 from deepdiff import DeepDiff
-from test_factories import device_factory
-
-
-@pytest.fixture(scope='session', autouse=True)
-def get_device():
-    return device_factory
 
 
 def pytest_assertrepr_compare(config, op, left, right):

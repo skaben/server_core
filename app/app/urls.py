@@ -16,8 +16,18 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+from rest_framework.routers import DefaultRouter
+
+from menu_item.urls import router as menu_router
+from device.urls import router as dev_router
+
+# setting up nested router
+api_router = DefaultRouter()
+api_router.registry.extend(dev_router.registry)
+api_router.registry.extend(menu_router.registry)
+
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('lock.urls')),
-    path('api/auth/', include('core.urls')),
+    path('api/', include((api_router.urls, 'api'), namespace='api')),
+    path('auth/', include('core.urls')),
 ]
