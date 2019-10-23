@@ -10,4 +10,4 @@ class LockSerializer(serializers.ModelSerializer):
         model = Lock
         fields = '__all__'
         read_only_fields = ('id', 'acl_all')
-        #view_name = 'api:lock-detail'
+        # view_name = 'api:lock-detail'

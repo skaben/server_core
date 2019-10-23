@@ -1,6 +1,7 @@
 import random
 import time
 
+
 class Device:
 
     fields = list()
