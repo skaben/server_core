@@ -1,3 +1,4 @@
+import pytest
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 
@@ -36,7 +37,7 @@ class TestPrivateLocksApi(APITestCase):
         self.client.force_authenticate(self.user)
 
     def test_retrieve_locks(self):
-        """ Test retrieving locks """
+        """ Test retrieving locks success. """
         for x in range(3):
             lock = device_factory('lock')
             Lock.objects.create(uid=lock.uid,
@@ -50,8 +51,8 @@ class TestPrivateLocksApi(APITestCase):
         assert res.status_code == status.HTTP_200_OK
         assert res.data == serializer.data
 
-    def test_create_lock_default_successfull(self):
-        """ Test creating a new Lock """
+    def test_create_lock_success(self):
+        """ Test creating a new Lock success. """
         lock = device_factory('lock')
         self.client.post(LOCK_URL, lock.get_payload())
 
@@ -59,13 +60,36 @@ class TestPrivateLocksApi(APITestCase):
 
         assert exists
 
-    def test_delete_lock(self):
+    def test_delete_lock_success(self):
+        """ Test deleting a lock successm """
         lock = device_factory('lock')
         self.client.post(LOCK_URL, lock.get_payload())
         present = Lock.objects.get(uid=lock.uid)
-        URL = LOCK_URL + str(present.id) + '/'
-        res = self.client.delete(URL)
+        res = self.client.delete(LOCK_URL + str(present.id) + '/')
 
         assert res.status_code in (status.HTTP_204_NO_CONTENT,
                                    status.HTTP_200_OK,
                                    status.HTTP_202_ACCEPTED)
+
+    def test_patch_lock(self):
+        """ Test partially updating lock successm """
+        lock = device_factory('lock')
+        post_res = self.client.post(LOCK_URL, lock.get_payload())
+        lock_id = str(post_res.data['id'])
+        instance_url = LOCK_URL + lock_id + '/'
+        new_descr = 'new lock descr'
+        patch_res = self.client.patch(instance_url, {'descr': new_descr})
+        patched = Lock.objects.get(id=lock_id)
+
+        assert patch_res.status_code == status.HTTP_200_OK
+        assert patched.descr == new_descr
+
+    @pytest.mark.skip(reason='didn\'t decide about UPDATE option yet')
+    def test_update_lock(self):
+        """ Test fully updating lock success. """
+        lock = device_factory('lock')
+        post_res = self.client.post(LOCK_URL, lock.get_payload())
+        lock_id = str(post_res.data['id'])
+        instance_url = LOCK_URL + lock_id + '/'
+        new_payload = device_factory('lock').get_payload()
+        print(instance_url, new_payload)  # linter
