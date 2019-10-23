@@ -2,6 +2,8 @@ from .base import *
 
 STATIC_ROOT = "/static/"
 
+APP_ENV = 'dev'
+
 ALLOWED_HOSTS.extend([
     '192.168.0.200',
     '127.0.0.1'

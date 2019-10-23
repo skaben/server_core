@@ -77,7 +77,7 @@ class TestPrivateLocksApi(APITestCase):
         post_res = self.client.post(LOCK_URL, lock.get_payload())
         lock_id = str(post_res.data['id'])
         instance_url = LOCK_URL + lock_id + '/'
-        new_descr = 'new lock descr'
+        new_descr = 'new' + lock.descr
         patch_res = self.client.patch(instance_url, {'descr': new_descr})
         patched = Lock.objects.get(id=lock_id)
 

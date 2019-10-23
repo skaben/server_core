@@ -32,7 +32,7 @@ class TestPrivateMenuItemsAPI(APITestCase):
         self.client.force_authenticate(self.user)
 
     def test_retrieve_menu_items(self):
-        """ Test retrieving locks success. """
+        """ Test retrieving menu items success. """
         payload = ingame_assembly('menu').get_payload()
         for x in range(3):
             MenuItem.objects.create(**payload)

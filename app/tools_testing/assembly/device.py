@@ -17,6 +17,7 @@ class Device(Assembly):
         self.payload['ip'] = kwargs.get('ip', self._rand_ip())
         self.payload['online'] = kwargs.get('online', False)
         self.payload['override'] = kwargs.get('override', False)
+        self.payload['descr'] = kwargs.get('descr', 'description')
 
         for key in self.fields:
             val = kwargs.get(key)

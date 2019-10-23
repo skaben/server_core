@@ -20,11 +20,13 @@ from rest_framework.routers import DefaultRouter
 
 from menu_item.urls import router as menu_router
 from device.urls import router as dev_router
+from alert.urls import router as alert_router
 
 # setting up nested router
 api_router = DefaultRouter()
 api_router.registry.extend(dev_router.registry)
 api_router.registry.extend(menu_router.registry)
+api_router.registry.extend(alert_router.registry)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
