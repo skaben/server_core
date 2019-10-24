@@ -1,11 +1,10 @@
-import pytest
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from core.models import AlertState
+from core.models import AlertState, AlertCounter
 from alert.serializers import AlertStateSerializer
 
 
@@ -45,34 +44,44 @@ class TestPrivateAlertApi(APITestCase):
         assert res.status_code == status.HTTP_200_OK
         assert res.data == serializer.data
 
-    @pytest.mark.skip(reason='still horsing around partial update')
-    def test_patch_alert_state_current_field(self):
-        """ Test partial update existing alert state success. """
+    def test_alert_state_set_current_solitude(self):
+        """ Test action set_current for solitude alert state
+            without any other AlertState objects
+        """
         state = AlertState.objects.create(name='statename',
                                           descr='testdescr',
                                           current=False)
-        payload = {'current': True}
-        instance_url = API_URL + str(state.id) + '/'
-        res = self.client.patch(instance_url, payload)
+        instance_url = f'{API_URL}{str(state.id)}/set_current/'
+        # instance_url = f'{API_URL}{str(state.id)}/'
+        res = self.client.post(instance_url)
         patched = AlertState.objects.get(id=state.id)
 
-        assert state.current is False
-        assert patched.current is True
+        assert res.status_code == status.HTTP_200_OK, res.data
+        assert patched.descr == state.descr, 'state change expected'
+
+    def test_alert_state_set_current_normal(self):
+        """ Test action set_current for alert state"""
+        old = AlertState.objects.create(name='stateold',
+                                        descr='test2',
+                                        current=True)
+        new = AlertState.objects.create(name='statenew',
+                                        descr='test',
+                                        current=False)
+        instance_url = f'{API_URL}{str(new.id)}/set_current/'
+        # instance_url = f'{API_URL}{str(new.id)}/'
+        counter = AlertCounter.objects.create(value='100500',
+                                              comment='test')
+        res = self.client.post(instance_url)
+
+        new_current = AlertState.objects.get(id=new.id)
+        old_current = AlertState.objects.get(id=old.id)
+
+        counter_new = AlertCounter.objects.latest('id')
+
         assert res.status_code == status.HTTP_200_OK
-
-    @pytest.mark.skip(reason='still horsing around partial update')
-    def test_patch_alert_state_not_current_field_fail(self):
-        """ Test patch alert state any field other than current fails"""
-        state = AlertState.objects.create(name='statename',
-                                          descr='testdescr',
-                                          current=False)
-        payload = {'descr': 'any'}
-        instance_url = API_URL + str(state.id) + '/'
-        res = self.client.patch(instance_url, payload)
-        patched = AlertState.objects.get(id=state.id)
-
-        assert res.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
-        assert patched.descr == state.descr
+        assert old_current.current is False, 'change to False expected'
+        assert new_current.current is True, 'change to True expected'
+        assert counter_new.id != counter.id, 'counter create expected'
 
     def test_create_alert_state_fail(self):
         """ Test create new alert state via API fails """
@@ -82,8 +91,21 @@ class TestPrivateAlertApi(APITestCase):
         res = self.client.post(API_URL, payload)
         exists = AlertState.objects.filter(name=name).exists()
 
-        assert res.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
         assert not exists
+        assert res.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+
+    def test_patch_alert_state_fail(self):
+        """ Test partial update existing alert state fails """
+        state = AlertState.objects.create(name='statename',
+                                          descr='testdescr',
+                                          current=False)
+        payload = {'current': True}
+        instance_url = API_URL + str(state.id) + '/'
+        res = self.client.patch(instance_url, payload)
+        patched = AlertState.objects.get(id=state.id)
+
+        assert patched.current is False, 'state change unexpected'
+        assert res.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
     def test_delete_alert_state_fail(self):
         """ Test delete alert state via API fails """
