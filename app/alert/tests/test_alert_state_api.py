@@ -21,7 +21,7 @@ class TestPublicAlertApi(APITestCase):
         assert res.status_code == status.HTTP_401_UNAUTHORIZED
 
 
-class TestPrivateAlertApi(APITestCase):
+class TestPrivateAlertStateApi(APITestCase):
 
     def setUp(self):
         self.user = get_user_model().objects.create_user(
@@ -52,8 +52,8 @@ class TestPrivateAlertApi(APITestCase):
                                           descr='testdescr',
                                           current=False)
         instance_url = f'{API_URL}{str(state.id)}/set_current/'
-        # instance_url = f'{API_URL}{str(state.id)}/'
         res = self.client.post(instance_url)
+
         patched = AlertState.objects.get(id=state.id)
 
         assert res.status_code == status.HTTP_200_OK, res.data
@@ -67,10 +67,10 @@ class TestPrivateAlertApi(APITestCase):
         new = AlertState.objects.create(name='statenew',
                                         descr='test',
                                         current=False)
-        instance_url = f'{API_URL}{str(new.id)}/set_current/'
-        # instance_url = f'{API_URL}{str(new.id)}/'
         counter = AlertCounter.objects.create(value='100500',
                                               comment='test')
+
+        instance_url = f'{API_URL}{str(new.id)}/set_current/'
         res = self.client.post(instance_url)
 
         new_current = AlertState.objects.get(id=new.id)
@@ -94,17 +94,15 @@ class TestPrivateAlertApi(APITestCase):
         assert not exists
         assert res.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
-    def test_patch_alert_state_fail(self):
+    def test_update_alert_state_fail(self):
         """ Test partial update existing alert state fails """
         state = AlertState.objects.create(name='statename',
                                           descr='testdescr',
                                           current=False)
-        payload = {'current': True}
+        payload = {'current': True, 'name': '12345'}
         instance_url = API_URL + str(state.id) + '/'
         res = self.client.patch(instance_url, payload)
-        patched = AlertState.objects.get(id=state.id)
 
-        assert patched.current is False, 'state change unexpected'
         assert res.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
     def test_delete_alert_state_fail(self):
