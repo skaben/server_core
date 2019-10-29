@@ -4,7 +4,7 @@ import json
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 
-from core.models import Lock, Terminal, Dumb, State, Value, DevConfig
+from core.models import Lock, Terminal, Tamed, State, Value, DevConfig
 
 logger = logging.getLogger('app.main')
 channel_layer = get_channel_layer()
@@ -25,7 +25,7 @@ class AlertStateManager:
     def __init__(self):
         self.locks = Lock.objects.all()
         self.terms = Terminal.objects.all()
-        self.dumbs = Dumb.objects.all()
+        self.tamed = Tamed.objects.all()
         self.states = State.objects.all()
         self.current = self.states.filter(current=True).first()
 

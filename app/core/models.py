@@ -4,7 +4,6 @@ from datetime import datetime
 
 from django.conf import settings
 from django.db import models
-from django.core.exceptions import ObjectDoesNotExist
 
 # from django.core.files.storage import FileSystemStorage
 # from django.db.models.fields.related import ManyToManyField
@@ -101,16 +100,6 @@ class AlertState(models.Model):
     fg_color = models.CharField(max_length=7, default='#ffffff')
     threshold = models.IntegerField(default=-1)
     current = models.BooleanField(default=False)
-
-    def save(self, **kwargs):
-        """ Saving one instance set other instances not current """
-        try:
-            not_me = AlertState.objects.exclude(name=self.name)
-            not_me.update(current=False)
-        except ObjectDoesNotExist:
-            # seems that I'm alone
-            pass
-        super().save(**kwargs)
 
     def __str__(self):
         s = f'State: {self.name} ({self.descr})'

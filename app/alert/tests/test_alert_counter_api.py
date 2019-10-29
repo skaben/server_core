@@ -1,4 +1,4 @@
-import pytest
+# import pytest
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 
@@ -45,44 +45,46 @@ class TestPrivateAlertCounterApi(APITestCase):
         assert res.status_code == status.HTTP_200_OK, res.data
         assert res.data == serializer.data
 
-    @pytest.mark.skip(reason='still not sure about switch system')
     def test_create_alert_counter_state_switch(self):
         """ Test create alert counter with alert state switching """
         threshold = 100
-        AlertState.objects.create(name='test',
-                                  descr='description',
-                                  threshold=1,
-                                  current=True)
-        alert_switch = AlertState.objects.create(name='test_switch',
-                                                 descr='test',
-                                                 threshold=threshold,
-                                                 current=False)
+        old_state = AlertState.objects.create(name='old_state',
+                                              descr='description',
+                                              threshold=1,
+                                              current=True)
+        switch = AlertState.objects.create(name='alert_switch',
+                                           descr='test',
+                                           threshold=threshold,
+                                           current=False)
         # alert_switch threshold range is now (threshold, 1000)
         # trying to create new counter
         new_cnt = self.client.post(API_URL, {'value': threshold,
                                              'comment': 'test'})
+
         # after creation of new_counter current state should be changed
         assert new_cnt.status_code == status.HTTP_201_CREATED, new_cnt.data
-        assert alert_switch.current is True, 'change to True expected'
+
+        old = AlertState.objects.get(pk=old_state.id)
+        new = AlertState.objects.get(pk=switch.id)
+
+        assert old.current is False, 'change to False expected'
+        assert new.current is True, 'change to True expected'
 
     def test_create_alert_counter_state_no_switch(self):
         """ Test create alert counter without alert state switching """
         threshold = 100
-        AlertState.objects.create(name='test',
+        AlertState.objects.create(name='old_state_2',
                                   descr='description',
                                   threshold=-1,
                                   current=True)
-        alert_switch = AlertState.objects.create(name='test_switch',
-                                                 descr='test',
-                                                 threshold=threshold // 2,
-                                                 current=False)
+        switch = AlertState.objects.create(name='alert_switch_2',
+                                           descr='test',
+                                           threshold=threshold,
+                                           current=False)
 
         new_cnt = self.client.post(API_URL, {'value': threshold,
                                              'comment': 'test'})
+        new = AlertState.objects.get(pk=switch.id)
 
         assert new_cnt.status_code == status.HTTP_201_CREATED, new_cnt.data
-        assert alert_switch.current is False, 'change from False unexpected'
-
-    def tearDown(self):
-        AlertCounter.objects.all().delete()
-        AlertState.objects.all().delete()
+        assert new.current is False, 'change from False unexpected'
