@@ -39,8 +39,18 @@ class TestPrivateMenuItemsAPI(APITestCase):
 
         res = self.client.get(MI_URL)
 
-        locks = MenuItem.objects.all()
-        serializer = MenuItemSerializer(locks, many=True)
+        items = MenuItem.objects.all()
+        serializer = MenuItemSerializer(items, many=True)
 
-        assert res.status_code == status.HTTP_200_OK
-        assert res.data == serializer.data
+        assert res.status_code == status.HTTP_200_OK, res.content
+        assert res.data == serializer.data, serializer.data
+
+    def test_create_menu_item(self):
+        """ Test create menu item """
+        item = ingame_assembly('menu')
+        res = self.client.post(MI_URL, item.payload)
+
+        exists = MenuItem.objects.filter(action=item.action).exists()
+
+        assert res.status_code == status.HTTP_201_CREATED, res.content
+        assert exists, 'item not in database'

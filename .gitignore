@@ -4,6 +4,7 @@
 cfg/mosquitto/
 logs/
 static/
+*.swp
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

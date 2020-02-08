@@ -12,7 +12,6 @@ class LockSerializer(serializers.ModelSerializer):
         model = Lock
         fields = '__all__'
         read_only_fields = ('id',)
-        # view_name = 'api:lock-detail'
 
 
 class TerminalSerializer(serializers.ModelSerializer):
@@ -22,7 +21,6 @@ class TerminalSerializer(serializers.ModelSerializer):
         model = Terminal
         fields = '__all__'
         read_only_fields = ('id',)
-        # view_name = 'api:lock-detail'
 
 
 class TamedSerializer(serializers.ModelSerializer):
