@@ -31,6 +31,8 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'channels',
+    'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -39,12 +41,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework.authtoken',
-    'corsheaders',
     'app',
     'alert',
     'core',
     'device',
-    'menu_item'
+    'menu_item',
 ]
 
 MIDDLEWARE = [
@@ -79,16 +80,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'app.wsgi.application'
 ASGI_APPLICATION = 'core.routing.application'
-
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            'hosts': [(os.environ.get('REDIS_HOST'),
-                       os.environ.get('REDIS_PORT'))]
-        }
-    },
-}
+CHANNEL_LAYERS = {}
 
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases

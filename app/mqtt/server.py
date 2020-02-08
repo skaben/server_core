@@ -199,8 +199,7 @@ class MQTTServer(threading.Thread):
     def publish(self, message):
         """ Publish packed tuples """
         if not isinstance(message, tuple):
-            print(f'bad message: {message}')
-            return
+            raise Exception(f'bad message: {message}')
         else:
             logger.debug(f'publishing {message}')
             self.pub.put(message)
@@ -332,6 +331,16 @@ class ServerInterface:
                 return 'server already not operational'
         except Exception:
             raise
+
+    def send(self, message):
+        if not self.server_instance or not self.server_instance.running:
+            raise Exception('server not running. start server for sending messages')
+        else:
+            try:
+                self.server_instance.publish(message)
+                return {'data': 'ok'}
+            except Exception:
+                raise
 
 
 interface = ServerInterface()

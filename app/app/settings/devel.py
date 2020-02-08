@@ -6,9 +6,15 @@ APP_ENV = 'dev'
 
 ALLOWED_HOSTS = ['*']
 
-#CORS_ORIGIN_ALLOW_ALL = True
-#CORS_ALLOW_CREDENTIALS = False
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_CREDENTIALS = False
 #CORS_ORIGIN_WHITELIST = ['http://127.0.0.1:8089']
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'asgiref.inmemory.ChannelLayer',
+    },
+}
 
 LOGGING['loggers'].update({
         'app': {

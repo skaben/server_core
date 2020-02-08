@@ -31,8 +31,8 @@ api_router.registry.extend(alert_router.registry)
 api_router.registry.extend(mqtt_router.registry)
 
 urlpatterns = [
+    path('', include('core.urls')),
     path('admin/', admin.site.urls),
     path('api/', include((api_router.urls, 'api'), namespace='api')),
-    path('auth/', include('core.urls')),
     path('mqtt/', include('mqtt.urls'))
 ]
