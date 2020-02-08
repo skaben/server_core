@@ -5,10 +5,11 @@ from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from core.models import Terminal
+from core.models import Terminal, MenuItem
 from device.serializers import TerminalSerializer
 
 from tools_testing.assembly.device import device_assembly
+from tools_testing.assembly.ingame import ingame_assembly
 
 TERMINAL_URL = reverse('api:terminal-list')
 
@@ -23,7 +24,7 @@ class TestPublicTerminalsApi(APITestCase):
         assert res.status_code == status.HTTP_401_UNAUTHORIZED
 
 
-@pytest.mark.skip(reason='menuitem api not implemented yet')
+#@pytest.mark.skip(reason='menuitem api not implemented yet')
 class TestPrivateTerminalsApi(APITestCase):
     """ Test private available terminals API
 
@@ -36,12 +37,16 @@ class TestPrivateTerminalsApi(APITestCase):
             'password1234'
         )
         self.client.force_authenticate(self.user)
+        for x in range(3):
+            item = ingame_assembly('menu')
+            MenuItem.objects.create(**item.payload)
+        self.items = list(MenuItem.objects.all())
 
     def test_retrieve_terminals(self):
         """ Test retrieving terminals success. """
         for x in range(3):
-            payload = device_assembly('terminal').get_payload(('uid', 'ip'))
-            Terminal.objects.create(**payload)
+            device = device_assembly('terminal')
+            Terminal.objects.create(**device.get_payload(('uid', 'ip')))
 
         res = self.client.get(TERMINAL_URL)
 
@@ -53,11 +58,12 @@ class TestPrivateTerminalsApi(APITestCase):
 
     def test_create_terminal_success(self):
         """ Test creating a new Terminal success. """
-        device = device_assembly('terminal')
-        self.client.post(TERMINAL_URL, device.get_payload(('uid', 'ip')))
+        device = device_assembly('terminal', menu_items=self.items)
+        res = self.client.post(TERMINAL_URL, device.payload)
 
         exists = Terminal.objects.filter(ip=device.ip).exists()
 
+        assert res.status_code == status.HTTP_200_OK, res.content
         assert exists
 
     def test_delete_terminal_success(self):

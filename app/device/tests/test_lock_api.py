@@ -40,8 +40,7 @@ class TestPrivateLocksApi(APITestCase):
         """ Test retrieving locks success. """
         for x in range(3):
             lock = device_assembly('lock')
-            Lock.objects.create(uid=lock.uid,
-                                ip=lock.ip)
+            Lock.objects.create(uid=lock.uid, ip=lock.ip)
 
         res = self.client.get(LOCK_URL)
 
@@ -54,7 +53,7 @@ class TestPrivateLocksApi(APITestCase):
     def test_create_lock_success(self):
         """ Test creating a new Lock success. """
         lock = device_assembly('lock')
-        self.client.post(LOCK_URL, lock.get_payload())
+        self.client.post(LOCK_URL, lock.payload)
 
         exists = Lock.objects.filter(ip=lock.ip).exists()
 
@@ -63,7 +62,7 @@ class TestPrivateLocksApi(APITestCase):
     def test_delete_lock_success(self):
         """ Test deleting a lock successm """
         lock = device_assembly('lock')
-        self.client.post(LOCK_URL, lock.get_payload())
+        self.client.post(LOCK_URL, lock.payload)
         present = Lock.objects.get(uid=lock.uid)
         res = self.client.delete(LOCK_URL + str(present.id) + '/')
 
@@ -74,7 +73,7 @@ class TestPrivateLocksApi(APITestCase):
     def test_patch_lock(self):
         """ Test partially updating lock successm """
         lock = device_assembly('lock')
-        post_res = self.client.post(LOCK_URL, lock.get_payload())
+        post_res = self.client.post(LOCK_URL, lock.payload)
         lock_id = str(post_res.data['id'])
         instance_url = LOCK_URL + lock_id + '/'
         new_descr = 'new' + lock.descr
@@ -84,12 +83,11 @@ class TestPrivateLocksApi(APITestCase):
         assert patch_res.status_code == status.HTTP_200_OK
         assert patched.descr == new_descr
 
-    @pytest.mark.skip(reason='didn\'t decide about UPDATE option yet')
     def test_update_lock(self):
         """ Test fully updating lock success. """
         lock = device_assembly('lock')
-        post_res = self.client.post(LOCK_URL, lock.get_payload())
+        post_res = self.client.post(LOCK_URL, lock.payload)
         lock_id = str(post_res.data['id'])
         instance_url = LOCK_URL + lock_id + '/'
-        new_payload = device_assembly('lock').get_payload()
+        new_payload = device_assembly('lock').payload
         print(instance_url, new_payload)  # linter

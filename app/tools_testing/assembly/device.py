@@ -19,12 +19,7 @@ class Device(Assembly):
         self.payload['override'] = kwargs.get('override', False)
         self.payload['descr'] = kwargs.get('descr', 'description')
 
-        for key in self.fields:
-            val = kwargs.get(key)
-            if val:
-                self.payload[key] = val
-
-        self.__dict__.update(self.payload)
+        super().__init__(**kwargs)
 
     def _rand_uid(self):
         """ Generate random UID """
@@ -36,9 +31,9 @@ class Device(Assembly):
         ip = [format(random.randint(1, 254)) for x in range(4)]
         return '.'.join(ip)
 
-    def get_payload(self, *args):
+    def get_payload(self, field_list=None):
         """Call to super"""
-        return super().get_payload(*args)
+        return super().get_payload(field_list)
 
 
 class LockDevice(Device):
@@ -57,6 +52,7 @@ class TerminalDevice(Device):
               'hack_attempts', 'hack_difficulty')
 
     def __init__(self, **kwargs):
+        self.payload['menu_items'] = kwargs.get('menu_items')
         super().__init__(**kwargs)
 
 
