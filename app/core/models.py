@@ -127,6 +127,7 @@ class ConfigString(models.Model):
 
 
 class MenuItem(models.Model):
+    ### TODO: режим доступа должен настраиваться отдельно для каждого терминала. не должно быть общего
     """
         In-game Terminal menu item
     """
@@ -134,16 +135,17 @@ class MenuItem(models.Model):
         verbose_name = 'Игровой пункт меню'
         verbose_name_plural = 'Игровые пункты меню'
 
-    descr = models.CharField(max_length=120)
+    label = models.CharField(max_length=120)
     action = models.CharField(max_length=16)
-    callback = models.CharField(max_length=16, blank=True)
+    response = models.CharField(max_length=16, blank=True)
+    access = models.CharField(max_length=2, default='10')
 
     @property
     def uid(self):
         return self.id
 
     def __str__(self):
-        return f'[{self.action}] {self.descr} <{self.callback}>'
+        return f'[{self.action}] {self.label} <{self.response}>'
 
 
 class Document(models.Model):
@@ -335,22 +337,26 @@ class Terminal(models.Model, DeviceMixin):
 
     @property
     def menu_items(self):
+        # TODO: menu items set mode 10, 01, 11 for hacked/normal/both
         menu_items = []
-        for item in self.menu_hacked.all():
+        hacked = self.menu_hacked.all()
+        normal = self.menu_normal.all()
+
+        for item in hacked:
             as_dict = item.to_dict()
             if as_dict.get('action') == 'hack':
                 # cannot be hacked twice
                 continue
-            if item in self.menu_normal.all():
-                as_dict.update({'normal': True, 'hacked': True})
+            if item in normal:
+                as_dict.update({"access": "11"})
             else:
-                as_dict.update({'normal': False, 'hacked': True})
+                as_dict.update({"access": "01"})
             menu_items.append(as_dict)
-        for item in self.menu_normal.all():
+        for item in normal:
             # rare scenario
-            if item not in self.menu_hacked.all():
+            if item not in hacked:
                 as_dict = item.to_dict()
-                as_dict.update({'normal': True, 'hacked': False})
+                as_dict.update({"access": "10"})
             menu_items.append(as_dict)
         return menu_items
 
@@ -375,3 +381,16 @@ class Permission(models.Model):
     def __str__(self):
         return f'[ {self.lock.descr.upper()} ] {self.card.position} ' \
                f'{self.card.surname} '
+
+
+class MQTTMessage(models.Model):
+    """
+        Message sent via MQTT
+    """
+
+    timestamp = models.IntegerField(default=int(time.time()))
+    delivered = models.BooleanField(default=False)
+    channel = models.CharField(max_length=16)
+    topic = models.CharField(max_length=32)
+    command = models.CharField(max_length=16)
+    payload = models.TextField()
