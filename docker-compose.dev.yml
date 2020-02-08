@@ -41,6 +41,33 @@ services:
     networks:
       - core_network
 
+  nginx:
+    image: nginx:latest
+    ports: 
+      - 80:80
+      - 443:443
+    volumes:
+      - ./cfg/nginx/conf.d/local.dev.conf:/etc/nginx/conf.d/local.conf
+      - ./logs/nginx:/var/log/nginx
+      - ./static:/static
+    depends_on:
+      - app
+    networks:
+      - core_network
+
+
+  mosquitto:
+    image: woahbase/alpine-mosquitto:latest
+    volumes:
+      - ./cfg/mosquitto/config:/mosquitto/config
+      - ./cfg/mosquitto/data:/mosquitto/data
+      - ./logs/mosquitto:/mosquitto/log
+    ports:
+      - 1883:1883
+    networks:
+      - core_network
+
+
 volumes:
   pgdata: {}
 
