@@ -4,10 +4,11 @@ STATIC_ROOT = "/static/"
 
 APP_ENV = 'dev'
 
-ALLOWED_HOSTS.extend([
-    '192.168.0.200',
-    '127.0.0.1'
-])
+ALLOWED_HOSTS = ['*']
+
+#CORS_ORIGIN_ALLOW_ALL = True
+#CORS_ALLOW_CREDENTIALS = False
+#CORS_ORIGIN_WHITELIST = ['http://127.0.0.1:8089']
 
 LOGGING['loggers'].update({
         'app': {
@@ -26,8 +27,7 @@ APPCFG = {
     'tz': 'Europe/Moscow', # timezone
     'debug': True,
     'mqtt': {
-        #'host': '127.0.0.1',
-        'host': '192.168.0.200',
+        'host': 'mosquitto',
         'port': 1883
     },
     'timeouts': {
