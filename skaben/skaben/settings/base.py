@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework.authtoken',
-    'app',
+    'skaben',
     'alert',
     'core',
     'device',
@@ -57,10 +57,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'app.middleware.auth_middleware.AuthRequiredMiddleware',
+    'skaben.middleware.auth_middleware.AuthRequiredMiddleware',
 ]
 
-ROOT_URLCONF = 'app.urls'
+ROOT_URLCONF = 'skaben.urls'
 
 TEMPLATES = [
     {
@@ -78,7 +78,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'app.wsgi.application'
+WSGI_APPLICATION = 'skaben.wsgi.application'
 ASGI_APPLICATION = 'core.routing.application'
 CHANNEL_LAYERS = {}
 
@@ -132,6 +132,10 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
+
+# CELERY
+
+CELERY_BROKER_URL = 'amqp://localhost'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.1/howto/static-files/

@@ -17,7 +17,7 @@ CHANNEL_LAYERS = {
 }
 
 LOGGING['loggers'].update({
-        'app': {
+        'skaben': {
             'handlers': ['console'],
             'level': 'DEBUG',
             'formatter': 'simple',

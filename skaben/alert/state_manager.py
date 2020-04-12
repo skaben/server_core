@@ -6,7 +6,7 @@ from channels.layers import get_channel_layer
 
 from core.models import Lock, Terminal, Tamed, State, Value, DevConfig
 
-logger = logging.getLogger('app.main')
+logger = logging.getLogger('skaben.main')
 channel_layer = get_channel_layer()
 
 

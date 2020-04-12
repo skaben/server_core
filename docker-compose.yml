@@ -2,62 +2,61 @@ version: "3"
 
 services:
 
-  app:
-    build:
-      context: .
-    image: skaben:latest
+  skaben:
+    build: './dockerfiles/skaben_app'
     volumes:
-      - ./app:/app
+      - ./skaben:/skaben
       - ./static:/static
-      - ./logs/django:/logs
     command: >
       sh -c "python manage.py wait_for_db &&
              python3 manage.py migrate &&
-             daphne -b 0.0.0.0 -p 8001 app.asgi:application"
+             python3 manage.py runserver 0.0.0.0:8000"
     environment:
       - DB_HOST=db
       - DB_NAME=skaben
       - DB_USER=postgres
       - DB_PASS=superpass123
-      - REDIS_HOST=redis
-      - REDIS_PORT=5379
-      - REDIS_AUTH_USER=skaben_red
-      - REDIS_AUTH_PASS=superpass
-      - DJANGO_SETTINGS_MODULE=app.settings.devel
+      - DJANGO_SETTINGS_MODULE=skaben.settings.devel
     ports:
-      - "8001:8001"
+      - "8000:8000"
     depends_on:
       - db
     networks:
       - core_network
 
-#  worker:
-#    image: skaben:latest
-#    volumes:
-#      - ./app:/app
-#      - ./logs/workers:/logs
-#    command: >
-#      sh -c "echo YA_WORKER_YA_NE_NASTROEN"
-#    environment:
-#      - DJANGO_SETTINGS_MODULE=app.settings.devel
-#    depends_on:
-#      - redis
-#      - mosquitto
-#    networks:
-#      - core_network
-
-  mosquitto:
-    image: woahbase/alpine-mosquitto:latest
-    environment:
-      - USERNAME=mosquitto
-      - PASSWORD=insecurepass
+  celery:
+    build: './dockerfiles/skaben_app'
+    command: celery -A proj worker -l info
     volumes:
-      - ./cfg/mosquitto/config:/mosquitto/config
-      - ./cfg/mosquitto/data:/mosquitto/data
-      - ./logs/mosquitto:/mosquitto/log
+      - .:/code
+    depends_on:
+      - db
+      - rabbitmq
+
+  celery-beat:
+    build: './dockerfiles/skaben_app'
+    command: celery -A proj beat -l info
+    volumes:
+      - .:/code
+    depends_on:
+      - db
+      - rabbitmq
+
+  rabbitmq:
+    build: './dockerfiles/rabbitmq'
+    hostname: "rabbitmq"
+    environment:
+      RABBITMQ_ERLANG_COOKIE: "SWQOKODSQALRPCLNMEQG"
+      RABBITMQ_DEFAULT_USER: "rabbitmq"
+      RABBITMQ_DEFAULT_PASS: "rabbitmq"
+      RABBITMQ_DEFAULT_VHOST: "/"
     ports:
-      - 1883:1883
-      - 8883:8883
+      - "15672:15672"
+      - "15675:15675"
+      - "15692:15692"
+      - "5672:5672"
+      - "1883:1883"
+      - "8883:8883"
     networks:
       - core_network
 
@@ -78,27 +77,16 @@ services:
       - 80:80
       - 443:443
     volumes:
-      - ./cfg/nginx/conf.d:/etc/nginx/conf.d/
+      - ./cfg/nginx/conf.d/local.dev.conf:/etc/nginx/conf.d/local.conf
       - ./logs/nginx:/var/log/nginx
       - ./static:/static
     depends_on:
-      - app
+      - skaben
     networks:
       - core_network
 
-  redis:
-    image: redis:latest
-    command: >
-        sh -c "redis-server /usr/local/etc/redis/redis.conf"
-    volumes:
-      - ./cfg/redis:/usr/local/etc/redis/redis.conf
-      - ./cfg/redis/thp_enabled:/sys/kernel/mm/transparent_hugepage/enabled
-    ports:
-      - 6379:6379
-
 volumes:
   pgdata: {}
-  static_data: {}
 
 networks:
   core_network:
