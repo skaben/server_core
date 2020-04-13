@@ -20,7 +20,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '%pleasechangemetoenv1111r0nvalue'
+SECRET_KEY = os.environ['SECRET_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -31,7 +31,11 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'channels',
+    'skaben',
+    'alert',
+    'core',
+    'device',
+    'menu_item',
     'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -41,11 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework.authtoken',
-    'skaben',
-    'alert',
-    'core',
-    'device',
-    'menu_item',
+    'django_celery_results',
 ]
 
 MIDDLEWARE = [
@@ -79,8 +79,8 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'skaben.wsgi.application'
-ASGI_APPLICATION = 'core.routing.application'
-CHANNEL_LAYERS = {}
+# ASGI_APPLICATION = 'core.routing.application'
+# CHANNEL_LAYERS = {}
 
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
@@ -135,7 +135,22 @@ USE_TZ = True
 
 # CELERY
 
-CELERY_BROKER_URL = 'amqp://localhost'
+CELERY_BROKER_URL = "pyamqp://mqtt:skaben@rabbitmq:5672"
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_CACHE_BACKEND = 'default'
+CELERY_RESULT_BACKEND = "amqp"
+CELERY_IMPORTS = ("app.module.tasks", )
+
+# CACHE
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'django_cache_table',
+    }
+}
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.1/howto/static-files/

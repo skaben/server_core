@@ -14,9 +14,9 @@ RUN python -m venv /venv && \
     python -m pip install --upgrade pip && \
     python -m pip install --no-cache-dir -r /requirements.txt
 
-RUN mkdir /app
-WORKDIR /app
-COPY ./app /app
+RUN mkdir /skaben
+WORKDIR /skaben
+COPY ./skaben /skaben
 
 #RUN useradd skaben
 #USER skaben

@@ -17,14 +17,14 @@ from multiprocessing import Queue
 import paho.mqtt.client as mqtt
 import logging
 
-from asgiref.sync import async_to_sync
-from channels.layers import get_channel_layer
+# from asgiref.sync import async_to_sync
+# from channels.layers import get_channel_layer
 
 import skabenproto as sk
 
 from django.conf import settings
 
-channel_layer = get_channel_layer()
+#channel_layer = get_channel_layer()
 logger = logging.getLogger('skaben.sk_mqtts')
 
 # separate MQTT server to shared
@@ -215,7 +215,7 @@ class MQTTServer(threading.Thread):
         logger.info(f'subscribed to: {", ".join([s[0] for s in self.sub])}')
 
     def send_event(self, event):
-        async_to_sync(channel_layer.send)('events', event)
+        #async_to_sync(channel_layer.send)('events', event)
         return True
 
     def send_aux(self, channel, msg):

@@ -1,13 +1,13 @@
 import logging
 import json
 
-from asgiref.sync import async_to_sync
-from channels.layers import get_channel_layer
+#from asgiref.sync import async_to_sync
+#from channels.layers import get_channel_layer
 
 from core.models import Lock, Terminal, Tamed, State, Value, DevConfig
 
 logger = logging.getLogger('skaben.main')
-channel_layer = get_channel_layer()
+#channel_layer = get_channel_layer()
 
 
 class AlertStateManager:
@@ -225,7 +225,7 @@ class AlertStateManager:
             res.append(send_msg)
         for message in res:
             logger.debug(f'sending {message}')
-            async_to_sync(channel_layer.send)('mqtts', message)
+            #async_to_sync(channel_layer.send)('mqtts', message)
 
     def send_unicast(self):
         res = []
@@ -245,7 +245,7 @@ class AlertStateManager:
                 res.append(send_msg)
         for message in res:
             logger.debug(f'sending {res}')
-            async_to_sync(channel_layer.send)('events', message)
+            #async_to_sync(channel_layer.send)('events', message)
 
     def change_value(self, alert, comment):
         cur_value = int(Value.objects.all().latest('id').value)

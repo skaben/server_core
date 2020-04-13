@@ -3,14 +3,22 @@ version: "3"
 services:
 
   skaben:
-    build: './dockerfiles/skaben_app'
+    build: .
+    healthcheck:
+      test: curl -f http://localhost:8000 || exit 1
+      interval: 1m
+      timeout: 10s
+      retries: 3
+    env_file: '.env'
     volumes:
       - ./skaben:/skaben
       - ./static:/static
     command: >
       sh -c "python manage.py wait_for_db &&
-             python3 manage.py migrate &&
-             python3 manage.py runserver 0.0.0.0:8000"
+             python manage.py createcachetable &&
+             python manage.py migrate django_celery_results &&
+             python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
     environment:
       - DB_HOST=db
       - DB_NAME=skaben
@@ -21,29 +29,12 @@ services:
       - "8000:8000"
     depends_on:
       - db
+      - rabbitmq
     networks:
       - core_network
 
-  celery:
-    build: './dockerfiles/skaben_app'
-    command: celery -A proj worker -l info
-    volumes:
-      - .:/code
-    depends_on:
-      - db
-      - rabbitmq
-
-  celery-beat:
-    build: './dockerfiles/skaben_app'
-    command: celery -A proj beat -l info
-    volumes:
-      - .:/code
-    depends_on:
-      - db
-      - rabbitmq
-
   rabbitmq:
-    build: './dockerfiles/rabbitmq'
+    build: './build/rabbitmq'
     hostname: "rabbitmq"
     environment:
       RABBITMQ_ERLANG_COOKIE: "SWQOKODSQALRPCLNMEQG"
@@ -62,6 +53,7 @@ services:
 
   db:
     image: postgres:10-alpine
+    restart: unless-stopped
     environment:
       - POSTGRES_DB=skaben
       - POSTGRES_USER=postgres
@@ -73,11 +65,14 @@ services:
 
   nginx:
     image: nginx:latest
-    ports: 
+    restart: unless-stopped
+    #command: "/wait-for-it.sh skaben:8000 --timeout=2"
+    ports:
       - 80:80
       - 443:443
     volumes:
-      - ./cfg/nginx/conf.d/local.dev.conf:/etc/nginx/conf.d/local.conf
+      - ./build/wait-for-it.sh:/wait-for-it.sh
+      - ./build/nginx/conf.d/local.dev.conf:/etc/nginx/conf.d/local.conf
       - ./logs/nginx:/var/log/nginx
       - ./static:/static
     depends_on:
