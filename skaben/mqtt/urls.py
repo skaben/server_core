@@ -10,7 +10,7 @@ router.register('mqtt', views.MQTTMessageViewSet)
 
 urlpatterns = [
     path('send/', views.send_message),
-    path('start/', views.start),
-    path('stop/', views.stop),
-    path('status/', views.current)
+    path('prod/', views.start),
+    path('status/', views.stop),
+    path('cons/', views.current)
 ]

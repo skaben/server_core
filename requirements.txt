@@ -9,7 +9,6 @@ django-cors-headers>=3.1.0,<3.2.0
 django-filter>=2.2.0,<2.3.0
 djangorestframework>=3.10.3,<3.11.0
 djangorestframework-jwt>=1.11.0,<1.12.0
-pika>=1.1
 PyJWT>=1.7.1,<1.8.0
 PyYAML>=5.1.2,<5.2.0
 psycopg2>=2.8.3,<2.9
@@ -22,3 +21,4 @@ pytest-mock>=1.11,<1.12
 flake8
 deepdiff>=4.0.0,<4.1.0
 skabenproto
+kombu

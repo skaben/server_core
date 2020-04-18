@@ -45,7 +45,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework.authtoken',
-    'django_celery_results',
 ]
 
 MIDDLEWARE = [
@@ -133,15 +132,9 @@ USE_L10N = True
 
 USE_TZ = True
 
-# CELERY
+# RABBITMQ
 
-CELERY_BROKER_URL = "pyamqp://mqtt:skaben@rabbitmq:5672"
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_CACHE_BACKEND = 'default'
-CELERY_RESULT_BACKEND = "amqp"
-CELERY_IMPORTS = ("app.module.tasks", )
+AMQP_URL = "pyamqp://rabbitmq:rabbitmqpasswd@rabbitmq:5672"
 
 # CACHE
 

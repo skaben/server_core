@@ -10,12 +10,6 @@ CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = False
 #CORS_ORIGIN_WHITELIST = ['http://127.0.0.1:8089']
 
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'asgiref.inmemory.ChannelLayer',
-    },
-}
-
 LOGGING['loggers'].update({
         'skaben': {
             'handlers': ['console'],
@@ -33,7 +27,7 @@ APPCFG = {
     'tz': 'Europe/Moscow', # timezone
     'debug': True,
     'mqtt': {
-        'host': 'mosquitto',
+        'host': 'rabbitmq',
         'port': 1883
     },
     'timeouts': {

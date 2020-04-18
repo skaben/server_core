@@ -8,7 +8,7 @@
 - мониторинг
 
 ##### как запускать 
-`docker-compose up --abort-on-container-exit
+`docker-compose up --force-recreate --abort-on-container-exit
 `
 
 ##### компоненты
