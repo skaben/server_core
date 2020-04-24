@@ -1,6 +1,4 @@
 import time
-import pytz
-from datetime import datetime
 
 from django.conf import settings
 from django.db import models
@@ -9,40 +7,9 @@ from django.db import models
 # from django.db.models.fields.related import ManyToManyField
 # from django.utils.encoding import force_text
 
-# from sk_iface.model_printable import models.Model
+from core.helpers import get_time, DeviceMixin
 
-
-def get_time(timestamp):
-    """
-        Converts unix timestamp to local time
-
-        Todos:
-            move to helpers
-    """
-    utc_time = datetime.utcfromtimestamp(timestamp)
-    local = pytz.utc.localize(utc_time, is_dst=None) \
-        .astimezone(pytz.timezone(settings.APPCFG['tz'])) \
-        .strftime('%Y-%m-%d %H:%M:%S')
-    return local
-
-
-class DeviceMixin:
-    """
-        Device online/offline status checker
-
-        Todos:
-            naming
-    """
-    ts = 0
-
-    @property
-    def offline(self):
-        duration = int(time.time()) - \
-                   (self.ts + settings.APPCFG.get('alive', 60))
-        if duration > 0:
-            return duration
-        else:
-            return 0
+# TODO: rework models
 
 
 class EventLog(models.Model):

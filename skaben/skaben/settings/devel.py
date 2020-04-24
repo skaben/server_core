@@ -42,5 +42,10 @@ APPCFG = {
         'pwr',
         'aux_1',
         'gas'
-    ]
+    ],
+    'smart_devices': {
+        'lock': 'Lock',
+        'term': 'Terminal',
+        'pwr': 'Power'
+    }
 }

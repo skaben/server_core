@@ -13,14 +13,14 @@ import skabenproto
 
 from core.models import MQTTMessage
 from mqtt import serializers, server
-from core.amqp import kombu_prod, kombu_cons, drain, listttt
+from core.rabbit.main import run_workers
 
 
 @api_view(http_method_names=['GET'])
 def start(request):
     try:
-        kk = kombu_prod()
-        return Response(kk)
+        workers = run_workers()
+        return Response(workers)
     except Exception as e:
         return Response({'exception': f'{e}'},
                         status=status.HTTP_403_FORBIDDEN)
@@ -35,7 +35,8 @@ def start(request):
 
 @api_view(http_method_names=['GET'])
 def stop(request):
-    return Response(f'{drain()}')
+    #return Response(f'{drain()}')
+    return Response('{drain()}')
 
 #    try:
 #        result = server.interface.stop()
@@ -47,9 +48,10 @@ def stop(request):
 
 #@api_view(http_method_names=['GET'])
 def current(request):
-    kombu_cons()
-    return Response(f'{len(listttt)}' + '<hr>' +
-                    ''.join([f'<p>{x}</p>' for x in listttt]))
+    return 'current'
+#    kombu_cons()
+#    return Response(f'{len(listttt)}' + '<hr>' +
+#                    ''.join([f'<p>{x}</p>' for x in listttt]))
 #    try:
 #        mqtts = server.interface.server_instance
 #        if not mqtts:

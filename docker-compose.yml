@@ -20,12 +20,6 @@ services:
              python manage.py migrate &&
              python manage.py createcachetable &&
              python manage.py runserver 0.0.0.0:8000"
-    environment:
-      - DB_HOST=db
-      - DB_NAME=skaben
-      - DB_USER=postgres
-      - DB_PASS=superpass123
-      - DJANGO_SETTINGS_MODULE=skaben.settings.devel
     ports:
       - "8000:8000"
     depends_on:
@@ -37,8 +31,7 @@ services:
   rabbitmq:
     build: './build/rabbitmq'
     hostname: "rabbitmq"
-    environment:
-      RABBITMQ_ERLANG_COOKIE: "SWQOKODSQALRPCLNMEQG"
+    env_file: '.env'
     ports:
       - "15672:15672"
       - "15675:15675"
