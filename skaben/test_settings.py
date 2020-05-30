@@ -1,1 +1,5 @@
-from app.settings import *
+import os
+
+os.environ['SECRET_KEY'] = 'thisismytestsecretdjango'
+
+from skaben.settings import *

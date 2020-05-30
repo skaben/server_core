@@ -14,7 +14,7 @@ RUN python -m venv /venv && \
     python -m pip install --upgrade pip && \
     python -m pip install --no-cache-dir -r /requirements.txt
 
-RUN mkdir /skaben
+RUN mkdir -p /skaben/static
 WORKDIR /skaben
 COPY ./skaben /skaben
 

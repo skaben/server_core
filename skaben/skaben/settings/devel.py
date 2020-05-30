@@ -21,7 +21,7 @@ LOGGING['loggers'].update({
 
 
 APPCFG = {
-    'timeout': 1,  # between pings
+    'timeout': 5,  # between pings
     'alive': 60,  #  set device offline after
     'text_storage': 'misc/texts', # texts directory
     'tz': 'Europe/Moscow', # timezone
@@ -40,6 +40,8 @@ APPCFG = {
         'lock',
         'rgb',
         'pwr',
+    ],
+    'additional_channels': [
         'aux_1',
         'gas'
     ],
