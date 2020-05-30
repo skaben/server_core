@@ -12,16 +12,19 @@ services:
     env_file: '.env'
     volumes:
       - ./skaben:/skaben
-      - static_volume:/skaben/static
-      - ./docker_build/wait-for-it.sh:/wait-for-it.sh
+      - ./static:/static
     command: >
-      sh -c "/wait-for-it.sh rabbitmq:5672 &&
-             python manage.py wait_for_db &&
-             python manage.py collectstatic --no-input --clear &&
-             python manage.py makemigrations &&
-             python manage.py migrate &&
+      sh -c "python manage.py wait_for_db &&
              python manage.py createcachetable &&
+             python manage.py migrate django_celery_results &&
+             python manage.py migrate &&
              python manage.py runserver 0.0.0.0:8000"
+    environment:
+      - DB_HOST=db
+      - DB_NAME=skaben
+      - DB_USER=postgres
+      - DB_PASS=superpass123
+      - DJANGO_SETTINGS_MODULE=skaben.settings.devel
     ports:
       - "8000:8000"
     depends_on:
@@ -30,10 +33,28 @@ services:
     networks:
       - core_network
 
+  celery:
+    image: "skabenserver_skaben:latest"
+    restart: unless-stopped
+    command: "/wait-for-it.sh rabbitmq:5672 --timeout=1 -- \
+              celery -A skaben worker -l info --autoscale=10,3"
+    volumes:
+      - ./skaben:/skaben
+      - ./build/wait-for-it.sh:/wait-for-it.sh
+    depends_on:
+      - skaben
+      - rabbitmq
+    networks:
+      - core_network
+
   rabbitmq:
-    build: './docker_build/rabbitmq'
+    build: './build/rabbitmq'
     hostname: "rabbitmq"
-    env_file: '.env'
+    environment:
+      RABBITMQ_ERLANG_COOKIE: "SWQOKODSQALRPCLNMEQG"
+      RABBITMQ_DEFAULT_USER: "rabbitmq"
+      RABBITMQ_DEFAULT_PASS: "rabbitmq"
+      RABBITMQ_DEFAULT_VHOST: "/"
     ports:
       - "15672:15672"
       - "15675:15675"
@@ -52,30 +73,29 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=superpass123
     volumes:
-      - db_volume:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql/data
     networks:
       - core_network
 
   nginx:
-    build: './docker_build/nginx'
+    image: nginx:latest
     restart: unless-stopped
     #command: "/wait-for-it.sh skaben:8000 --timeout=2"
     ports:
       - 80:80
       - 443:443
     volumes:
-      - ./docker_build/wait-for-it.sh:/wait-for-it.sh
-      - ./docker_build/nginx/conf.d/local.dev.conf:/etc/nginx/conf.d/local.conf
+      - ./build/wait-for-it.sh:/wait-for-it.sh
+      - ./build/nginx/conf.d/local.dev.conf:/etc/nginx/conf.d/local.conf
       - ./logs/nginx:/var/log/nginx
-      - static_volume:/skaben/static
+      - ./static:/static
     depends_on:
       - skaben
     networks:
       - core_network
 
 volumes:
-  db_volume: {}
-  static_volume: {}
+  pgdata: {}
 
 networks:
   core_network:
