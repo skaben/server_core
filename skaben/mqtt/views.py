@@ -13,7 +13,7 @@ import skabenproto
 
 from core.models import MQTTMessage
 from mqtt import serializers
-from core.rabbit.main import run_workers, run_pinger, stop_all
+from core.rabbit.main import run_workers, run_pinger, stop_all, send_message
 
 
 @api_view(http_method_names=['GET'])
@@ -41,6 +41,20 @@ def ping(request):
     try:
         pinger = run_pinger()
         return Response(pinger)
+    except Exception as e:
+        return Response({'exception': f'{e}'},
+                        status=status.HTTP_403_FORBIDDEN)
+
+
+@api_view(http_method_names=['POST'])
+def send(request):
+    try:
+        topic = request.data.get('topic', '')
+        uid = request.data.get('uid', '')
+        command = request.data.get('command', '')
+        payload = request.data.get('payload', {})
+        result = send_message(topic, uid, command, payload)
+        return Response(result)
     except Exception as e:
         return Response({'exception': f'{e}'},
                         status=status.HTTP_403_FORBIDDEN)

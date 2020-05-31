@@ -12,7 +12,7 @@ from django.conf import settings
 
 from skabenproto import packets
 
-from core.rabbit.workers import AckNackWorker, \
+from core.rabbit.workers import BaseWorker, AckNackWorker, \
     StateUpdateWorker, PingPongWorker, SendConfigWorker, LogWorker
 from core.rabbit.recurrent import Pinger
 
@@ -178,6 +178,24 @@ def run_pinger():
         return result
     except Exception:
         raise
+
+
+def send_message(topic, uid, command, payload={}):
+    payload = json.loads(payload)
+    data = {"timestamp": int(time.time()),
+            "datahold": payload}
+    with Connection(settings.AMQP_URL) as conn:
+        with conn.channel() as channel:
+            prod = conn.Producer(channel)
+            try:
+                prod.publish(data,
+                             exchange=bound_mqtt_exchange,
+                             routing_key=f"{topic}.{uid}.{command}")
+                return f'success: {topic}.{uid}.{command} with {data}'
+            except Exception as e:
+                prod.publish(f"FAILED: {topic}.{uid}.{command} with {data} >> {e}",
+                             exchange=bound_log_exchange,
+                             routing_key="error")
 
 
 def stop_all():
