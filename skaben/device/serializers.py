@@ -1,12 +1,17 @@
 from rest_framework import serializers
 
-from core.models import Lock, Terminal, Tamed
+from core.models import Lock, Terminal, Tamed, Permission
 
 
 class LockSerializer(serializers.ModelSerializer):
     """ Serializer for lock objects """
 
     acl = serializers.ReadOnlyField()
+    permissions = serializers.HyperlinkedRelatedField(
+        many=True,
+        view_name='permission-detail',
+        read_only=True
+    )
 
     class Meta:
         model = Lock

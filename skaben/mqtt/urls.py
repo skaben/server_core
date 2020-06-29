@@ -9,7 +9,6 @@ router = SimpleRouter()
 router.register('mqtt', views.MQTTMessageViewSet)
 
 urlpatterns = [
-    #path('msg', include(router.urls)),
     path('send/', views.send),
     path('start/', views.start),
     path('stop/', views.stop),

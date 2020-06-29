@@ -145,16 +145,33 @@ class SendConfigWorker(BaseWorker):
 
     """ Worker send config to clients (CUP) """
 
+    smart = settings.APPCFG.get('smart_devices')
+
     def handle_message(self, body, message):
         parsed = super().handle_message(body, message)
         message.ack()
         _type = parsed['device_type']
         _uid = parsed['device_uid']
         self.update_timestamp_only(parsed)
+        self.send_config(_type, _uid, self.get_config(_type, _uid))
+
+    def get_config(self, device_type, device_uid):
+        device_classname = self.smart.get(device_type)
+        if not device_classname:
+            return self.report_error(f"received CUP not from smart device: {_type}")
+        # get model class
+        model_class = getattr(models, device_classname)
+        # get device instance from DB
+        try:
+            device_instance = model_class.objects.get(uid=device_uid)
+            serializer_class = getattr(device_slr, f"{device_classname}Serializer")
+            return serializer_class(device_instance).data
+        except Exception as e:  # DoesNotExist - todo: make normal exception
+            #self.device_not_found(_type, _uid)
+            return self.report_error(f"device {device_type} {device_uid} not found in DB: {e}")
 
     def send_config(self, device_type, device_uid, config):
         task_id = get_task_id()
-        config = {"main": "test"}
         packet = CUP(
             topic=device_type,
             uid=device_uid,
@@ -239,8 +256,8 @@ class StateUpdateWorker(BaseWorker):
             return self.report_error(f'no serializer for: {_type}')
 
         serializer = serializer_class(device_instance,
-                                          data=parsed['datahold'],
-                                          partial=True)
+                                      data=parsed['datahold'],
+                                      partial=True)
         if serializer.is_valid():
             serializer.save()
         else:

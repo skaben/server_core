@@ -276,12 +276,11 @@ class Lock(models.Model, DeviceMixin):
         return [card.code for card in acl]
 
     @property
-    def acl_full(self):
-        acl = dict()
-        for state in AlertState.objects.all():
-            acl[state.name] = list()
-            for permission in self.permission_set.filter(state_id=state):
-                acl[state.name].append(permission.card.code)
+    def permissions(self):
+        # unload list of Card codes for lock end-device
+        acl = []
+        for permission in self.permission_set.filter(lock_id=self.id):
+            acl.append(permission)
         return acl
 
     def __str__(self):
