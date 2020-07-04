@@ -16,14 +16,13 @@ class AlertStateSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ('id', 'name', 'descr')
 
-    def _update_counter(self, instance):
+    def reset_counter_to_threshold(self, instance):
         data = {'value': instance.threshold,
                 'comment': f'changed to {instance.name} by API call'}
         serializer = AlertCounterSerializer(data=data,
-                                            context={'by_state': True})
+                                            context={"by_state": True})
         if serializer.is_valid():
             serializer.save()
-            # fixme: error handling
 
     def update(self, instance, validated_data):
         current = validated_data.get('current')
@@ -32,17 +31,15 @@ class AlertStateSerializer(serializers.ModelSerializer):
                 # print(f'state {name} is already active')
                 return instance
             else:
-                AlertState.objects.filter(current=True).update(current=False)
+                AlertState.objects.filter(current=True)\
+                                  .update(current=False)
         except ObjectDoesNotExist:
             pass
         instance.current = current
-        instance.save()
-        qs = AlertState.objects.all()
-        for x in qs:
-            print(x.__dict__)
-        # avoid second update of counter
         if not self.context.get('by_counter'):
-            self._update_counter(instance)
+            # alert changed by name, counter should be reset to lower threshold
+            self.reset_counter_to_threshold(instance)
+        instance.save()
         return instance
 
 
@@ -54,10 +51,11 @@ class AlertCounterSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     _ingame = AlertState.objects.filter(threshold__gt=0).all()
+    _min_val = -5
+    _max_val = 1000
 
-    def _check_state_threshold(self, alert_value):
+    def get_state_by_alert(self, alert_value: int):
         """ Update Alert state as current """
-
         playable = dict()
         states = dict(enumerate(self._ingame))
         max_idx = len(self._ingame) - 1
@@ -71,34 +69,27 @@ class AlertCounterSerializer(serializers.ModelSerializer):
 
         for index, counter_range in playable.items():
             if alert_value in range(*counter_range):
-                state = states.get(index)
-                s = AlertStateSerializer(instance=state,
-                                         data={'current': True},
-                                         context={'by_counter': True})
-                if s.is_valid():
-                    s.save()
-                else:
-                    raise serializers.ValidationError(s.errors)
+                return states.get(index)
 
-    def create(self, validated_data):
-        if self.context.get('by_state'):
-            return super().create(validated_data)
+    def save(self):
+        if not self.context.get('by_state'):
+            alert_value = self.validated_data.get('value')
+            if not alert_value:
+                raise serializers.ValidationError(f'counter value missing')
 
-        alert_value = validated_data.get('value', -1)
-        comment = validated_data.get('comment', 'value changed by API')
-        if alert_value not in range(1001):
-            raise serializers.ValidationError('counter new value not in range')
+            comment = self.validated_data.get('comment', 'value changed by API')
+            if self._min_val > alert_value > self._max_val:
+                raise serializers.ValidationError(f'counter new value not in range {self._min_val}:{self._max_val}')
 
-        # checking if base state is playable and can be switched
-        try:
-            state_instance = self._ingame.filter(current=True)
-            if state_instance:
-                self._check_state_threshold(alert_value)
-        except ObjectDoesNotExist:
-            pass
-            # f'current state is not ingame state:\n{self._ingame}'
-            # raise serializers.ValidationError(err)
+            # checking if base state is playable and can be switched
+            new_state = self.get_state_by_alert(alert_value)
+            if new_state:
+                serializer = AlertStateSerializer(instance=new_state,
+                                                  data={'current': True},
+                                                  context={'by_counter': True})
+                if serializer.is_valid():
+                    serializer.save()
+            AlertCounter.objects.create(value=alert_value,
+                                        comment=comment)
 
-        counter = AlertCounter.objects.create(value=alert_value,
-                                              comment=comment)
-        return counter
+        return super().save()

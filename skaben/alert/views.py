@@ -6,6 +6,8 @@ from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 
+from django_filters.rest_framework import DjangoFilterBackend
+
 from core.models import AlertState, AlertCounter
 from alert import serializers
 
@@ -22,8 +24,10 @@ class AlertStateViewSet(mixins.ListModelMixin,
 
     queryset = AlertState.objects.all()
     serializer_class = serializers.AlertStateSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['current']
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['get'])
     def set_current(self, request, pk=None):
         """ Set current state handcrafted view """
         try:
