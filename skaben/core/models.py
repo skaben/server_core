@@ -9,8 +9,6 @@ from django.db import models
 
 from core.helpers import get_time, DeviceMixin
 
-# TODO: rework models
-
 
 class EventLog(models.Model):
     """

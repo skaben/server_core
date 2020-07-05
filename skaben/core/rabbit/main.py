@@ -179,24 +179,25 @@ def run_pinger():
     except Exception:
         raise
 
-
-def send_message(topic, uid, command, payload={}):
-    payload = json.loads(payload)
-    data = {"timestamp": int(time.time()),
-            "datahold": payload}
+def send_plain(topic, data):
     with Connection(settings.AMQP_URL) as conn:
         with conn.channel() as channel:
             prod = conn.Producer(channel)
             try:
                 prod.publish(data,
                              exchange=bound_mqtt_exchange,
-                             routing_key=f"{topic}.{uid}.{command}")
-                return f'success: {topic}.{uid}.{command} with {data}'
+                             routing_key=f"{topic}")
+                return f'success: {topic} with {data}'
             except Exception as e:
-                prod.publish(f"FAILED: {topic}.{uid}.{command} with {data} >> {e}",
+                prod.publish(f"FAILED: {topic} with {data} >> {e}",
                              exchange=bound_log_exchange,
                              routing_key="error")
 
+def send_message(topic, uid, command, payload={}):
+    payload = json.loads(payload)
+    data = {"timestamp": int(time.time()),
+            "datahold": payload}
+    send_plain(f"{topic}.{uid}.{command}", data)
 
 def stop_all():
     try:
