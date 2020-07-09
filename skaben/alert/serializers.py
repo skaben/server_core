@@ -71,21 +71,19 @@ class AlertCounterSerializer(serializers.ModelSerializer):
             next_threshold = getattr(next, 'threshold', self._max_val)
             state_ranges.update({index: [item.threshold, next_threshold]})
 
-        print(state_ranges)
-
         for index, _range in state_ranges.items():
             if alert_value in range(*_range):
                 return states.get(index)
 
     def create(self, validated_data):
         alert_value = validated_data.get('value')
-        if alert_value not in range(self._min_val, self._max_val):
-            raise serializers.ValidationError(f"{alert_value} not in range {self._min_val}:{self._max_val - 1}")
         comment = validated_data.get('comment', 'value changed by API')
         instance = AlertCounter.objects.create(value=alert_value,
                                                comment=comment)
 
         if not self.context.get('by_state'):
+            if alert_value not in range(self._min_val, self._max_val):
+                raise serializers.ValidationError(f"{alert_value} not in range {self._min_val}:{self._max_val - 1}")
             # checking if base state is playable and can be switched
             new_state = self.get_state_by_alert(alert_value)
             if new_state in self._ingame:

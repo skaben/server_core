@@ -4,6 +4,9 @@ from datetime import datetime
 
 from django.conf import settings
 
+from rest_framework.request import Request
+from rest_framework.test import APIRequestFactory
+
 
 def get_time(timestamp):
     """
@@ -40,7 +43,7 @@ class DeviceMixin:
 
 def timestamp_expired(timestamp):
     """ Check if timestamp is older than keepalive timeout """
-    keep_alive = int(time.time()) - settings.APPCFG.get('alive', 60)
+    keep_alive = int(time.time()) - int(settings.APPCFG.get('alive', 60))
     return timestamp <= keep_alive
 
 
@@ -59,3 +62,9 @@ def update_timestamp(device_type, device_uid, timestamp=None):
            print(f'cannot update timestamp for {device_type} {device_uid}')
            pass
 
+factory = APIRequestFactory()
+request = factory.get('/')
+
+dummy_context = {
+    'request': Request(request),
+}

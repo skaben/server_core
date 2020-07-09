@@ -4,9 +4,7 @@ from core.models import EventLog
 
 
 class EventLogSerializer(serializers.ModelSerializer):
-    """ Serializer for lock objects """
-
-    acl = serializers.ReadOnlyField()
+    """ Serializer for event log objects """
 
     class Meta:
         model = EventLog
