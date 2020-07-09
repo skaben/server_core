@@ -89,12 +89,12 @@ info_queue = Queue('info',
 
 # declare queues for log exchange
 
-log_queue = Queue("message",
+log_queue = Queue("log_info",
                   durable=True,
                   exchange=bound_log_exchange,
-                  routing_key="message")
+                  routing_key="info")
 
-error_queue = Queue("error",
+error_queue = Queue("log_error",
                     durable=True,
                     exchange=bound_log_exchange,
                     routing_key="error")
@@ -142,10 +142,10 @@ worker_processes = dict(
                                   queues=[sup_queue, info_queue],
                                   exchanges=exchanges),
 
-    worker_messages=WorkerProcess(worker_class=LogWorker,
-                                  connection=connection,
-                                  queues=[log_queue, ],
-                                  exchanges=exchanges)
+    worker_logging=WorkerProcess(worker_class=LogWorker,
+                                 connection=connection,
+                                 queues=[log_queue, error_queue],
+                                 exchanges=exchanges)
 )
 
 
@@ -179,6 +179,7 @@ def run_pinger():
     except Exception:
         raise
 
+
 def send_plain(topic, data):
     with Connection(settings.AMQP_URL) as conn:
         with conn.channel() as channel:
@@ -193,11 +194,13 @@ def send_plain(topic, data):
                              exchange=bound_log_exchange,
                              routing_key="error")
 
+
 def send_message(topic, uid, command, payload={}):
     payload = json.loads(payload)
     data = {"timestamp": int(time.time()),
             "datahold": payload}
     send_plain(f"{topic}.{uid}.{command}", data)
+
 
 def stop_all():
     try:
@@ -212,7 +215,10 @@ def stop_all():
                 RECURRENT[name].kill()
                 names.append(name)
                 results.append(f"terminated recurrent task: {name}")
-        [RECURRENT.pop(name) for name in names]
+            try:
+                RECURRENT.pop(name)
+            except:
+                pass
         return results
     except Exception:
         raise
