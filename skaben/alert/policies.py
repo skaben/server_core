@@ -1,7 +1,7 @@
 import logging
 import json
 
-from core.models import Lock, Terminal, Tamed, AlertState
+from core.models import Lock, Terminal, Simple, AlertState
 from core.rabbit.main import send_plain
 
 logger = logging.getLogger('skaben.main')
@@ -21,34 +21,39 @@ class PolicyManager:
     def __init__(self):
         self.locks = Lock.objects.all()
         self.terms = Terminal.objects.all()
-        self.tamed = Tamed.objects.all()
+        self.tamed = Simple.objects.all()
+
+    def indicate(self, color):
+        color = hex_to_rgb(color)
+        send_plain("RGB.ce436600", color)
 
     def apply(self, level):
         """
             Changing global alert state
         """
-        color = hex_to_rgb(level.bg_color)
-        send_plain("RGB.ce436600", color)
-#        try:
-#            call = getattr(self, level.name)
-#            if call and level.name != 'white':
-#                # exclude all manual controlled device from updates
-#                self.locks = self.locks.exclude(override=True)
-#                self.terms = self.terms.exclude(override=True)
-#        except Exception as e:
-#            logger.error(f'{self} has no method for {level.name}\n{e}')
-#            pass
+
+        self.indicate(level.bg_color)  # visual indicator
+
+        try:
+            call = getattr(self, level.name)
+            if call and level.name != 'white':
+                # exclude all manual controlled device from updates
+                self.locks = self.locks.exclude(override=True)
+                self.terms = self.terms.exclude(override=True)
+        except Exception as e:
+            logger.error(f'{self} has no method for {level.name}\n{e}')
+            pass
 
     def white(self):
         """
             WHITE: dungeon reset to start position
             doors are open, terminals are unlocked, all IED defused
         """
-        # self.locks.update(opened=True,
-        #                   sound=False,
-        #                   override=False,
-        #                   blocked=False,
-        #                   timer=10)
+        self.locks.update(closed=False,
+                          sound=False,
+                          override=False,
+                          blocked=False,
+                          timer=10)
         # self.terms.update(powered=False,
         #                   override=False,
         #                   blocked=False,
@@ -65,9 +70,9 @@ class PolicyManager:
 
             game starting, most doors are closed, power source disabled
         """
-        # self.locks.update(opened=False,
-        #                   sound=True,
-        #                   blocked=False)
+        self.locks.update(closed=True,
+                          sound=True,
+                          blocked=False)
         # self.terms.update(powered=False,
         #                   blocked=False,
         #                   hacked=False)
@@ -78,9 +83,9 @@ class PolicyManager:
 
             players solving power source quest
         """
-        # self.locks.update(opened=False,
-        #                   sound=True,
-        #                   blocked=False)
+        self.locks.update(closed=True,
+                          sound=True,
+                          blocked=False)
         # self.terms.update(powered=False,
         #                   blocked=False,
         #                   hacked=False)
@@ -91,10 +96,10 @@ class PolicyManager:
 
             power source enabled, alert level not increased
         """
-        # self.locks.update(
-        #     opened=False,
-        #     sound=True,
-        # )
+        self.locks.update(
+            closed=True,
+            sound=True,
+        )
         # self.terms.update(
         #     powered=True,
         #     blocked=False,
@@ -110,10 +115,10 @@ class PolicyManager:
 
             dungeon difficulty increased
         """
-        # self.locks.update(
-        #     opened=False,
-        #     sound=True,
-        # )
+        self.locks.update(
+            closed=True,
+            sound=True,
+        )
         # self.terms.update(
         #     powered=True,
         #     blocked=False,
@@ -126,10 +131,10 @@ class PolicyManager:
 
             dungeon difficulty at maximum, most doors are locked
         """
-        # self.locks.update(
-        #     opened=False,
-        #     sound=True,
-        # )
+        self.locks.update(
+            closed=True,
+            sound=True,
+        )
         # self.terms.update(
         #     powered=True,
         #     blocked=False,
@@ -140,11 +145,11 @@ class PolicyManager:
         """
             BLACK: game over, manual control
         """
-        # self.locks.update(
-        #     opened=False,
-        #     sound=True,
-        #     blocked=True,
-        # )
+        self.locks.update(
+            closed=True,
+            sound=True,
+            blocked=True,
+        )
         # self.terms.update(
         #     powered=True,
         #     blocked=True,
