@@ -13,7 +13,7 @@ import skabenproto
 
 from core.models import MQTTMessage
 from mqtt import serializers
-from core.rabbit.main import run_workers, run_pinger, stop_all, send_message
+from core.tasks.main import run_workers, run_pinger, stop_all, send_message
 
 
 @api_view(http_method_names=['GET'])
