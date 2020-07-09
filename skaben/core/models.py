@@ -7,7 +7,23 @@ from django.db import models
 # from django.db.models.fields.related import ManyToManyField
 # from django.utils.encoding import force_text
 
-from core.helpers import get_time, DeviceMixin
+from core.helpers import get_time
+
+
+class DeviceMixin:
+    """
+        Device online/offline status checker
+
+        Todos:
+            naming
+    """
+    ts = 0
+
+    @property
+    def online(self):
+        current = int(time.time())
+        alive = settings.APPCFG.get('alive', 60)
+        return self.timestamp > current - alive
 
 
 class EventLog(models.Model):
@@ -256,7 +272,7 @@ class Lock(models.Model, DeviceMixin):
     timestamp = models.IntegerField(default=int(time.time()))
     uid = models.CharField(max_length=16, unique=True)
     info = models.CharField(max_length=128, default='simple lock')
-    online = models.BooleanField(default=False)
+    #online = models.BooleanField(default=False)
     ip = models.GenericIPAddressField()
     override = models.BooleanField(default=False)
     sound = models.BooleanField(default=False)
@@ -307,7 +323,7 @@ class Terminal(models.Model, DeviceMixin):
     timestamp = models.IntegerField(default=int(time.time()))
     uid = models.CharField(max_length=16, unique=True)
     info = models.CharField(max_length=128, default='simple terminal')
-    online = models.BooleanField(default=False)
+    #online = models.BooleanField(default=False)
     ip = models.GenericIPAddressField()
     override = models.BooleanField(default=False)
     powered = models.BooleanField(default=False)

@@ -22,25 +22,6 @@ def get_time(timestamp):
     return local
 
 
-class DeviceMixin:
-    """
-        Device online/offline status checker
-
-        Todos:
-            naming
-    """
-    ts = 0
-
-    @property
-    def offline(self):
-        duration = int(time.time()) - \
-                   (self.ts + settings.APPCFG.get('alive', 60))
-        if duration > 0:
-            return duration
-        else:
-            return 0
-
-
 def timestamp_expired(timestamp):
     """ Check if timestamp is older than keepalive timeout """
     keep_alive = int(time.time()) - int(settings.APPCFG.get('alive', 60))

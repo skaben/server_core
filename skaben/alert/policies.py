@@ -2,7 +2,7 @@ import logging
 import json
 
 from core.models import Lock, Terminal, Simple, AlertState
-from core.rabbit.main import send_plain
+from core.tasks.main import send_plain
 
 logger = logging.getLogger('skaben.main')
 

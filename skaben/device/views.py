@@ -12,7 +12,7 @@ class LockViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
 
     queryset = Lock.objects.all()
-    serializer_class = serializers.LockSerializer
+    serializer_class = serializers.LockHyperlinkedSerializer
 
 
 class TerminalViewSet(viewsets.ModelViewSet):

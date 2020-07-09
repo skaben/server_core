@@ -17,7 +17,7 @@ class LockSerializer(serializers.ModelSerializer):
 class LockHyperlinkedSerializer(serializers.ModelSerializer):
     """ Serializer for lock objects """
 
-    acl = serializers.ReadOnlyField()
+    online = serializers.ReadOnlyField()
     permissions = serializers.HyperlinkedRelatedField(
         many=True,
         view_name='permission-detail',
