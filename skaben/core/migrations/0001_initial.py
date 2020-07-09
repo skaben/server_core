@@ -141,7 +141,7 @@ class Migration(migrations.Migration):
                 'verbose_name': 'Устройство (акт.): Замок',
                 'verbose_name_plural': 'Устройства (акт.): Замки',
             },
-            bases=(models.Model, core.helpers.DeviceMixin),
+            bases=(models.Model, core.models.DeviceMixin),
         ),
         migrations.CreateModel(
             name='MenuItem',
@@ -194,7 +194,7 @@ class Migration(migrations.Migration):
                 'verbose_name': 'Устройство (акт.): Терминал',
                 'verbose_name_plural': 'Устройства (акт.): Терминалы',
             },
-            bases=(models.Model, core.helpers.DeviceMixin),
+            bases=(models.Model, core.models.DeviceMixin),
         ),
         migrations.CreateModel(
             name='Simple',
@@ -212,7 +212,7 @@ class Migration(migrations.Migration):
                 'verbose_name': 'Устройство пассивное',
                 'verbose_name_plural': 'Устройства пассивные',
             },
-            bases=(models.Model, core.helpers.DeviceMixin),
+            bases=(models.Model, core.models.DeviceMixin),
         ),
         migrations.CreateModel(
             name='Permission',
