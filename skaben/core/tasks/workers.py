@@ -82,7 +82,8 @@ class BaseWorker(ConsumerProducerMixin):
         routing_key = f"{parsed['device_type']}.{parsed['device_uid']}.SUP"
         timestamp = int(time.time()) if not timestamp else timestamp
         parsed['timestamp'] = timestamp
-        parsed['datahold'] = {"timestamp": timestamp}  # strip datahold for expired timestamp cases
+        parsed['datahold'] = {"timestamp": timestamp}
+        parsed['command'] = "SUP"
         self.publish(parsed,
                      exchange=self.exchanges.get('ask'),
                      routing_key=routing_key)
@@ -227,7 +228,20 @@ class StateUpdateWorker(BaseWorker):
 
     """ Update database by data received from clients """
 
-    smart = settings.APPCFG.get('smart_devices')
+    smart = {
+        'lock': {
+            'serializer': device_serializer.LockHyperlinkedSerializer,
+            'model': models.Lock
+        },
+        'term': {
+            'serializer': device_serializer.TerminalSerializer,
+            'model': models.Terminal
+        },
+        'terminal': {
+            'serializer': device_serializer.TerminalSerializer,
+            'model': models.Terminal
+        }
+    }
 
     def handle_message(self, body, message):
         parsed = super().handle_message(body, message)
@@ -250,35 +264,23 @@ class StateUpdateWorker(BaseWorker):
         # include timestamp to load
         parsed['datahold'].update({"timestamp": parsed['timestamp']})
 
-        device_classname = self.smart.get(_type)
-        if not device_classname:
+        device = self.smart.get(_type)
+        if not device:
             return self.report_error(f"received SUP not from smart device: {_type}")
-        # get model class
-        model_class = getattr(models, device_classname)
+
         # get device instance from DB
         try:
-            device_instance = model_class.objects.get(uid=_uid)
+            device_instance = device['model'].objects.get(uid=_uid)
         except Exception as e:  # DoesNotExist - todo: make normal exception
             #self.device_not_found(_type, _uid)
             return self.report_error(f"device {_type} {_uid} not found in DB: {e}")
 
-        # get serializer
-        serializer_class = getattr(device_serializer, f"{device_classname}Serializer")
+        serializer = device["serializer"](device_instance,
+                                          data=parsed["datahold"],
+                                          partial=True)
 
-        if not serializer_class:
-            return self.report_error(f'no serializer for: {_type}')
-
-        serializer = serializer_class(device_instance,
-                                      data=parsed['datahold'],
-                                      partial=True,
-                                      context=dummy_context)
         if serializer.is_valid():
             serializer.save()
-        else:
-            return self.report_error(f'error when saving {_type} {_uid} > {serializer.errors}')
-        # just testing logging
-        #self.report(f"device {device_instance} new data {parsed['datahold']}")
-        # TODO: inform websockets
 
     def handle_info_message(self, parsed):
         """ handling info message """

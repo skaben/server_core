@@ -4,6 +4,7 @@
 cfg/mosquitto/
 logs/
 static/
+skaben/core/migrations/
 *.swp
 
 # Byte-compiled / optimized / DLL files

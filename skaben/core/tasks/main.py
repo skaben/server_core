@@ -12,9 +12,10 @@ from django.conf import settings
 
 from skabenproto import packets
 
-from core.rabbit.workers import BaseWorker, AckNackWorker, \
+from core.tasks.workers import BaseWorker, AckNackWorker, \
     StateUpdateWorker, PingPongWorker, SendConfigWorker, LogWorker
-from core.rabbit.recurrent import Pinger
+from core.tasks.recurrent import Pinger
+from core.tasks.scheduler import scheduler
 
 connection = Connection(settings.AMQP_URL)
 pool = connection.ChannelPool(64)
@@ -166,11 +167,22 @@ def run_workers():
 
 
 def run_pinger():
-    _channel = pool.acquire()
+#    if 'ping' in scheduler.tasks:
+#        scheduler.remove('ping')
+#    else:
+#        try:
+#            channel = pool.acquire()
+#            pinger = ping(connection, channel, mqtt_exchange)
+#            scheduler.add('ping', pinger, settings.APPCFG.get('alive', 60))
+#            return f"pinger started = {scheduler.__dict__}"
+#        except Exception as e:
+#            scheduler.kill()
+#            return f"{e}"
+#    _channel = pool.acquire()
     name = 'pinger'
     result = f'{name} already running'
     try:
-        pinger = Pinger(name, connection, _channel, mqtt_exchange)
+        pinger = Pinger(connection, pool.acquire(), mqtt_exchange)
         if pinger.name not in RECURRENT:
             pinger.start()
             RECURRENT.update({name: pinger})
@@ -203,6 +215,7 @@ def send_message(topic, uid, command, payload={}):
 
 
 def stop_all():
+    scheduler.kill()
     try:
         results = []
         for name, proc in worker_processes.items():
