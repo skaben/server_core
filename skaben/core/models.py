@@ -20,7 +20,7 @@ class EventLog(models.Model):
 
     timestamp = models.IntegerField(default=int(time.time()))
     message = models.TextField()
-    event_type = models.CharField(default="log", max_length=32)
+    event_type = models.CharField(default="info", max_length=32)
 
     @property
     def human_time(self):
@@ -61,14 +61,14 @@ class AlertState(models.Model):
         verbose_name_plural = 'Тревога: статусы'
 
     name = models.CharField(max_length=32)  # alert level color name
-    descr = models.CharField(max_length=256)
+    info = models.CharField(max_length=256)
     bg_color = models.CharField(max_length=7, default='#000000')
     fg_color = models.CharField(max_length=7, default='#ffffff')
     threshold = models.IntegerField(default=-1)
     current = models.BooleanField(default=False)
 
     def __str__(self):
-        s = f'State: {self.name} ({self.descr})'
+        s = f'State: {self.name} ({self.info})'
         if self.current:
             return '===ACTIVE===' + s + '===ACTIVE==='
         else:
@@ -78,7 +78,7 @@ class AlertState(models.Model):
 class ConfigString(models.Model):
 
     """
-        Tamed Device configuration string
+        Simple Device configuration string
     """
 
     class Meta:
@@ -220,7 +220,7 @@ class AccessCode(models.Model):
 
 #  DEVICES
 
-class Tamed(models.Model, DeviceMixin):
+class Simple(models.Model, DeviceMixin):
     """
         Simple dumb device, such as lights, sirens, rgb-leds
         Controls only by predefined config in ConfigString
@@ -232,7 +232,7 @@ class Tamed(models.Model, DeviceMixin):
 
     timestamp = models.IntegerField(default=int(time.time()))
     uid = models.CharField(max_length=16, unique=True)
-    descr = models.CharField(max_length=256, default='simple dumb')
+    info = models.CharField(max_length=256, default='simple dumb')
     online = models.BooleanField(default=False)
     ip = models.GenericIPAddressField()
     subtype = models.CharField(max_length=32, default='rgb')
@@ -241,7 +241,7 @@ class Tamed(models.Model, DeviceMixin):
                                     default='noop')
 
     def __str__(self):
-        return f'DUMB ID: {self.id} {self.descr}'
+        return f'DUMB ID: {self.id} {self.info}'
 
 
 class Lock(models.Model, DeviceMixin):
@@ -255,12 +255,12 @@ class Lock(models.Model, DeviceMixin):
 
     timestamp = models.IntegerField(default=int(time.time()))
     uid = models.CharField(max_length=16, unique=True)
-    descr = models.CharField(max_length=128, default='simple lock')
+    info = models.CharField(max_length=128, default='simple lock')
     online = models.BooleanField(default=False)
     ip = models.GenericIPAddressField()
     override = models.BooleanField(default=False)
     sound = models.BooleanField(default=False)
-    opened = models.BooleanField(default=False)
+    closed = models.BooleanField(default=True)
     blocked = models.BooleanField(default=False)
     timer = models.IntegerField(default=10)
 
@@ -282,7 +282,7 @@ class Lock(models.Model, DeviceMixin):
         return acl
 
     def __str__(self):
-        return f'<{self.id}> {self.descr}'
+        return f'<{self.id}> {self.info}'
 
 
 class Terminal(models.Model, DeviceMixin):
@@ -306,7 +306,7 @@ class Terminal(models.Model, DeviceMixin):
 
     timestamp = models.IntegerField(default=int(time.time()))
     uid = models.CharField(max_length=16, unique=True)
-    descr = models.CharField(max_length=128, default='simple terminal')
+    info = models.CharField(max_length=128, default='simple terminal')
     online = models.BooleanField(default=False)
     ip = models.GenericIPAddressField()
     override = models.BooleanField(default=False)
@@ -349,7 +349,7 @@ class Terminal(models.Model, DeviceMixin):
         return menu_items
 
     def __str__(self):
-        return f'TERMINAL ID: {self.id} {self.descr}'
+        return f'TERMINAL ID: {self.id} {self.info}'
 
 
 class Permission(models.Model):
@@ -367,7 +367,7 @@ class Permission(models.Model):
     state_id = models.ManyToManyField(AlertState)
 
     def __str__(self):
-        return f'[ {self.lock.descr.upper()} ] {self.card.position} ' \
+        return f'[ {self.lock.info.upper()} ] {self.card.position} ' \
                f'{self.card.surname} '
 
 
