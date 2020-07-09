@@ -2,7 +2,7 @@ from rest_framework import viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 
-from core.models import Lock, Terminal, Tamed
+from core.models import Lock, Terminal, Simple
 from device import serializers
 
 
@@ -24,10 +24,10 @@ class TerminalViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.TerminalSerializer
 
 
-class TamedViewSet(viewsets.ModelViewSet):
+class SimpleViewSet(viewsets.ModelViewSet):
     """ Manage lesser devices in database """
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
 
-    queryset = Tamed.objects.all()
-    serializer_class = serializers.TamedSerializer
+    queryset = Simple.objects.all()
+    serializer_class = serializers.SimpleSerializer

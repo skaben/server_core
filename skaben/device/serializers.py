@@ -1,9 +1,20 @@
 from rest_framework import serializers
 
-from core.models import Lock, Terminal, Tamed, Permission
+from core.models import Lock, Terminal, Simple, Permission
 
 
 class LockSerializer(serializers.ModelSerializer):
+    """ Serializer for lock objects for sending over MQTT"""
+
+    acl = serializers.ReadOnlyField()
+
+    class Meta:
+        model = Lock
+        exclude = ['id', 'ip', 'override', 'timestamp', 'info']
+        read_only_fields = ('id',)
+
+
+class LockHyperlinkedSerializer(serializers.ModelSerializer):
     """ Serializer for lock objects """
 
     acl = serializers.ReadOnlyField()
@@ -28,9 +39,9 @@ class TerminalSerializer(serializers.ModelSerializer):
         read_only_fields = ('id',)
 
 
-class TamedSerializer(serializers.ModelSerializer):
+class SimpleSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = Tamed
+        model = Simple
         fields = '__all__'
         read_only_fields = ('id',)
