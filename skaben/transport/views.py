@@ -1,7 +1,3 @@
-import time
-import json
-import multiprocessing as mp
-
 from rest_framework.decorators import api_view
 
 from rest_framework import status, viewsets
@@ -9,11 +5,11 @@ from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 
-import skabenproto
-
 from core.models import MQTTMessage
-from mqtt import serializers
-from core.tasks.main import run_workers, run_pinger, stop_all, send_message
+from core.tasks.main import run_workers, run_pinger, stop_all
+
+from transport import serializers
+from transport.interfaces import send_message
 
 
 @api_view(http_method_names=['GET'])
@@ -67,4 +63,3 @@ class MQTTMessageViewSet(viewsets.ModelViewSet):
 
     queryset = MQTTMessage.objects.all()
     serializer_class = serializers.MQTTMessageSerializer
-

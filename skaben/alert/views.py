@@ -29,7 +29,7 @@ class AlertStateViewSet(mixins.ListModelMixin,
 
     @action(detail=True, methods=['get'])
     def set_current(self, request, pk=None):
-        """ Set current state handcrafted view """
+        """ Set current """
         try:
             state = AlertState.objects.get(id=pk)
         except ObjectDoesNotExist:

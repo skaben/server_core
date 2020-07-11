@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from core.models import Lock, Terminal, Simple, Permission
+from core.models import Lock, Terminal, Simple
 
 
 class LockSerializer(serializers.ModelSerializer):
@@ -10,7 +10,7 @@ class LockSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Lock
-        exclude = ['id', 'ip', 'override', 'timestamp', 'info']
+        exclude = ['id', 'ip', 'override', 'info']
         read_only_fields = ('id',)
 
 

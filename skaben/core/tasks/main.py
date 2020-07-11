@@ -1,154 +1,40 @@
-import json
-
-from kombu import Connection
-from kombu import Exchange, Queue, Consumer
-from kombu.mixins import ConsumerMixin, ConsumerProducerMixin
-
-import threading
-import multiprocessing as mp
-import time
-
-from django.conf import settings
-
-from skabenproto import packets
-
-from core.tasks.workers import BaseWorker, AckNackWorker, \
-    StateUpdateWorker, PingPongWorker, SendConfigWorker, LogWorker
+from core.tasks.workers import WorkerRunner, \
+    AckNackWorker, StateUpdateWorker, PingPongWorker, SendConfigWorker, LogWorker
 from core.tasks.recurrent import Pinger
-from core.tasks.scheduler import scheduler
+from transport.rabbitmq import connection, pool, exchanges
+import transport.queues as tq
 
-connection = Connection(settings.AMQP_URL)
-pool = connection.ChannelPool(64)
-
-# exchanges
-
-with pool.acquire() as channel:
-    # main mqtt exchange, used mainly for messaging out.
-    # note that all replies from clients starts with 'ask.' routing key goes to ask exchange
-    mqtt_exchange = Exchange('mqtt', type='topic')
-    bound_mqtt_exchange = mqtt_exchange(channel)
-
-    # ask exchange collects all replies from client devices
-    ask_exchange = Exchange('ask', type='topic')
-    bound_ask_exchange = ask_exchange(channel)
-
-    # logging exchange
-    log_exchange = Exchange('log', type='direct')
-    bound_log_exchange = log_exchange(channel)
-
-    # note that is 'direct'-type
-    # event_exchange serve as main internal server exchange, collecting all types of items
-    events_exchange = Exchange('internal', type='direct')
-    bound_events_exchange = events_exchange(channel)
-
-    # declare exchanges
-    for exchange in (bound_mqtt_exchange,
-                     bound_events_exchange,
-                     bound_ask_exchange,
-                     bound_log_exchange):
-        exchange.declare()
-    # binding ask exchange to mqtt exchange with routing key
-    bound_ask_exchange.bind_to(exchange=bound_mqtt_exchange,
-                               routing_key='ask.#',
-                               channel=channel)
-
-# create and declare queues for MQTT exchange
-
-# reply to pong
-pong_queue = Queue('pong',
-                   durable=False,
-                   exchange=bound_ask_exchange,
-                   routing_key='#.PONG')
-
-# task delivery confirm
-ack_queue = Queue('ack',
-                  durable=False,
-                  exchange=bound_ask_exchange,
-                  routing_key='#.ACK')
-
-nack_queue = Queue('nack',
-                   durable=False,
-                   exchange=bound_ask_exchange,
-                   routing_key='#.NACK')
-
-# queue for sending configs to client
-cup_queue = Queue('cup',
-                  durable=False,
-                  exchange=bound_ask_exchange,
-                  routing_key='#.CUP')
-
-# server state updates
-sup_queue = Queue('sup',
-                  durable=False,
-                  exchange=bound_ask_exchange,
-                  routing_key='#.SUP')
-
-info_queue = Queue('info',
-                   durable=False,
-                   exchange=bound_ask_exchange,
-                   routing_key='#.INFO')
-
-# declare queues for log exchange
-
-log_queue = Queue("log_info",
-                  durable=True,
-                  exchange=bound_log_exchange,
-                  routing_key="info")
-
-error_queue = Queue("log_error",
-                    durable=True,
-                    exchange=bound_log_exchange,
-                    routing_key="error")
-
-# initiate workers
 
 WORKERS = []
 RECURRENT = {}
 
 
-class WorkerProcess(mp.Process):
-
-    def __init__(self, worker_class, connection, queues, exchanges, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.worker = worker_class(connection, queues, exchanges)
-
-    def run(self):
-        self.worker.run()
-
-
-exchanges = {'ask': bound_ask_exchange,
-             'internal': bound_events_exchange,
-             'mqtt': bound_mqtt_exchange,
-             'log': bound_log_exchange}
-
-
 worker_processes = dict(
-    worker_pong=WorkerProcess(worker_class=PingPongWorker,
-                              connection=connection,
-                              queues=[pong_queue, ],
-                              exchanges=exchanges),
-
-    worker_ack_nack=WorkerProcess(worker_class=AckNackWorker,
-                                  connection=connection,
-                                  queues=[ack_queue, nack_queue],
-                                  exchanges=exchanges),
-
-    worker_cup=WorkerProcess(worker_class=SendConfigWorker,
+    worker_pong=WorkerRunner(worker_class=PingPongWorker,
                              connection=connection,
-                             queues=[cup_queue, ],
+                             queues=[tq.pong_queue, ],
                              exchanges=exchanges),
 
-    worker_sup_info=WorkerProcess(worker_class=StateUpdateWorker,
-                                  connection=connection,
-                                  queues=[sup_queue, info_queue],
-                                  exchanges=exchanges),
-
-    worker_logging=WorkerProcess(worker_class=LogWorker,
+    worker_ack_nack=WorkerRunner(worker_class=AckNackWorker,
                                  connection=connection,
-                                 queues=[log_queue, error_queue],
-                                 exchanges=exchanges)
-)
+                                 queues=[tq.ack_queue, tq.nack_queue],
+                                 exchanges=exchanges),
 
+    worker_cup=WorkerRunner(worker_class=SendConfigWorker,
+                            connection=connection,
+                            queues=[tq.cup_queue, ],
+                            exchanges=exchanges),
+
+    worker_sup_info=WorkerRunner(worker_class=StateUpdateWorker,
+                                 connection=connection,
+                                 queues=[tq.sup_queue, tq.info_queue],
+                                 exchanges=exchanges),
+
+    worker_logging=WorkerRunner(worker_class=LogWorker,
+                                connection=connection,
+                                queues=[tq.log_queue, tq.error_queue],
+                                exchanges=exchanges)
+)
 
 
 def run_workers():
@@ -167,22 +53,10 @@ def run_workers():
 
 
 def run_pinger():
-#    if 'ping' in scheduler.tasks:
-#        scheduler.remove('ping')
-#    else:
-#        try:
-#            channel = pool.acquire()
-#            pinger = ping(connection, channel, mqtt_exchange)
-#            scheduler.add('ping', pinger, settings.APPCFG.get('alive', 60))
-#            return f"pinger started = {scheduler.__dict__}"
-#        except Exception as e:
-#            scheduler.kill()
-#            return f"{e}"
-#    _channel = pool.acquire()
     name = 'pinger'
     result = f'{name} already running'
     try:
-        pinger = Pinger(connection, pool.acquire(), mqtt_exchange)
+        pinger = Pinger(connection, pool.acquire(), exchanges.get('mqtt'))
         if pinger.name not in RECURRENT:
             pinger.start()
             RECURRENT.update({name: pinger})
@@ -192,30 +66,7 @@ def run_pinger():
         raise
 
 
-def send_plain(topic, data):
-    with Connection(settings.AMQP_URL) as conn:
-        with conn.channel() as channel:
-            prod = conn.Producer(channel)
-            try:
-                prod.publish(data,
-                             exchange=bound_mqtt_exchange,
-                             routing_key=f"{topic}")
-                return f'success: {topic} with {data}'
-            except Exception as e:
-                prod.publish(f"FAILED: {topic} with {data} >> {e}",
-                             exchange=bound_log_exchange,
-                             routing_key="error")
-
-
-def send_message(topic, uid, command, payload={}):
-    payload = json.loads(payload)
-    data = {"timestamp": int(time.time()),
-            "datahold": payload}
-    send_plain(f"{topic}.{uid}.{command}", data)
-
-
 def stop_all():
-    scheduler.kill()
     try:
         results = []
         for name, proc in worker_processes.items():
@@ -230,7 +81,7 @@ def stop_all():
                 results.append(f"terminated recurrent task: {name}")
             try:
                 RECURRENT.pop(name)
-            except:
+            except Exception:
                 pass
         return results
     except Exception:

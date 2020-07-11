@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from core.models import Lock, Permission, AccessCode
+from core.models import Permission, AccessCode
 
 
 class PermissionsSerializer(serializers.HyperlinkedModelSerializer):

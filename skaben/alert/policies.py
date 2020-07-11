@@ -1,16 +1,10 @@
 import logging
-import json
 
-from core.models import Lock, Terminal, Simple, AlertState
-from core.tasks.main import send_plain
+from core.models import Lock, Terminal, Simple
+from core.helpers import hex_to_rgb
+from transport.interfaces import send_plain
 
 logger = logging.getLogger('skaben.main')
-
-def hex_to_rgb(hex):
-    if hex.startswith('#'):
-        hex = hex[1:]
-    hex = ''.join([h.lower() for h in hex])
-    return ",".join([str(i) for i in bytes.fromhex(hex)])
 
 
 class PolicyManager:
@@ -62,7 +56,6 @@ class PolicyManager:
         #                   hack_wordcount=16,
         #                   hack_chance=10,
         #                   hack_attempts=4)
-
 
     def blue(self):
         """

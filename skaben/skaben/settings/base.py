@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'device',
     'menu_item',
     'eventlog',
+    'transport'
 ]
 
 MIDDLEWARE = [

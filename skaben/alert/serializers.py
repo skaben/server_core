@@ -15,7 +15,7 @@ class AlertStateSerializer(serializers.ModelSerializer):
     class Meta:
         model = AlertState
         fields = '__all__'
-        read_only_fields = ('id', 'name', 'descr')
+        read_only_fields = ('id', 'name', 'info')
 
     def reset_counter_to_threshold(self, instance):
         data = {'value': instance.threshold,
@@ -47,7 +47,7 @@ class AlertStateSerializer(serializers.ModelSerializer):
 
         return instance
 
-#fixme: counter ranges seems invalid
+
 class AlertCounterSerializer(serializers.ModelSerializer):
     """ Global alert value counter """
 

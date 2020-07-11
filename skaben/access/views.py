@@ -2,7 +2,7 @@ from rest_framework import viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 
-from core.models import Lock, Permission, AccessCode
+from core.models import Permission, AccessCode
 from access import serializers
 
 

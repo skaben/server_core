@@ -1,12 +1,12 @@
-from django.urls import path, include
+from django.urls import path
 from rest_framework.routers import SimpleRouter
 
-from mqtt import views
+from transport import views
 
-app_name = 'mqtt'
+app_name = 'transport'
 
 router = SimpleRouter()
-router.register('mqtt', views.MQTTMessageViewSet)
+router.register('transport', views.MQTTMessageViewSet)
 
 urlpatterns = [
     path('send/', views.send),

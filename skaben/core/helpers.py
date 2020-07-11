@@ -28,20 +28,13 @@ def timestamp_expired(timestamp):
     return timestamp <= keep_alive
 
 
-def update_timestamp(device_type, device_uid, timestamp=None):
-   """ Checks if device is smart and updates timestamp """
-   smart = settings.APPCFG.get('smart_devices')
-   timestamp = timestamp if timestamp else int(time.time())
-   if device_type in smart:
-       try:
-           model_class = getattr(smart.get(device_type), models)
-           model_class.objects.get(uid=device_uid)
-           device.ts = timestamp
-           device.save()
-       except Exception:
-           # todo: error handling
-           print(f'cannot update timestamp for {device_type} {device_uid}')
-           pass
+def hex_to_rgb(hex):
+    """ converts hex to hsl """
+    if hex.startswith('#'):
+        hex = hex[1:]
+    hex = ''.join([h.lower() for h in hex])
+    return ",".join([str(i) for i in bytes.fromhex(hex)])
+
 
 factory = APIRequestFactory()
 request = factory.get('/')

@@ -1,10 +1,7 @@
 import time
 import multiprocessing as mp
 
-from kombu import Producer
 from django.conf import settings
-from skabenproto.packets import PING
-from core.models import Terminal, Lock
 
 
 class Pinger(mp.Process):

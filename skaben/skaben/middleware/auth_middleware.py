@@ -1,4 +1,4 @@
-from django.http import HttpResponse
+# from django.http import HttpResponse
 
 
 class AuthRequiredMiddleware(object):
@@ -13,6 +13,6 @@ class AuthRequiredMiddleware(object):
 
     def __call__(self, request):
         response = self.get_response(request)
-        #if not request.path_info.startswith(self.allowed) and not request.user.is_authenticated:
-        #   return HttpResponse("Unauthorized", status=401)
+        # if not request.path_info.startswith(self.allowed) and not request.user.is_authenticated:
+        #    return HttpResponse("Unauthorized", status=401)
         return response

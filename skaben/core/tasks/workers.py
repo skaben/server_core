@@ -1,23 +1,23 @@
 import json
 import time
-import logging
+import multiprocessing as mp
 
-from kombu.mixins import ConsumerMixin, ConsumerProducerMixin
 from django import db
 from django.conf import settings
 
-# todo: wtf timestamp in helpers
-from core.helpers import update_timestamp, timestamp_expired, dummy_context
+from kombu.mixins import ConsumerProducerMixin
+
 from core import models
+from core.helpers import timestamp_expired
+
 from device import serializers as device_serializer
-from eventlog import serializers as eventlog_serializer
-from skabenproto import CUP, SUP
+from skabenproto import CUP
 
 from random import randint
 
 
 def get_task_id(name='task'):
-    num = ''.join([str(randint(0,9)) for _ in range(10)])
+    num = ''.join([str(randint(0, 9)) for _ in range(10)])
     return f"{name}-{num}"
 
 
@@ -28,6 +28,16 @@ def fix_database_conn(func):
             conn.close_if_unusable_or_obsolete()
         return func(*args, **kwargs)
     return wrapper
+
+
+class WorkerRunner(mp.Process):
+
+    def __init__(self, worker_class, connection, queues, exchanges, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.worker = worker_class(connection, queues, exchanges)
+
+    def run(self):
+        self.worker.run()
 
 
 class BaseWorker(ConsumerProducerMixin):
@@ -148,7 +158,7 @@ class PingPongWorker(BaseWorker):
 
 
 class SendConfigWorker(BaseWorker):
-
+    # fixme: different serializer types (hyperlinked for rest and not for mqtt)
     """ Worker send config to clients (CUP) """
 
     smart = settings.APPCFG.get('smart_devices')
@@ -174,8 +184,7 @@ class SendConfigWorker(BaseWorker):
         try:
             device_instance = model_class.objects.get(uid=device_uid)
             serializer_class = getattr(device_serializer, f"{device_classname}Serializer")
-            ser = serializer_class(instance=device_instance,
-                                   context=dummy_context)
+            ser = serializer_class(instance=device_instance)
             return ser.data
         except Exception as e:  # DoesNotExist - fixme: make normal exception
             return self.report_error(f"device {device_type} {device_uid} not found in DB: {e}")
@@ -230,7 +239,7 @@ class StateUpdateWorker(BaseWorker):
 
     smart = {
         'lock': {
-            'serializer': device_serializer.LockHyperlinkedSerializer,
+            'serializer': device_serializer.LockSerializer,
             'model': models.Lock
         },
         'term': {
@@ -288,4 +297,3 @@ class StateUpdateWorker(BaseWorker):
         # update timestamp in database
         # get rpc call from payload
         # apply rpc call (another queue?)
-
