@@ -19,11 +19,6 @@ class LockHyperlinkedSerializer(serializers.ModelSerializer):
 
     online = serializers.ReadOnlyField()
     permissions = serializers.ReadOnlyField()
-    #permissions = serializers.HyperlinkedRelatedField(
-    #    many=True,
-    #    view_name='permission-detail',
-    #    read_only=True
-    #)
 
     class Meta:
         model = Lock
