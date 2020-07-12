@@ -9,6 +9,7 @@ from kombu.mixins import ConsumerProducerMixin
 
 from core import models
 from core.helpers import timestamp_expired
+from scenario.default import scenario
 
 from device import serializers as device_serializer
 from skabenproto import CUP
@@ -228,12 +229,7 @@ class AckNackWorker(BaseWorker):
         # retry and inform if NACK
 
 
-# TODO: design how global state should be applied
-# todo: how websocket should be informed (signals or what)
-# todo:
-
-
-class StateUpdateWorker(BaseWorker):
+class SaveConfigWorker(BaseWorker):
 
     """ Update database by data received from clients """
 
@@ -252,22 +248,10 @@ class StateUpdateWorker(BaseWorker):
         }
     }
 
-    def handle_message(self, body, message):
-        parsed = super().handle_message(body, message)
-        _cmd = parsed.get('command')
-        message.ack()
-
-        try:
-            if _cmd == 'INFO':
-                self.handle_info_message(parsed)
-            else:
-                self.handle_sup_message(parsed)
-        except Exception as e:
-            self.report_error(f"{e}")
-
     @fix_database_conn
-    def handle_sup_message(self, parsed):
+    def handle_message(self, body, message):
         """ handling server update message """
+        parsed = super().handle_message(body, message)
         _type = parsed['device_type']
         _uid = parsed['device_uid']
         # include timestamp to load
@@ -291,9 +275,15 @@ class StateUpdateWorker(BaseWorker):
         if serializer.is_valid():
             serializer.save()
 
-    def handle_info_message(self, parsed):
-        """ handling info message """
-        pass
+
+class StateUpdateWorker(BaseWorker):
+
+    def handle_message(self, body, message):
+        """ handling state update messages """
+        parsed = super().handle_message(body, message)
+        print(parsed)
+        #scenario.new(parsed)
+
         # update timestamp in database
         # get rpc call from payload
         # apply rpc call (another queue?)
