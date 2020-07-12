@@ -1,7 +1,7 @@
 from django.core.exceptions import ObjectDoesNotExist
 
 from rest_framework import viewsets, mixins, status
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -31,7 +31,7 @@ class AlertStateViewSet(mixins.ListModelMixin,
     def set_current(self, request, pk=None):
         """ Set current """
         try:
-            state = AlertState.objects.get(id=pk)
+            state = self.queryset.get(id=pk)
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
         # calling update, passing instance
