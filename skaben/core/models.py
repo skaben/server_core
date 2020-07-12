@@ -272,7 +272,6 @@ class Lock(models.Model, DeviceMixin):
     timestamp = models.IntegerField(default=int(time.time()))
     uid = models.CharField(max_length=16, unique=True)
     info = models.CharField(max_length=128, default='simple lock')
-    #online = models.BooleanField(default=False)
     ip = models.GenericIPAddressField()
     override = models.BooleanField(default=False)
     sound = models.BooleanField(default=False)
@@ -289,12 +288,21 @@ class Lock(models.Model, DeviceMixin):
             acl.append(permission.card)
         return [card.code for card in acl]
 
+#    @property
+#    def permissions(self):
+#        # unload list of Card codes for lock end-device
+#        acl = []
+#        for permission in self.permission_set.filter(lock_id=self.id):
+#            acl.append(permission)
+#        return acl
+
     @property
     def permissions(self):
         # unload list of Card codes for lock end-device
-        acl = []
-        for permission in self.permission_set.filter(lock_id=self.id):
-            acl.append(permission)
+        acl = {}
+        for perm in self.permission_set.filter(lock_id=self.id):
+            state_list = [state.name for state in perm.state_id.all()]
+            acl[f"{perm.card.position} {perm.card.name}"] = state_list
         return acl
 
     def __str__(self):
@@ -323,7 +331,6 @@ class Terminal(models.Model, DeviceMixin):
     timestamp = models.IntegerField(default=int(time.time()))
     uid = models.CharField(max_length=16, unique=True)
     info = models.CharField(max_length=128, default='simple terminal')
-    #online = models.BooleanField(default=False)
     ip = models.GenericIPAddressField()
     override = models.BooleanField(default=False)
     powered = models.BooleanField(default=False)

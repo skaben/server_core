@@ -18,11 +18,12 @@ class LockHyperlinkedSerializer(serializers.ModelSerializer):
     """ Serializer for lock objects """
 
     online = serializers.ReadOnlyField()
-    permissions = serializers.HyperlinkedRelatedField(
-        many=True,
-        view_name='permission-detail',
-        read_only=True
-    )
+    permissions = serializers.ReadOnlyField()
+    #permissions = serializers.HyperlinkedRelatedField(
+    #    many=True,
+    #    view_name='permission-detail',
+    #    read_only=True
+    #)
 
     class Meta:
         model = Lock
