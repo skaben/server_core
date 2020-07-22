@@ -47,11 +47,13 @@ class AlertService:
     def set_state_current(self, instance):
         try:
             if not instance.current:
-                AlertState.objects.filter(current=True)\
-                                  .update(current=False)
+                qs = AlertState.objects.filter(current=True).all()
+                qs.update(current=False)
+                previous = qs[0]
+                escalate = previous.threshold > instance.threshold
                 instance.current = True
                 instance.save()
-                with StateManager() as manager:
+                with StateManager(escalate) as manager:
                     manager.apply(instance)
         except ObjectDoesNotExist:
             pass
@@ -72,10 +74,13 @@ class StateManager:
 
     indicator = "RGB.ce436600"
 
-    def __init__(self):
+    def __init__(self, escalate=True):
         self.locks = Lock.objects.all()
         self.terms = Terminal.objects.all()
         self.tamed = Simple.objects.all()
+
+        # state changing from lower to upper or not?
+        self.escalate = escalate
 
     def indicate(self, color):
         send_plain(self.indicator, color)
