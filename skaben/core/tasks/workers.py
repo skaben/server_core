@@ -55,6 +55,14 @@ class BaseWorker(ConsumerProducerMixin):
                          callbacks=[self.handle_message]
                          )]
 
+    def parse_smart(self, data):
+        parsed = dict(
+            timestamp=int(data.get('timestamp', 0)),
+            task_id=data.get('task_id'),
+            datahold=data.get('datahold')
+        )
+        return parsed
+
     def handle_message(self, body, message):
         """ """
         try:
@@ -62,24 +70,33 @@ class BaseWorker(ConsumerProducerMixin):
             if rk[0] == 'ask':
                 # only messages from mqtt comes with pre-device_type 'ask' routing key
                 # and only this type of message should be parsed
-                rk = rk[1:]
-                device_type, device_uid, command = rk
-                _body = json.loads(body) if body else {}
-                parsed = dict(
-                    device_type=device_type,
-                    device_uid=device_uid,
-                    command=command,
-                    timestamp=int(_body.get('timestamp', 0)),
-                    task_id=_body.get('task_id'),
-                    datahold=_body.get('datahold')
-                )
+                try:
+                    rk = rk[1:]
+                    device_type, device_uid, command = rk
+                except Exception as e:
+                    raise Exception(f"cannot parse routing key `{rk}` >> {e}")
+
+                try:
+                    parsed = dict(
+                        device_type = device_type,
+                        device_uid = device_uid,
+                        command = command
+                    )
+                    data = json.loads(body) if body else {}
+                except Exception as e:
+                    raise Exception(f"cannot parse message payload `{body}` >> {e}")
+
+                # todo: singleton smart devices list
+                if device_type in ['lock', 'terminal']:
+                    parsed.update(self.parse_smart(data))
+                else:
+                    parsed.update({"datahold": data})
                 return parsed
             else:
                 # just return already parsed dict
                 return body
         except Exception as e:
-            # todo: should be reported to error queue
-            self.report_error(f"{e}")
+            self.report_error(f"when handling message: {e}")
 
     def publish(self, payload, exchange, routing_key):
         self.producer.publish(
@@ -289,7 +306,6 @@ class StateUpdateWorker(BaseWorker):
     def handle_message(self, body, message):
         """ handling state update messages """
         parsed = super().handle_message(body, message)
-        print(parsed)
         message.ack()
         #scenario.new(parsed)
 
