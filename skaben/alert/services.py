@@ -1,16 +1,76 @@
 import logging
 
-from core.models import Lock, Terminal, Simple
-from core.helpers import hex_to_rgb
+from rest_framework import serializers
+
+from django.core.exceptions import ObjectDoesNotExist
+from django.conf import settings
+
+from core.models import AlertState, AlertCounter, Lock, Terminal, Simple
 from transport.interfaces import send_plain
 
 logger = logging.getLogger('skaben.main')
 
 
-class PolicyManager:
+class AlertService:
+    """ Global Alert State service """
+
+    def __init__(self):
+        alert = settings.APPCFG['alert']
+        self._min_val = alert.get('ingame')
+        self._max_val = alert.get('max')
+        self.state_ranges = dict()
+
+        ingame = [state for state in AlertState.objects.all().order_by("threshold")
+                  if state.threshold in range(self._min_val, self._max_val)]
+
+        self.states = dict(enumerate(ingame))
+
+        for index, item in self.states.items():
+            next = self.states.get(index + 1)
+            next_threshold = getattr(next, 'threshold', self._max_val)
+            self.state_ranges.update({index: [item.threshold, next_threshold]})
+
+    def reset_counter_to_threshold(self, instance):
+        data = {'value': instance.threshold,
+                'comment': f'changed to {instance.name} by API call'}
+        return data
+
+    def get_state_by_alert(self, alert_value: int):
+        try:
+            alert_value = int(alert_value)
+            for index, _range in self.state_ranges.items():
+                if alert_value in range(*_range):
+                    return self.states.get(index)
+        except Exception:
+            raise
+
+    def set_state_current(self, instance):
+        try:
+            if not instance.current:
+                AlertState.objects.filter(current=True)\
+                                  .update(current=False)
+                instance.current = True
+                instance.save()
+                with StateManager() as manager:
+                    manager.apply(instance)
+        except ObjectDoesNotExist:
+            pass
+        finally:
+            return instance
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        return
+
+
+class StateManager:
     """
         Reflect dungeon alert state to smart devices
     """
+
+    indicator = "RGB.ce436600"
 
     def __init__(self):
         self.locks = Lock.objects.all()
@@ -18,15 +78,12 @@ class PolicyManager:
         self.tamed = Simple.objects.all()
 
     def indicate(self, color):
-        color = hex_to_rgb(color)
-        send_plain("RGB.ce436600", color)
+        send_plain(self.indicator, color)
 
     def apply(self, level):
         """
             Changing global alert state
         """
-
-        self.indicate(level.bg_color)  # visual indicator
 
         try:
             call = getattr(self, level.name)
@@ -34,6 +91,7 @@ class PolicyManager:
                 # exclude all manual controlled device from updates
                 self.locks = self.locks.exclude(override=True)
                 self.terms = self.terms.exclude(override=True)
+            call()
         except Exception as e:
             logger.error(f'{self} has no method for {level.name}\n{e}')
             pass
@@ -43,6 +101,7 @@ class PolicyManager:
             WHITE: dungeon reset to start position
             doors are open, terminals are unlocked, all IED defused
         """
+        self.indicate("100,55,255")
         self.locks.update(closed=False,
                           sound=False,
                           override=False,
@@ -63,6 +122,7 @@ class PolicyManager:
 
             game starting, most doors are closed, power source disabled
         """
+        self.indicate("0,0,255")
         self.locks.update(closed=True,
                           sound=True,
                           blocked=False)
@@ -76,6 +136,7 @@ class PolicyManager:
 
             players solving power source quest
         """
+        self.indicate("0,255,255")
         self.locks.update(closed=True,
                           sound=True,
                           blocked=False)
@@ -89,7 +150,9 @@ class PolicyManager:
 
             power source enabled, alert level not increased
         """
+        self.indicate("0,255,0")
         self.locks.update(
+            blocked=False,
             closed=True,
             sound=True,
         )
@@ -108,7 +171,9 @@ class PolicyManager:
 
             dungeon difficulty increased
         """
+        self.indicate("255,255,0")
         self.locks.update(
+            blocked=False,
             closed=True,
             sound=True,
         )
@@ -124,7 +189,9 @@ class PolicyManager:
 
             dungeon difficulty at maximum, most doors are locked
         """
+        self.indicate("255,0,0")
         self.locks.update(
+            blocked=False,
             closed=True,
             sound=True,
         )
@@ -138,6 +205,7 @@ class PolicyManager:
         """
             BLACK: game over, manual control
         """
+        self.indicate("0,0,0")
         self.locks.update(
             closed=True,
             sound=True,
@@ -148,3 +216,9 @@ class PolicyManager:
         #     blocked=True,
         #     hacked=False,
         # )
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        return

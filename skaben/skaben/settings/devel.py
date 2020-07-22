@@ -30,6 +30,11 @@ APPCFG = {
         'host': 'rabbitmq',
         'port': 1883
     },
+    'alert': {
+        "min": -5,
+        "ingame": 0,
+        "max": 1000
+    },
     'timeouts': {
         'device_keepalive': 15,
         'broker_keepalive': 10,
@@ -45,5 +50,4 @@ APPCFG = {
         'aux_1',
         'gas'
     ],
-
 }
