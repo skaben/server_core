@@ -162,47 +162,55 @@ class SendConfigWorker(BaseWorker):
     # fixme: different serializer types (hyperlinked for rest and not for mqtt)
     """ Worker send config to clients (CUP) """
 
-    smart = settings.APPCFG.get('smart_devices')
+    smart = {
+        'lock': {
+            'serializer': device_serializer.LockSerializer,
+            'model': models.Lock
+        },
+        'term': {
+            'serializer': device_serializer.TerminalSerializer,
+            'model': models.Terminal
+        },
+        'terminal': {
+            'serializer': device_serializer.TerminalSerializer,
+            'model': models.Terminal
+        }
+    }
 
     def handle_message(self, body, message):
         parsed = super().handle_message(body, message)
+        self.device_type = parsed.get('device_type')
+        self.device_uid = parsed.get('device_uid')
         message.ack()
         try:
             self.update_timestamp_only(parsed)
             self.send_config(parsed)
         except Exception as e:
-            self.report_error(f"error: {e} {parsed}")
+            self.report_error(f"error: {e} {body} {message} {parsed}")
 
-    def get_config(self, parsed):
-        device_type = parsed.get('device_type')
-        device_uid = parsed.get('device_uid')
-        device_classname = self.smart.get(device_type)
-        if not device_classname:
-            return self.report_error(f"device not in smart list, but CUP received: {device_type}")
-        # get model class
-        model_class = getattr(models, device_classname)
-        # get device instance from DB
+    def get_config(self):
+        device = self.smart.get(self.device_type)
+        if not device:
+            return self.report_error(f"device not in smart list, but CUP received: {self.device_type}")
+
         try:
-            device_instance = model_class.objects.get(uid=device_uid)
-            serializer_class = getattr(device_serializer, f"{device_classname}Serializer")
-            ser = serializer_class(instance=device_instance)
+            device_instance = device['model'].objects.get(uid=self.device_uid)
+            ser = device['serializer'](instance=device_instance)
             return ser.data
         except Exception as e:  # DoesNotExist - fixme: make normal exception
-            return self.report_error(f"device {device_type} {device_uid} not found in DB: {e}")
+            return self.report_error(f"device {self.device_type} {self.device_uid} not found in DB: {e}")
 
     def send_config(self, parsed):
-        device_type = parsed.get('device_type')
-        device_uid = parsed.get('device_uid')
         packet = CUP(
-            topic=device_type,
-            uid=device_uid,
-            task_id=get_task_id(device_uid[-4:]),
-            datahold=self.get_config(parsed),
+            topic=self.device_type,
+            uid=self.device_uid,
+            task_id=get_task_id(self.device_uid[-4:]),
+            datahold=self.get_config(),
             timestamp=int(time.time())
         )
         self.publish(packet.payload,
                      exchange=self.exchanges.get('mqtt'),
-                     routing_key=f"{device_type}.{device_uid}.CUP")
+                     routing_key=f"{self.device_type}.{self.device_uid}.CUP")
 
 
 class AckNackWorker(BaseWorker):
@@ -282,6 +290,7 @@ class StateUpdateWorker(BaseWorker):
         """ handling state update messages """
         parsed = super().handle_message(body, message)
         print(parsed)
+        message.ack()
         #scenario.new(parsed)
 
         # update timestamp in database
