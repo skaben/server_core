@@ -70,9 +70,18 @@ class AlertService:
 class StateManager:
     """
         Reflect dungeon alert state to smart devices
+
+        DRY violation for more obvious ruleset
     """
 
     indicator = "RGB.ce436600"
+
+    standart_lock = dict(closed=True,
+                         blocked=False)
+
+    standart_term = dict(powered=False,
+                         blocked=False,
+                         hacked=False)
 
     def __init__(self, escalate=True):
         self.locks = Lock.objects.all()
@@ -107,19 +116,24 @@ class StateManager:
             doors are open, terminals are unlocked, all IED defused
         """
         self.indicate("100,55,255")
-        self.locks.update(closed=False,
-                          sound=False,
-                          override=False,
-                          blocked=False,
-                          timer=10)
-        # self.terms.update(powered=False,
-        #                   override=False,
-        #                   blocked=False,
-        #                   hacked=False,
-        #                   hack_difficulty=6,
-        #                   hack_wordcount=16,
-        #                   hack_chance=10,
-        #                   hack_attempts=4)
+
+        lock_payload = dict(closed=False,
+                            sound=False,
+                            override=False,
+                            blocked=False,
+                            timer=10)
+
+        term_payload = dict(powered=False,
+                            override=False,
+                            blocked=False,
+                            hacked=False,
+                            hack_difficulty=6,
+                            hack_wordcount=16,
+                            hack_chance=10,
+                            hack_attempts=4)
+
+        self.locks.update(**lock_payload)
+        self.terms.update(**term_payload)
 
     def blue(self):
         """
@@ -128,12 +142,10 @@ class StateManager:
             game starting, most doors are closed, power source disabled
         """
         self.indicate("0,0,255")
-        self.locks.update(closed=True,
-                          sound=True,
-                          blocked=False)
-        # self.terms.update(powered=False,
-        #                   blocked=False,
-        #                   hacked=False)
+        lock_payload = self.standart_lock
+        term_payload = self.standart_term
+        self.locks.update(**lock_payload)
+        self.terms.update(**term_payload)
 
     def cyan(self):
         """
@@ -142,12 +154,10 @@ class StateManager:
             players solving power source quest
         """
         self.indicate("0,255,255")
-        self.locks.update(closed=True,
-                          sound=True,
-                          blocked=False)
-        # self.terms.update(powered=False,
-        #                   blocked=False,
-        #                   hacked=False)
+        lock_payload = self.standart_lock
+        term_payload = self.standart_term
+        self.locks.update(**lock_payload)
+        self.terms.update(**term_payload)
 
     def green(self):
         """
@@ -156,19 +166,20 @@ class StateManager:
             power source enabled, alert level not increased
         """
         self.indicate("0,255,0")
-        self.locks.update(
-            blocked=False,
-            closed=True,
-            sound=True,
+
+        lock_payload = self.standart_lock
+
+        term_payload = dict(
+                            powered=True,
+                            blocked=False,
+                            hacked=False,
+                            hack_wordcount=16,
+                            hack_attempts=4,
+                            hack_difficulty=6
         )
-        # self.terms.update(
-        #     powered=True,
-        #     blocked=False,
-        #     hacked=False,
-        #     hack_wordcount=16,
-        #     hack_attempts=4,
-        #     hack_difficulty=6
-        # )
+
+        self.locks.update(**lock_payload)
+        self.terms.update(**term_payload)
 
     def yellow(self):
         """
@@ -177,16 +188,18 @@ class StateManager:
             dungeon difficulty increased
         """
         self.indicate("255,255,0")
-        self.locks.update(
-            blocked=False,
-            closed=True,
-            sound=True,
+        lock_payload = self.standart_lock
+        term_payload = dict(
+                            powered=True,
+                            hacked=False,
         )
-        # self.terms.update(
-        #     powered=True,
-        #     blocked=False,
-        #     hacked=False,
-        # )
+
+        if not self.escalate:
+            lock_payload.update({"blocked": False})
+            term_payload.update({"blocked": False})
+
+        self.locks.update(**lock_payload)
+        self.terms.update(**term_payload)
 
     def red(self):
         """
@@ -195,32 +208,36 @@ class StateManager:
             dungeon difficulty at maximum, most doors are locked
         """
         self.indicate("255,0,0")
-        self.locks.update(
-            blocked=False,
-            closed=True,
-            sound=True,
+        lock_payload = self.standart_lock
+        term_payload = dict(
+                            powered=True,
+                            hacked=False,
         )
-        # self.terms.update(
-        #     powered=True,
-        #     blocked=False,
-        #     hacked=False,
-        # )
+
+        if not self.escalate:
+            lock_payload.update({"blocked": False})
+            term_payload.update({"blocked": False})
+
+        self.locks.update(**lock_payload)
+        self.terms.update(**term_payload)
 
     def black(self):
         """
             BLACK: game over, manual control
         """
         self.indicate("0,0,0")
-        self.locks.update(
-            closed=True,
-            sound=True,
-            blocked=True,
+        lock_payload = dict(
+                            closed=True,
+                            sound=True,
+                            blocked=True,
         )
-        # self.terms.update(
-        #     powered=True,
-        #     blocked=True,
-        #     hacked=False,
-        # )
+        term_payload = dict(
+                            powered=True,
+                            blocked=True,
+                            hacked=False,
+        )
+        self.locks.update(**lock_payload)
+        self.terms.update(**term_payload)
 
     def __enter__(self):
         return self
