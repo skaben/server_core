@@ -260,6 +260,27 @@ class Simple(models.Model, DeviceMixin):
         return f'DUMB ID: {self.id} {self.info}'
 
 
+class SimpleLight(models.Model, DeviceMixin):
+    """
+        Simple dumb device, such as lights, sirens, rgb-leds
+        Controls only by predefined config in ConfigString
+    """
+
+    class Meta:
+        verbose_name = 'Устройство RGB пассивное'
+        verbose_name_plural = 'Устройства RGB пассивные'
+
+    timestamp = models.IntegerField(default=int(time.time()))
+    uid = models.CharField(max_length=16, unique=True)
+    info = models.CharField(max_length=256, default='simple dumb')
+    online = models.BooleanField(default=False)
+    ip = models.GenericIPAddressField()
+    config = models.CharField(max_length=256, default='')
+
+    def __str__(self):
+        return f'DUMB ID: {self.id} {self.info}'
+
+
 class Lock(models.Model, DeviceMixin):
     """
         Lock device class

@@ -11,7 +11,7 @@ from core import models
 from core.helpers import timestamp_expired
 from scenario.default import scenario
 
-from device import serializers as device_serializer
+from device.services import DEVICES
 from skabenproto import CUP
 
 from random import randint
@@ -59,7 +59,7 @@ class BaseWorker(ConsumerProducerMixin):
         parsed = dict(
             timestamp=int(data.get('timestamp', 0)),
             task_id=data.get('task_id'),
-            datahold=data.get('datahold')
+            datahold=data.get('datahold'),
         )
         return parsed
 
@@ -169,6 +169,9 @@ class PingPongWorker(BaseWorker):
         message.ack()
 
     def push_device_config(self, parsed):
+        parsed.update({'context':
+                           {'no_send': True}
+                       })
         routing_key = f"{parsed['device_type']}.{parsed['device_uid']}.CUP"
         self.publish(parsed,
                      exchange=self.exchanges.get('ask'),
@@ -179,20 +182,7 @@ class SendConfigWorker(BaseWorker):
     # fixme: different serializer types (hyperlinked for rest and not for mqtt)
     """ Worker send config to clients (CUP) """
 
-    smart = {
-        'lock': {
-            'serializer': device_serializer.LockSerializer,
-            'model': models.Lock
-        },
-        'term': {
-            'serializer': device_serializer.TerminalSerializer,
-            'model': models.Terminal
-        },
-        'terminal': {
-            'serializer': device_serializer.TerminalSerializer,
-            'model': models.Terminal
-        }
-    }
+    smart = DEVICES
 
     def handle_message(self, body, message):
         parsed = super().handle_message(body, message)
@@ -258,20 +248,7 @@ class SaveConfigWorker(BaseWorker):
 
     """ Update database by data received from clients """
 
-    smart = {
-        'lock': {
-            'serializer': device_serializer.LockSerializer,
-            'model': models.Lock
-        },
-        'term': {
-            'serializer': device_serializer.TerminalSerializer,
-            'model': models.Terminal
-        },
-        'terminal': {
-            'serializer': device_serializer.TerminalSerializer,
-            'model': models.Terminal
-        }
-    }
+    smart = DEVICES
 
     @fix_database_conn
     def handle_message(self, body, message):
@@ -280,11 +257,11 @@ class SaveConfigWorker(BaseWorker):
         _type = parsed['device_type']
         _uid = parsed['device_uid']
         # include timestamp to load
-        parsed['datahold'].update({"timestamp": parsed['timestamp']})
+        parsed['datahold'].update({"timestamp": parsed.get('timestamp', int(time.time()))})
 
         device = self.smart.get(_type)
         if not device:
-            return self.report_error(f"received SUP not from smart device: {_type}")
+            return self.report_error(f"received SUP from unknown device type: {_type}")
 
         # get device instance from DB
         try:
@@ -295,10 +272,12 @@ class SaveConfigWorker(BaseWorker):
 
         serializer = device["serializer"](device_instance,
                                           data=parsed["datahold"],
-                                          partial=True)
+                                          partial=True,
+                                          context=parsed.get("context"))
 
         if serializer.is_valid():
             serializer.save()
+        message.ack()
 
 
 class StateUpdateWorker(BaseWorker):

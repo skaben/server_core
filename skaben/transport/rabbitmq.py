@@ -4,12 +4,12 @@ from kombu import Connection, Exchange
 from django.conf import settings
 
 connection = Connection(settings.AMQP_URL)
-pool = connection.ChannelPool(64)
+pool = connection.ChannelPool()
 
 kombu.disable_insecure_serializers(allowed=['json'])
 
 
-with pool.acquire() as channel:
+with pool.acquire(timeout=10) as channel:
     # main mqtt exchange, used mainly for messaging out.
     # note that all replies from clients starts with 'ask.' routing key goes to ask exchange
     mqtt_exchange = Exchange('mqtt', type='topic')

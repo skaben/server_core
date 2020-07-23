@@ -62,7 +62,7 @@ def run_pinger():
     name = 'pinger'
     result = f'{name} already running'
     try:
-        pinger = Pinger(connection, pool.acquire(), exchanges.get('mqtt'))
+        pinger = Pinger()
         if pinger.name not in RECURRENT:
             pinger.start()
             RECURRENT.update({name: pinger})

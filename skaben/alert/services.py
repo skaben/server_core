@@ -6,6 +6,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 
 from core.models import AlertState, AlertCounter, Lock, Terminal, Simple
+from device.services import save_devices
 from transport.interfaces import send_plain
 
 logger = logging.getLogger('skaben.main')
@@ -47,12 +48,15 @@ class AlertService:
     def set_state_current(self, instance):
         try:
             if not instance.current:
-                qs = AlertState.objects.filter(current=True).all()
+                qs = AlertState.objects.filter(current=True)
                 qs.update(current=False)
-                previous = qs[0]
-                escalate = previous.threshold > instance.threshold
+                previous = qs.first()
                 instance.current = True
                 instance.save()
+                if previous:
+                    escalate = previous.threshold > instance.threshold
+                else:
+                    escalate = False
                 with StateManager(escalate) as manager:
                     manager.apply(instance)
         except ObjectDoesNotExist:
@@ -86,7 +90,7 @@ class StateManager:
     def __init__(self, escalate=True):
         self.locks = Lock.objects.all()
         self.terms = Terminal.objects.all()
-        self.tamed = Simple.objects.all()
+        self.simple = Simple.objects.all()
 
         # state changing from lower to upper or not?
         self.escalate = escalate
@@ -108,6 +112,7 @@ class StateManager:
             call()
         except Exception as e:
             logger.error(f'{self} has no method for {level.name}\n{e}')
+            self.indicate("255,0,255")
             pass
 
     def white(self):
@@ -115,7 +120,7 @@ class StateManager:
             WHITE: dungeon reset to start position
             doors are open, terminals are unlocked, all IED defused
         """
-        self.indicate("100,55,255")
+        self.indicate("255,255,255")
 
         lock_payload = dict(closed=False,
                             sound=False,
@@ -132,8 +137,8 @@ class StateManager:
                             hack_chance=10,
                             hack_attempts=4)
 
-        self.locks.update(**lock_payload)
-        self.terms.update(**term_payload)
+        save_devices('lock', lock_payload, self.locks)
+        #self.terms.update(**term_payload)
 
     def blue(self):
         """
@@ -144,8 +149,9 @@ class StateManager:
         self.indicate("0,0,255")
         lock_payload = self.standart_lock
         term_payload = self.standart_term
-        self.locks.update(**lock_payload)
-        self.terms.update(**term_payload)
+
+        save_devices('lock', lock_payload, self.locks)
+        #self.terms.update(**term_payload)
 
     def cyan(self):
         """
@@ -156,8 +162,8 @@ class StateManager:
         self.indicate("0,255,255")
         lock_payload = self.standart_lock
         term_payload = self.standart_term
-        self.locks.update(**lock_payload)
-        self.terms.update(**term_payload)
+        save_devices('lock', lock_payload, self.locks)
+        #self.terms.update(**term_payload)
 
     def green(self):
         """
@@ -178,8 +184,8 @@ class StateManager:
                             hack_difficulty=6
         )
 
-        self.locks.update(**lock_payload)
-        self.terms.update(**term_payload)
+        save_devices('lock', lock_payload, self.locks)
+        #self.terms.update(**term_payload)
 
     def yellow(self):
         """
@@ -198,8 +204,8 @@ class StateManager:
             lock_payload.update({"blocked": False})
             term_payload.update({"blocked": False})
 
-        self.locks.update(**lock_payload)
-        self.terms.update(**term_payload)
+        save_devices('lock', lock_payload, self.locks)
+        #self.terms.update(**term_payload)
 
     def red(self):
         """
@@ -218,8 +224,8 @@ class StateManager:
             lock_payload.update({"blocked": False})
             term_payload.update({"blocked": False})
 
-        self.locks.update(**lock_payload)
-        self.terms.update(**term_payload)
+        save_devices('lock', lock_payload, self.locks)
+        #self.terms.update(**term_payload)
 
     def black(self):
         """
@@ -232,12 +238,12 @@ class StateManager:
                             blocked=True,
         )
         term_payload = dict(
-                            powered=True,
+                            powered=False,
                             blocked=True,
-                            hacked=False,
         )
-        self.locks.update(**lock_payload)
-        self.terms.update(**term_payload)
+
+        save_devices('lock', lock_payload, self.locks)
+        #self.terms.update(**term_payload)
 
     def __enter__(self):
         return self
