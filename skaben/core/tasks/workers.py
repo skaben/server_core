@@ -107,6 +107,7 @@ class BaseWorker(ConsumerProducerMixin):
         )
 
     def update_timestamp_only(self, parsed, timestamp=None):
+        # todo: needs refactoring, bad assembling of SUP packet
         routing_key = f"{parsed['device_type']}.{parsed['device_uid']}.SUP"
         timestamp = int(time.time()) if not timestamp else timestamp
         parsed['timestamp'] = timestamp
@@ -169,13 +170,46 @@ class PingPongWorker(BaseWorker):
         message.ack()
 
     def push_device_config(self, parsed):
-        parsed.update({'context':
-                           {'no_send': True}
-                       })
         routing_key = f"{parsed['device_type']}.{parsed['device_uid']}.CUP"
         self.publish(parsed,
                      exchange=self.exchanges.get('ask'),
                      routing_key=routing_key)
+
+
+class SaveConfigWorker(BaseWorker):
+
+    """ Update database by data received from clients """
+
+    smart = DEVICES
+
+    @fix_database_conn
+    def handle_message(self, body, message):
+        """ handling server update message """
+        parsed = super().handle_message(body, message)
+        message.ack()
+        _type = parsed['device_type']
+        _uid = parsed['device_uid']
+        # include timestamp to load
+        parsed['datahold'].update({"timestamp": parsed.get('timestamp', int(time.time()))})
+
+        device = self.smart.get(_type)
+        if not device:
+            return self.report_error(f"received SUP from unknown device type: {_type}")
+
+        # get device instance from DB
+        try:
+            device_instance = device['model'].objects.get(uid=_uid)
+        except Exception as e:  # DoesNotExist - todo: make normal exception
+            #self.device_not_found(_type, _uid)
+            return self.report_error(f"device {_type} {_uid} not found in DB: {e}")
+
+        serializer = device["serializer"](device_instance,
+                                          data=parsed["datahold"],
+                                          partial=True,
+                                          context=parsed.get("context"))
+
+        if serializer.is_valid():
+            serializer.save()
 
 
 class SendConfigWorker(BaseWorker):
@@ -242,42 +276,6 @@ class AckNackWorker(BaseWorker):
         # check if task_id exists in list of tasks
         # close task if ACK
         # retry and inform if NACK
-
-
-class SaveConfigWorker(BaseWorker):
-
-    """ Update database by data received from clients """
-
-    smart = DEVICES
-
-    @fix_database_conn
-    def handle_message(self, body, message):
-        """ handling server update message """
-        parsed = super().handle_message(body, message)
-        _type = parsed['device_type']
-        _uid = parsed['device_uid']
-        # include timestamp to load
-        parsed['datahold'].update({"timestamp": parsed.get('timestamp', int(time.time()))})
-
-        device = self.smart.get(_type)
-        if not device:
-            return self.report_error(f"received SUP from unknown device type: {_type}")
-
-        # get device instance from DB
-        try:
-            device_instance = device['model'].objects.get(uid=_uid)
-        except Exception as e:  # DoesNotExist - todo: make normal exception
-            #self.device_not_found(_type, _uid)
-            return self.report_error(f"device {_type} {_uid} not found in DB: {e}")
-
-        serializer = device["serializer"](device_instance,
-                                          data=parsed["datahold"],
-                                          partial=True,
-                                          context=parsed.get("context"))
-
-        if serializer.is_valid():
-            serializer.save()
-        message.ack()
 
 
 class StateUpdateWorker(BaseWorker):

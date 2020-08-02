@@ -7,7 +7,7 @@ from transport.interfaces import send_unicast_mqtt
 class DeviceSerializer(serializers.ModelSerializer):
 
     def save(self):
-        if not self.context and not self.context.get('no_send'):
+        if self.context and self.context.get('send_config'):
             send_unicast_mqtt(self.topic, self.instance.uid, 'CUP', self.validated_data)
         super().save()
 
