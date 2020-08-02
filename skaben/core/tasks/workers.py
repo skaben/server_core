@@ -117,6 +117,12 @@ class BaseWorker(ConsumerProducerMixin):
                      exchange=self.exchanges.get('ask'),
                      routing_key=routing_key)
 
+    def push_device_config(self, parsed):
+        routing_key = f"{parsed['device_type']}.{parsed['device_uid']}.CUP"
+        self.publish(parsed,
+                     exchange=self.exchanges.get('ask'),
+                     routing_key=routing_key)
+
     def report(self, message, routing_key='info'):
         """ report message """
         self.publish({"message": message},
@@ -169,12 +175,6 @@ class PingPongWorker(BaseWorker):
             self.update_timestamp_only(parsed)
         message.ack()
 
-    def push_device_config(self, parsed):
-        routing_key = f"{parsed['device_type']}.{parsed['device_uid']}.CUP"
-        self.publish(parsed,
-                     exchange=self.exchanges.get('ask'),
-                     routing_key=routing_key)
-
 
 class SaveConfigWorker(BaseWorker):
 
@@ -205,53 +205,51 @@ class SaveConfigWorker(BaseWorker):
 
         serializer = device["serializer"](device_instance,
                                           data=parsed["datahold"],
-                                          partial=True,
-                                          context=parsed.get("context"))
+                                          partial=True)
 
         if serializer.is_valid():
             serializer.save()
 
 
 class SendConfigWorker(BaseWorker):
-    # fixme: different serializer types (hyperlinked for rest and not for mqtt)
     """ Worker send config to clients (CUP) """
 
     smart = DEVICES
 
     def handle_message(self, body, message):
         parsed = super().handle_message(body, message)
-        self.device_type = parsed.get('device_type')
-        self.device_uid = parsed.get('device_uid')
+        device_type = parsed.get('device_type')
+        device_uid = parsed.get('device_uid')
         message.ack()
         try:
             self.update_timestamp_only(parsed)
-            self.send_config(parsed)
+            self.send_config(device_type, device_uid)
         except Exception as e:
             self.report_error(f"error: {e} {body} {message} {parsed}")
 
-    def get_config(self):
-        device = self.smart.get(self.device_type)
+    def get_config(self, device_type, device_uid):
+        device = self.smart.get(device_type)
         if not device:
-            return self.report_error(f"device not in smart list, but CUP received: {self.device_type}")
+            return self.report_error(f"device not in smart list, but CUP received: {device_type}")
 
         try:
-            device_instance = device['model'].objects.get(uid=self.device_uid)
+            device_instance = device['model'].objects.get(uid=device_uid)
             ser = device['serializer'](instance=device_instance)
             return ser.data
         except Exception as e:  # DoesNotExist - fixme: make normal exception
-            return self.report_error(f"device {self.device_type} {self.device_uid} not found in DB: {e}")
+            return self.report_error(f"device {device_type} {device_uid} not found in DB: {e}")
 
-    def send_config(self, parsed):
+    def send_config(self, device_type, device_uid):
         packet = CUP(
-            topic=self.device_type,
-            uid=self.device_uid,
-            task_id=get_task_id(self.device_uid[-4:]),
-            datahold=self.get_config(),
+            topic=device_type,
+            uid=device_uid,
+            task_id=get_task_id(device_uid[-4:]),
+            datahold=self.get_config(device_type, device_uid),
             timestamp=int(time.time())
         )
         self.publish(packet.payload,
                      exchange=self.exchanges.get('mqtt'),
-                     routing_key=f"{self.device_type}.{self.device_uid}.CUP")
+                     routing_key=f"{device_type}.{device_uid}.CUP")
 
 
 class AckNackWorker(BaseWorker):
@@ -259,7 +257,7 @@ class AckNackWorker(BaseWorker):
     """ Worker checks task_id and mark it as success/fail """
 
     def handle_message(self, body, message):
-        pass
+        message.ack()
 
     def handle_ack_message(self, body, message):
         """ handling ack message """
