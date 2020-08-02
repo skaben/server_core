@@ -1,5 +1,5 @@
 from core.tasks.workers import WorkerRunner, \
-    AckNackWorker, StateUpdateWorker, SaveConfigWorker, \
+    AckNackWorker, SaveWorker, StateUpdateWorker, \
     PingPongWorker, SendConfigWorker, LogWorker
 from core.tasks.recurrent import Pinger
 from transport.rabbitmq import connection, pool, exchanges
@@ -26,15 +26,15 @@ worker_processes = dict(
                             queues=[tq.cup_queue, ],
                             exchanges=exchanges),
 
-    worker_sup=WorkerRunner(worker_class=SaveConfigWorker,
-                            connection=connection,
-                            queues=[tq.sup_queue, ],
-                            exchanges=exchanges),
-
-    worker_state=WorkerRunner(worker_class=StateUpdateWorker,
+    worker_sup=WorkerRunner(worker_class=StateUpdateWorker,
                                connection=connection,
-                               queues=[tq.info_queue, tq.sup_queue],
+                               queues=[tq.sup_queue, ],
                                exchanges=exchanges),
+
+    worker_save=WorkerRunner(worker_class=SaveWorker,
+                            connection=connection,
+                            queues=[tq.save_queue, ],
+                            exchanges=exchanges),
 
     worker_logging=WorkerRunner(worker_class=LogWorker,
                                 connection=connection,

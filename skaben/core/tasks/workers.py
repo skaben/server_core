@@ -108,20 +108,22 @@ class BaseWorker(ConsumerProducerMixin):
 
     def update_timestamp_only(self, parsed, timestamp=None):
         # todo: needs refactoring, bad assembling of SUP packet
-        routing_key = f"{parsed['device_type']}.{parsed['device_uid']}.SUP"
         timestamp = int(time.time()) if not timestamp else timestamp
         parsed['timestamp'] = timestamp
         parsed['datahold'] = {"timestamp": timestamp}
         parsed['command'] = "SUP"
-        self.publish(parsed,
-                     exchange=self.exchanges.get('ask'),
-                     routing_key=routing_key)
+        self.save_device_config(parsed)
 
     def push_device_config(self, parsed):
         routing_key = f"{parsed['device_type']}.{parsed['device_uid']}.CUP"
         self.publish(parsed,
                      exchange=self.exchanges.get('ask'),
                      routing_key=routing_key)
+
+    def save_device_config(self, parsed):
+        self.publish(parsed,
+                     exchange=self.exchanges.get('internal'),
+                     routing_key="save")
 
     def report(self, message, routing_key='info'):
         """ report message """
@@ -163,20 +165,7 @@ class LogWorker(BaseWorker):
         message.ack()
 
 
-class PingPongWorker(BaseWorker):
-
-    """ Worker receives Pong """
-
-    def handle_message(self, body, message):
-        parsed = super().handle_message(body, message)
-        if timestamp_expired(parsed['timestamp']):
-            self.push_device_config(parsed)
-        else:
-            self.update_timestamp_only(parsed)
-        message.ack()
-
-
-class SaveConfigWorker(BaseWorker):
+class SaveWorker(BaseWorker):
 
     """ Update database by data received from clients """
 
@@ -209,6 +198,19 @@ class SaveConfigWorker(BaseWorker):
 
         if serializer.is_valid():
             serializer.save()
+
+
+class PingPongWorker(BaseWorker):
+
+    """ Worker receives Pong """
+
+    def handle_message(self, body, message):
+        parsed = super().handle_message(body, message)
+        if timestamp_expired(parsed['timestamp']):
+            self.push_device_config(parsed)
+        else:
+            self.update_timestamp_only(parsed)
+        message.ack()
 
 
 class SendConfigWorker(BaseWorker):
@@ -283,7 +285,7 @@ class StateUpdateWorker(BaseWorker):
         parsed = super().handle_message(body, message)
         message.ack()
         #scenario.new(parsed)
-
+        self.save_device_config(parsed)
         # update timestamp in database
         # get rpc call from payload
         # apply rpc call (another queue?)

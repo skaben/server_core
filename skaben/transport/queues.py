@@ -3,6 +3,7 @@ from transport.rabbitmq import exchanges
 
 ASK_EXCHANGE = exchanges.get('ask')
 LOG_EXCHANGE = exchanges.get('log')
+MAIN_EXCHANGE = exchanges.get('internal')
 
 
 # reply to pong
@@ -28,16 +29,18 @@ cup_queue = Queue('cup',
                   exchange=ASK_EXCHANGE,
                   routing_key='#.CUP')
 
-# server state updates
+# receive updates from clients
 sup_queue = Queue('sup',
                   durable=False,
                   exchange=ASK_EXCHANGE,
-                  routing_key='#.SUP')
+                  routing_keys=["#.SUP", "#.INFO"])
 
-info_queue = Queue('info',
-                   durable=False,
-                   exchange=ASK_EXCHANGE,
-                   routing_key='#.INFO')
+# declare queues for main internal exchange
+
+save_queue = Queue('save',
+                  durable=False,
+                  exchange=MAIN_EXCHANGE,
+                  routing_key='save')
 
 # declare queues for log exchange
 
