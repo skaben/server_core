@@ -28,7 +28,7 @@ worker_processes = dict(
 
     worker_sup=WorkerRunner(worker_class=StateUpdateWorker,
                                connection=connection,
-                               queues=[tq.sup_queue, ],
+                               queues=[tq.sup_queue, tq.info_queue],
                                exchanges=exchanges),
 
     worker_save=WorkerRunner(worker_class=SaveWorker,

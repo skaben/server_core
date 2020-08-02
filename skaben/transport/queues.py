@@ -33,7 +33,12 @@ cup_queue = Queue('cup',
 sup_queue = Queue('sup',
                   durable=False,
                   exchange=ASK_EXCHANGE,
-                  routing_keys=["#.SUP", "#.INFO"])
+                  routing_key="#.SUP")
+
+info_queue = Queue('info',
+                  durable=False,
+                  exchange=ASK_EXCHANGE,
+                  routing_key="#.INFO")
 
 # declare queues for main internal exchange
 
