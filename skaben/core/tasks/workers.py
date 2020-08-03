@@ -8,10 +8,11 @@ from kombu.mixins import ConsumerProducerMixin
 
 from core import models
 from core.helpers import timestamp_expired, fix_database_conn, get_task_id
-from scenario.default import scenario
+from scenario.main import scenario
 
-from device.services import DEVICES
 from skabenproto import CUP
+from device.services import DEVICES
+from transport.interfaces import send_log
 
 from random import randint
 
@@ -106,16 +107,13 @@ class BaseWorker(ConsumerProducerMixin):
                      exchange=self.exchanges.get('internal'),
                      routing_key="save")
 
-    def report(self, message, routing_key='info'):
+    def report(self, message, level='info'):
         """ report message """
-        self.publish({"message": message},
-                     exchange=self.exchanges.get('log'),
-                     routing_key=routing_key)
+        send_log(message, level)
 
     def report_error(self, message):
         """ report exceptions or unwanted behavior """
-        self.report(message=message,
-                    routing_key="error")
+        send_log(message, "error")
 
     def send_websocket(self, message, event_type="system", level="info"):
         self.publish(payload={
@@ -267,7 +265,7 @@ class StateUpdateWorker(BaseWorker):
     def handle_message(self, body, message):
         parsed = super().handle_message(body, message)
         message.ack()
-        #scenario.new(parsed)
+        scenario.new(parsed)
         self.save_device_config(parsed)
         # update timestamp in database
         # get rpc call from payload
