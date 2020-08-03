@@ -2,13 +2,12 @@ import json
 import time
 import multiprocessing as mp
 
-from django import db
 from django.conf import settings
 
 from kombu.mixins import ConsumerProducerMixin
 
 from core import models
-from core.helpers import timestamp_expired
+from core.helpers import timestamp_expired, fix_database_conn, get_task_id
 from scenario.default import scenario
 
 from device.services import DEVICES
@@ -17,21 +16,9 @@ from skabenproto import CUP
 from random import randint
 
 
-def get_task_id(name='task'):
-    num = ''.join([str(randint(0, 9)) for _ in range(10)])
-    return f"{name}-{num}"
-
-
-def fix_database_conn(func):
-    """ django + kombu annoying bug fix """
-    def wrapper(*args, **kwargs):
-        for conn in db.connections.all():
-            conn.close_if_unusable_or_obsolete()
-        return func(*args, **kwargs)
-    return wrapper
-
-
 class WorkerRunner(mp.Process):
+
+    """ Worker process wrapper """
 
     def __init__(self, worker_class, connection, queues, exchanges, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -42,18 +29,13 @@ class WorkerRunner(mp.Process):
 
 
 class BaseWorker(ConsumerProducerMixin):
+
     """ Base Worker class """
 
     def __init__(self, connection, queues, exchanges):
         self.connection = connection
         self.queues = queues
         self.exchanges = exchanges
-
-    def get_consumers(self, Consumer, channel):
-        return [Consumer(queues=self.queues,
-                         accept=['json', 'pickle'],
-                         callbacks=[self.handle_message]
-                         )]
 
     def parse_smart(self, data):
         parsed = dict(
@@ -64,7 +46,7 @@ class BaseWorker(ConsumerProducerMixin):
         return parsed
 
     def handle_message(self, body, message):
-        """ """
+        """ Parse MQTT message to dict or return untouched if already dict """
         try:
             rk = message.delivery_info.get('routing_key').split('.')
             if rk[0] == 'ask':
@@ -107,7 +89,6 @@ class BaseWorker(ConsumerProducerMixin):
         )
 
     def update_timestamp_only(self, parsed, timestamp=None):
-        # todo: needs refactoring, bad assembling of SUP packet
         timestamp = int(time.time()) if not timestamp else timestamp
         parsed['timestamp'] = timestamp
         parsed['datahold'] = {"timestamp": timestamp}
@@ -147,12 +128,13 @@ class BaseWorker(ConsumerProducerMixin):
                      routing_key="websocket")
 
     def device_not_found(self, device_type, device_uid):
-        self.publish({'device_type': device_type, 'device_uid': device_uid},
-                     exchange=self.exchanges.get('internal'),
-                     routing_key='new_device')
+        """ Spawn notification to front about new device """
+        pass
 
 
 class LogWorker(BaseWorker):
+
+    """ Worker log messages """
 
     def handle_message(self, body, message):
         level = message.delivery_info.get('routing_key', "info")
@@ -167,7 +149,7 @@ class LogWorker(BaseWorker):
 
 class SaveWorker(BaseWorker):
 
-    """ Update database by data received from clients """
+    """ Worker updates database """
 
     smart = DEVICES
 
@@ -202,7 +184,7 @@ class SaveWorker(BaseWorker):
 
 class PingPongWorker(BaseWorker):
 
-    """ Worker receives Pong """
+    """ Worker receives PONG, updates timestamp or send back config """
 
     def handle_message(self, body, message):
         parsed = super().handle_message(body, message)
@@ -280,8 +262,9 @@ class AckNackWorker(BaseWorker):
 
 class StateUpdateWorker(BaseWorker):
 
+    """ Worker apply scenarios based on SUP/INFO messages """
+
     def handle_message(self, body, message):
-        """ handling state update messages """
         parsed = super().handle_message(body, message)
         message.ack()
         #scenario.new(parsed)

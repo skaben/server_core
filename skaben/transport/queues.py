@@ -12,18 +12,7 @@ pong_queue = Queue('pong',
                    exchange=ASK_EXCHANGE,
                    routing_key='#.PONG')
 
-# task delivery confirm
-ack_queue = Queue('ack',
-                  durable=False,
-                  exchange=ASK_EXCHANGE,
-                  routing_key='#.ACK')
-
-nack_queue = Queue('nack',
-                   durable=False,
-                   exchange=ASK_EXCHANGE,
-                   routing_key='#.NACK')
-
-# queue for sending configs to client
+# sending configs to client
 cup_queue = Queue('cup',
                   durable=False,
                   exchange=ASK_EXCHANGE,
@@ -40,14 +29,27 @@ info_queue = Queue('info',
                   exchange=ASK_EXCHANGE,
                   routing_key="#.INFO")
 
-# declare queues for main internal exchange
+# task confirm as susccess
+ack_queue = Queue('ack',
+                  durable=False,
+                  exchange=ASK_EXCHANGE,
+                  routing_key='#.ACK')
 
+# task confirm as fail
+nack_queue = Queue('nack',
+                   durable=False,
+                   exchange=ASK_EXCHANGE,
+                   routing_key='#.NACK')
+
+# internal exchange
+
+# save payloads to DB
 save_queue = Queue('save',
                   durable=False,
                   exchange=MAIN_EXCHANGE,
                   routing_key='save')
 
-# declare queues for log exchange
+# log exchange
 
 log_queue = Queue("log_info",
                   durable=True,
