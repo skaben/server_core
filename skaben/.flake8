@@ -1,5 +1,5 @@
 [flake8]
-max-line-length = 120
+max-line-length = 127
 ignore = E265, E126, E266
 exclude =
   *tests*

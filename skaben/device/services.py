@@ -1,9 +1,6 @@
-import logging
-
 from core import models
 from device import serializers
-
-logger = logging.getLogger('skaben.main')
+from transport.interfaces import send_log
 
 
 DEVICES = {
@@ -35,7 +32,7 @@ def save_devices(name, payload, queryset):
             serializer = device['serializer'](instance,
                                               data=payload,
                                               partial=True)
-            if serializer.is_valid(): serializer.save()
-    except Exception:
-        logger.exception("exception occured")
-
+            if serializer.is_valid():
+                serializer.save()
+    except Exception as e:
+        send_log(f"exception occured when save device: {e}", "error")

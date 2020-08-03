@@ -1,15 +1,9 @@
-import logging
-
-from rest_framework import serializers
-
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 
-from core.models import AlertState, AlertCounter, Lock, Terminal, Simple
+from core.models import AlertState, Lock, Terminal, Simple
 from device.services import save_devices
-from transport.interfaces import send_plain
-
-logger = logging.getLogger('skaben.main')
+from transport.interfaces import send_plain, send_log
 
 
 class AlertService:
@@ -111,7 +105,7 @@ class StateManager:
                 self.terms = self.terms.exclude(override=True)
             call()
         except Exception as e:
-            logger.error(f'{self} has no method for {level.name}\n{e}')
+            send_log(f'{self} has no method for {level.name}\n{e}', "error")
             self.indicate("255,0,255")
             pass
 

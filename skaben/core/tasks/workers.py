@@ -2,19 +2,14 @@ import json
 import time
 import multiprocessing as mp
 
-from django.conf import settings
-
 from kombu.mixins import ConsumerProducerMixin
 
-from core import models
 from core.helpers import timestamp_expired, fix_database_conn, get_task_id
 from scenario.main import scenario
 
 from skabenproto import CUP
 from device.services import DEVICES
 from transport.interfaces import send_log
-
-from random import randint
 
 
 class WorkerRunner(mp.Process):
@@ -61,9 +56,9 @@ class BaseWorker(ConsumerProducerMixin):
 
                 try:
                     parsed = dict(
-                        device_type = device_type,
-                        device_uid = device_uid,
-                        command = command
+                        device_type=device_type,
+                        device_uid=device_uid,
+                        command=command
                     )
                     data = json.loads(body) if body else {}
                 except Exception as e:

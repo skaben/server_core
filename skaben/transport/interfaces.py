@@ -1,7 +1,4 @@
-import json
 import time
-
-from django.conf import settings
 from transport.rabbitmq import exchanges, pool, connection
 
 

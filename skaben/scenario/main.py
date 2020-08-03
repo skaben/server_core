@@ -1,12 +1,9 @@
-from transport import interfaces
+# from transport import interfaces
 
 
 class Scenario:
 
     """ Default scenario """
-
-    def __init__(self):
-        pass
 
     def new(self, data):
         print(data)
@@ -15,7 +12,6 @@ class Scenario:
         return self
 
     def __exit__(self, *err):
-
         return
 
 scenario = Scenario()
