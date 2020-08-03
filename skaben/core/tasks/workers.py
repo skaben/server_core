@@ -33,6 +33,13 @@ class BaseWorker(ConsumerProducerMixin):
         self.queues = queues
         self.exchanges = exchanges
 
+    def get_consumers(self, Consumer, channel):
+        """ Kombu internal machinery method """
+        return [Consumer(queues=self.queues,
+                         accept=['json'],
+                         callbacks=[self.handle_message]
+                         )]
+
     def parse_smart(self, data):
         parsed = dict(
             timestamp=int(data.get('timestamp', 0)),
