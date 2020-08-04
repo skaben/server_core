@@ -6,7 +6,7 @@ from rest_framework.test import APITestCase
 
 from core.models import MenuItem
 from menu_item.serializers import MenuItemSerializer
-from tools_testing.assembly.ingame import ingame_assembly
+from testing.assembly.ingame import ingame_assembly
 
 MI_URL = reverse('api:menuitem-list')
 

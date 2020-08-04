@@ -38,7 +38,7 @@ class BaseWorker(ConsumerProducerMixin):
         return dict(device_type=device_type,
                     device_uid=device_uid,
                     command=command)
-    
+
     def parse_smart(self, data):
         parsed = dict(
             timestamp=int(data.get('timestamp', 0)),
@@ -60,13 +60,13 @@ class BaseWorker(ConsumerProducerMixin):
                     raise Exception(f"cannot parse routing key `{rk}` >> {e}")
 
                 try:
-                    parsed = parse_basic(rk)
+                    parsed = self.parse_basic(rk)
                     data = json.loads(body) if body else {}
                 except Exception as e:
                     raise Exception(f"cannot parse message payload `{body}` >> {e}")
 
                 # todo: singleton smart devices list
-                if device_type in ['lock', 'terminal']:
+                if parsed.get("device_type") in ['lock', 'terminal']:
                     parsed.update(self.parse_smart(data))
                 else:
                     parsed.update({"datahold": data})
@@ -124,7 +124,7 @@ class BaseWorker(ConsumerProducerMixin):
     def device_not_found(self, device_type, device_uid):
         """ Spawn notification to front about new device """
         pass
-    
+
     def get_consumers(self, Consumer, channel):
         """ Setup consumer and assign callback """
         consumer = Consumer(queues=self.queues,
@@ -269,6 +269,6 @@ class StateUpdateWorker(BaseWorker):
         parsed = super().handle_message(body, message)
         message.ack()
         scenario.new(parsed)
-        
+
         if parsed.get("command") == "SUP":
             self.save_device_config(parsed)

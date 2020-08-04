@@ -1,7 +1,7 @@
 import random
 import time
 
-from tools_testing.assembly import Assembly
+from testing.assembly import Assembly
 
 
 class Device(Assembly):

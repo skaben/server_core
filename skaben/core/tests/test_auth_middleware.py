@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
-from tools_testing.helpers import create_user
+from testing.helpers import create_user
 
 ROOT_URL = '/'
 AUTH_URL = reverse('token')
