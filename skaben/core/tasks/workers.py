@@ -33,13 +33,12 @@ class BaseWorker(ConsumerProducerMixin):
         self.queues = queues
         self.exchanges = exchanges
 
-    def get_consumers(self, Consumer, channel):
-        """ Kombu internal machinery method """
-        return [Consumer(queues=self.queues,
-                         accept=['json'],
-                         callbacks=[self.handle_message]
-                         )]
-
+    def parse_basic(self, routing_key):
+        device_type, device_uid, command = routing_key
+        return dict(device_type=device_type,
+                    device_uid=device_uid,
+                    command=command)
+    
     def parse_smart(self, data):
         parsed = dict(
             timestamp=int(data.get('timestamp', 0)),
@@ -53,20 +52,15 @@ class BaseWorker(ConsumerProducerMixin):
         try:
             rk = message.delivery_info.get('routing_key').split('.')
             if rk[0] == 'ask':
-                # only messages from mqtt comes with pre-device_type 'ask' routing key
-                # and only this type of message should be parsed
+                # only messages from mqtt comes with 'ask.*' routing key
+                # only this type of message should be parsed
                 try:
                     rk = rk[1:]
-                    device_type, device_uid, command = rk
                 except Exception as e:
                     raise Exception(f"cannot parse routing key `{rk}` >> {e}")
 
                 try:
-                    parsed = dict(
-                        device_type=device_type,
-                        device_uid=device_uid,
-                        command=command
-                    )
+                    parsed = parse_basic(rk)
                     data = json.loads(body) if body else {}
                 except Exception as e:
                     raise Exception(f"cannot parse message payload `{body}` >> {e}")
@@ -78,7 +72,7 @@ class BaseWorker(ConsumerProducerMixin):
                     parsed.update({"datahold": data})
                 return parsed
             else:
-                # just return already parsed dict
+                # messages not from mqtt is already parsed
                 return body
         except Exception as e:
             self.report_error(f"when handling message: {e}")
@@ -130,6 +124,13 @@ class BaseWorker(ConsumerProducerMixin):
     def device_not_found(self, device_type, device_uid):
         """ Spawn notification to front about new device """
         pass
+    
+    def get_consumers(self, Consumer, channel):
+        """ Setup consumer and assign callback """
+        consumer = Consumer(queues=self.queues,
+                            accept=['json'],
+                            callbacks=[self.handle_message])
+        return [consumer]
 
 
 class LogWorker(BaseWorker):
@@ -268,7 +269,6 @@ class StateUpdateWorker(BaseWorker):
         parsed = super().handle_message(body, message)
         message.ack()
         scenario.new(parsed)
-        self.save_device_config(parsed)
-        # update timestamp in database
-        # get rpc call from payload
-        # apply rpc call (another queue?)
+        
+        if parsed.get("command") == "SUP":
+            self.save_device_config(parsed)
