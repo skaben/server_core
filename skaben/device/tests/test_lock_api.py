@@ -8,7 +8,7 @@ from rest_framework.test import APITestCase
 from core.models import Lock
 from device.serializers import LockSerializer
 
-from tools_testing.assembly.device import device_assembly
+from testing.assembly.device import device_assembly
 
 LOCK_URL = reverse('api:lock-list')
 

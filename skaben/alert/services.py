@@ -1,15 +1,19 @@
-import logging
-
-from rest_framework import serializers
-
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 
-from core.models import AlertState, AlertCounter, Lock, Terminal, Simple
+from core.models import AlertState, Lock, Terminal, Simple
 from device.services import save_devices
-from transport.interfaces import send_plain
+from transport.interfaces import send_plain, send_log
 
-logger = logging.getLogger('skaben.main')
+
+def new_alert_threshold_lg_current(level_name):
+    current = AlertState.objects.filter(current=True).first()
+    try:
+        new = AlertState.objects.filter(name=level_name)
+        if new.threshold > current.threshold:
+            return True
+    except ObjectDoesNotExist:
+        send_log(f"Error when comparing alert levels: alert level with name {level_name} doesn't exist")
 
 
 class AlertService:
@@ -49,16 +53,11 @@ class AlertService:
         try:
             if not instance.current:
                 qs = AlertState.objects.filter(current=True)
+                with StateManager() as manager:
+                    manager.apply(instance.name)
                 qs.update(current=False)
-                previous = qs.first()
                 instance.current = True
                 instance.save()
-                if previous:
-                    escalate = previous.threshold > instance.threshold
-                else:
-                    escalate = False
-                with StateManager(escalate) as manager:
-                    manager.apply(instance)
         except ObjectDoesNotExist:
             pass
         finally:
@@ -87,31 +86,32 @@ class StateManager:
                          blocked=False,
                          hacked=False)
 
-    def __init__(self, escalate=True):
+    def __init__(self):
         self.locks = Lock.objects.all()
         self.terms = Terminal.objects.all()
         self.simple = Simple.objects.all()
 
         # state changing from lower to upper or not?
-        self.escalate = escalate
+        self.escalate = None
 
     def indicate(self, color):
         send_plain(self.indicator, color)
 
-    def apply(self, level):
+    def apply(self, level_name):
         """
             Changing global alert state
         """
 
         try:
-            call = getattr(self, level.name)
-            if call and level.name != 'white':
+            call = getattr(self, level_name)
+            self.escalate = new_alert_threshold_lg_current(level_name)
+            if call and level_name != 'white':
                 # exclude all manual controlled device from updates
                 self.locks = self.locks.exclude(override=True)
                 self.terms = self.terms.exclude(override=True)
             call()
         except Exception as e:
-            logger.error(f'{self} has no method for {level.name}\n{e}')
+            send_log(f'{self} has no method for {level_name}\n{e}', "error")
             self.indicate("255,0,255")
             pass
 

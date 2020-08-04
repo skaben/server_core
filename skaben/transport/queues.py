@@ -25,9 +25,9 @@ sup_queue = Queue('sup',
                   routing_key="#.SUP")
 
 info_queue = Queue('info',
-                  durable=False,
-                  exchange=ASK_EXCHANGE,
-                  routing_key="#.INFO")
+                   durable=False,
+                   exchange=ASK_EXCHANGE,
+                   routing_key="#.INFO")
 
 # task confirm as susccess
 ack_queue = Queue('ack',
@@ -45,9 +45,9 @@ nack_queue = Queue('nack',
 
 # save payloads to DB
 save_queue = Queue('save',
-                  durable=False,
-                  exchange=MAIN_EXCHANGE,
-                  routing_key='save')
+                   durable=False,
+                   exchange=MAIN_EXCHANGE,
+                   routing_key='save')
 
 # log exchange
 

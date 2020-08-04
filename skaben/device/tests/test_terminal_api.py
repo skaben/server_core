@@ -8,8 +8,8 @@ from rest_framework.test import APITestCase
 from core.models import Terminal, MenuItem
 from device.serializers import TerminalSerializer
 
-from tools_testing.assembly.device import device_assembly
-from tools_testing.assembly.ingame import ingame_assembly
+from testing.assembly.device import device_assembly
+from testing.assembly.ingame import ingame_assembly
 
 TERMINAL_URL = reverse('api:terminal-list')
 

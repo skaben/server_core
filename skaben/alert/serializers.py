@@ -1,8 +1,5 @@
 from rest_framework import serializers
 
-from django.core.exceptions import ObjectDoesNotExist
-from django.conf import settings
-
 from core.models import AlertState, AlertCounter
 from alert.services import AlertService
 
@@ -26,7 +23,8 @@ class AlertStateSerializer(serializers.ModelSerializer):
                 data = service.reset_counter_to_threshold(instance)
                 serializer = AlertCounterSerializer(data=data,
                                                     context={"by_state": True})
-                if serializer.is_valid(): serializer.save()
+                if serializer.is_valid():
+                    serializer.save()
             instance = service.set_state_current(instance)
             return instance
 
@@ -51,7 +49,8 @@ class AlertCounterSerializer(serializers.ModelSerializer):
                         serializer = AlertStateSerializer(instance=new_state,
                                                           data={'current': True},
                                                           context={'by_counter': True})
-                        if serializer.is_valid(): serializer.save()
+                        if serializer.is_valid():
+                            serializer.save()
             except Exception as e:
                 raise serializers.ValidationError(f"exception occured when save {alert_value}:\n{e}")
 

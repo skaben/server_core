@@ -2,18 +2,14 @@ import json
 import time
 import multiprocessing as mp
 
-from django.conf import settings
-
 from kombu.mixins import ConsumerProducerMixin
 
-from core import models
 from core.helpers import timestamp_expired, fix_database_conn, get_task_id
-from scenario.default import scenario
+from scenario.main import scenario
 
-from device.services import DEVICES
 from skabenproto import CUP
-
-from random import randint
+from device.services import DEVICES
+from transport.interfaces import send_log
 
 
 class WorkerRunner(mp.Process):
@@ -37,6 +33,12 @@ class BaseWorker(ConsumerProducerMixin):
         self.queues = queues
         self.exchanges = exchanges
 
+    def parse_basic(self, routing_key):
+        device_type, device_uid, command = routing_key
+        return dict(device_type=device_type,
+                    device_uid=device_uid,
+                    command=command)
+
     def parse_smart(self, data):
         parsed = dict(
             timestamp=int(data.get('timestamp', 0)),
@@ -50,32 +52,27 @@ class BaseWorker(ConsumerProducerMixin):
         try:
             rk = message.delivery_info.get('routing_key').split('.')
             if rk[0] == 'ask':
-                # only messages from mqtt comes with pre-device_type 'ask' routing key
-                # and only this type of message should be parsed
+                # only messages from mqtt comes with 'ask.*' routing key
+                # only this type of message should be parsed
                 try:
                     rk = rk[1:]
-                    device_type, device_uid, command = rk
                 except Exception as e:
                     raise Exception(f"cannot parse routing key `{rk}` >> {e}")
 
                 try:
-                    parsed = dict(
-                        device_type = device_type,
-                        device_uid = device_uid,
-                        command = command
-                    )
+                    parsed = self.parse_basic(rk)
                     data = json.loads(body) if body else {}
                 except Exception as e:
                     raise Exception(f"cannot parse message payload `{body}` >> {e}")
 
                 # todo: singleton smart devices list
-                if device_type in ['lock', 'terminal']:
+                if parsed.get("device_type") in ['lock', 'terminal']:
                     parsed.update(self.parse_smart(data))
                 else:
                     parsed.update({"datahold": data})
                 return parsed
             else:
-                # just return already parsed dict
+                # messages not from mqtt is already parsed
                 return body
         except Exception as e:
             self.report_error(f"when handling message: {e}")
@@ -106,16 +103,13 @@ class BaseWorker(ConsumerProducerMixin):
                      exchange=self.exchanges.get('internal'),
                      routing_key="save")
 
-    def report(self, message, routing_key='info'):
+    def report(self, message, level='info'):
         """ report message """
-        self.publish({"message": message},
-                     exchange=self.exchanges.get('log'),
-                     routing_key=routing_key)
+        send_log(message, level)
 
     def report_error(self, message):
         """ report exceptions or unwanted behavior """
-        self.report(message=message,
-                    routing_key="error")
+        send_log(message, "error")
 
     def send_websocket(self, message, event_type="system", level="info"):
         self.publish(payload={
@@ -130,6 +124,13 @@ class BaseWorker(ConsumerProducerMixin):
     def device_not_found(self, device_type, device_uid):
         """ Spawn notification to front about new device """
         pass
+
+    def get_consumers(self, Consumer, channel):
+        """ Setup consumer and assign callback """
+        consumer = Consumer(queues=self.queues,
+                            accept=['json'],
+                            callbacks=[self.handle_message])
+        return [consumer]
 
 
 class LogWorker(BaseWorker):
@@ -267,8 +268,7 @@ class StateUpdateWorker(BaseWorker):
     def handle_message(self, body, message):
         parsed = super().handle_message(body, message)
         message.ack()
-        #scenario.new(parsed)
-        self.save_device_config(parsed)
-        # update timestamp in database
-        # get rpc call from payload
-        # apply rpc call (another queue?)
+        scenario.new(parsed)
+
+        if parsed.get("command") == "SUP":
+            self.save_device_config(parsed)
