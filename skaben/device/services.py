@@ -8,10 +8,6 @@ DEVICES = {
         'serializer': serializers.LockSerializer,
         'model': models.Lock
     },
-    'term': {
-        'serializer': serializers.TerminalSerializer,
-        'model': models.Terminal
-    },
     'terminal': {
         'serializer': serializers.TerminalSerializer,
         'model': models.Terminal
@@ -22,16 +18,21 @@ DEVICES = {
     }
 }
 
+DEVICES['term'] = DEVICES['terminal']
 
-def save_devices(name, payload, queryset):
-    device = DEVICES.get(name)
-    if not device:
-        raise Exception(f"{device} not found")
+
+def save_devices(device_type, payload, queryset, context={"send_config": True}):
+    """ Save multiple devices configuration, updates will be sent by default """
+    device = DEVICES.get(device_type)
     try:
+        if not device:
+            raise Exception(f"{device} not found")
+
         for instance in queryset:
             serializer = device['serializer'](instance,
                                               data=payload,
-                                              partial=True)
+                                              partial=True,
+                                              context=context)
             if serializer.is_valid():
                 serializer.save()
     except Exception as e:

@@ -13,7 +13,7 @@ class DeviceSerializer(serializers.ModelSerializer):
 
 
 class LockSerializer(DeviceSerializer):
-    """ Serializer for lock objects for sending over MQTT"""
+    """ Lock serializer for internal ops and MQTT """
 
     topic = 'lock'
     acl = serializers.ReadOnlyField()
@@ -25,7 +25,7 @@ class LockSerializer(DeviceSerializer):
 
 
 class LockHyperlinkedSerializer(DeviceSerializer):
-    """ Serializer for lock objects """
+    """ Lock serializer for DRF web API """
 
     topic = 'lock'
     online = serializers.ReadOnlyField()
@@ -38,7 +38,7 @@ class LockHyperlinkedSerializer(DeviceSerializer):
 
 
 class TerminalSerializer(DeviceSerializer):
-    """ Serializer for terminal objects """
+    """ Terminal serializer """
 
     topic = 'terminal'
 
