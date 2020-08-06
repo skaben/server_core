@@ -1,4 +1,5 @@
-from alert.services import StateManager
+from alert.services import AlertService
+from core.helpers import fix_database_conn
 
 
 class Scenario:
@@ -6,18 +7,32 @@ class Scenario:
     """ Default scenario """
 
     def new(self, data):
-        if data.get("blocked"):
-            with StateManager() as manager:
-                manager.apply("yellow")
-        elif data.get("closed"):
-            with StateManager() as manager:
-                manager.apply("green")
+        # fixme: temporarily testing
+        try:
+            if not isinstance(data, dict):
+                raise Exception(f"not a dict: {data}")
 
-    def __enter__(self):
-        return self
+            datahold = data.get("datahold")
 
-    def __exit__(self, *err):
-        return
+            if not datahold:
+                raise Exception(f"{data} missing datahold")
+            else:
+                self.apply(datahold)
+
+        except Exception as e:
+            raise Exception(f"scenario cannot be applied to packet data: {data} \n reason: {e}")
+
+    @fix_database_conn
+    def apply(self, data):
+        try:
+            if data.get("alert") == "reset":
+                with AlertService() as manager:
+                    manager.set_state_by_name("green")
+            else:
+                with AlertService() as manager:
+                    manager.set_state_by_name("yellow")
+        except Exception as e:
+            raise Exception(f"error when applying scenario {e}")
 
 
 scenario = Scenario()

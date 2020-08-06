@@ -309,14 +309,6 @@ class Lock(models.Model, DeviceMixin):
             acl.append(permission.card)
         return [card.code for card in acl]
 
-#    @property
-#    def permissions(self):
-#        # unload list of Card codes for lock end-device
-#        acl = []
-#        for permission in self.permission_set.filter(lock_id=self.id):
-#            acl.append(permission)
-#        return acl
-
     @property
     def permissions(self):
         # unload list of Card codes for lock end-device
