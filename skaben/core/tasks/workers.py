@@ -9,7 +9,6 @@ from scenario.main import scenario
 
 from skabenproto import CUP
 from device.services import DEVICES
-from transport.interfaces import send_log
 
 
 class WorkerRunner(mp.Process):
@@ -33,6 +32,10 @@ class BaseWorker(ConsumerProducerMixin):
         self.queues = queues
         self.exchanges = exchanges
 
+    def parse_json(self, json_data=None):
+        if json_data:
+            return json.loads(json_data)
+
     def parse_basic(self, routing_key):
         device_type, device_uid, command = routing_key
         return dict(device_type=device_type,
@@ -43,7 +46,7 @@ class BaseWorker(ConsumerProducerMixin):
         parsed = dict(
             timestamp=int(data.get('timestamp', 0)),
             task_id=data.get('task_id'),
-            datahold=data.get('datahold'),
+            datahold=self.parse_json(data.get('datahold')),
         )
         return parsed
 
@@ -57,13 +60,17 @@ class BaseWorker(ConsumerProducerMixin):
                 try:
                     rk = rk[1:]
                 except Exception as e:
-                    raise Exception(f"cannot parse routing key `{rk}` >> {e}")
+                    exc = f"cannot parse routing key `{rk}` >> {e}"
+                    self.report_error(exc)
+                    raise Exception(exc)
 
                 try:
                     parsed = self.parse_basic(rk)
-                    data = json.loads(body) if body else {}
+                    data = self.parse_json(body)
                 except Exception as e:
-                    raise Exception(f"cannot parse message payload `{body}` >> {e}")
+                    exc = f"cannot parse message payload `{body}` >> {e}"
+                    self.report_error(exc)
+                    raise Exception(exc)
 
                 # todo: singleton smart devices list
                 if parsed.get("device_type") in ['lock', 'terminal']:
@@ -105,11 +112,17 @@ class BaseWorker(ConsumerProducerMixin):
 
     def report(self, message, level='info'):
         """ report message """
-        send_log(message, level)
+        self.producer.publish(
+            message,
+            exchange=self.exchanges.get('log'),
+            routing_key=level,
+            retry=True,
+        )
+        #send_log(message, level)
 
     def report_error(self, message):
         """ report exceptions or unwanted behavior """
-        send_log(message, "error")
+        self.report(message, "error")
 
     def send_websocket(self, message, event_type="system", level="info"):
         self.publish(payload={
@@ -268,7 +281,11 @@ class StateUpdateWorker(BaseWorker):
     def handle_message(self, body, message):
         parsed = super().handle_message(body, message)
         message.ack()
-        scenario.new(parsed)
+
+        try:
+            scenario.new(parsed)
+        except Exception as e:
+            self.report_error(f"{e}")
 
         if parsed.get("command") == "SUP":
             self.save_device_config(parsed)

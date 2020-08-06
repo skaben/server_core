@@ -34,12 +34,13 @@ def send_broadcast_mqtt(topic, command, payload=None):
 
 
 def send_log(message, level="INFO"):
+    level = level.upper()
     accepted = ["DEBUG", "INFO", "WARNING", "ERROR"]
     if level not in accepted:
-        send_log(f"{level} not in accepted log level list: {accepted}", "error")
+        return send_log(f"{level} not in accepted log level list: {accepted}", "error")
 
     with pool.acquire(block=True, timeout=2) as channel:
         prod = connection.Producer(channel)
         prod.publish(message,
                      exchanges=exchanges.get('log'),
-                     routing_key=level.upper())
+                     routing_key=level)

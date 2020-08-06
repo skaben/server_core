@@ -3,17 +3,17 @@ from django.conf import settings
 
 from core.models import AlertState, Lock, Terminal, Simple
 from device.services import save_devices
-from transport.interfaces import send_plain, send_log
+from transport.interfaces import send_plain
 
 
 def new_alert_threshold_lg_current(level_name):
     current = AlertState.objects.filter(current=True).first()
     try:
-        new = AlertState.objects.filter(name=level_name)
+        new = AlertState.objects.filter(name=level_name).first()
         if new.threshold > current.threshold:
             return True
-    except ObjectDoesNotExist:
-        send_log(f"Error when comparing alert levels: alert level with name {level_name} doesn't exist")
+    except Exception as e:
+        raise Exception(f"Error when comparing alert levels: alert level with name {level_name}\nreason: {e}")
 
 
 class AlertService:
@@ -49,12 +49,19 @@ class AlertService:
         except Exception:
             raise
 
+    def set_state_by_name(self, name):
+        try:
+            instance = AlertState.objects.filter(name=name).first()
+            self.set_state_current(instance)
+        except ObjectDoesNotExist:
+            raise
+
     def set_state_current(self, instance):
         try:
             if not instance.current:
                 qs = AlertState.objects.filter(current=True)
                 with StateManager() as manager:
-                    manager.apply(instance.name)
+                    manager.apply(instance.name, service=True)
                 qs.update(current=False)
                 instance.current = True
                 instance.save()
@@ -97,10 +104,13 @@ class StateManager:
     def indicate(self, color):
         send_plain(self.indicator, color)
 
-    def apply(self, level_name):
+    def apply(self, level_name, service=None):
         """
             Changing global alert state
         """
+        # todo: more subtle solution needed for direct calling restriction
+        if not service:
+            raise Exception("State Manager should not be called directly, use AlertService instead")
 
         try:
             call = getattr(self, level_name)
@@ -111,9 +121,8 @@ class StateManager:
                 self.terms = self.terms.exclude(override=True)
             call()
         except Exception as e:
-            send_log(f'{self} has no method for {level_name}\n{e}', "error")
             self.indicate("255,0,255")
-            pass
+            raise Exception(f'cannot apply alert state {level_name}\nreason: {e}')
 
     def white(self):
         """
