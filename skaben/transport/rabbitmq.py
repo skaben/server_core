@@ -19,6 +19,10 @@ with pool.acquire(timeout=10) as channel:
     ask_exchange = Exchange('ask', type='topic')
     bound_ask_exchange = ask_exchange(channel)
 
+    # separated websocket exchange
+    ws_exchange = Exchange('websocket', type="topic")
+    bound_ws_exchange = ws_exchange(channel)
+
     # logging exchange
     log_exchange = Exchange('log', type='direct')
     bound_log_exchange = log_exchange(channel)
@@ -32,6 +36,7 @@ with pool.acquire(timeout=10) as channel:
     for exchange in (bound_mqtt_exchange,
                      bound_events_exchange,
                      bound_ask_exchange,
+                     bound_ws_exchange,
                      bound_log_exchange):
         exchange.declare()
     # binding ask exchange to mqtt exchange with routing key

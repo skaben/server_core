@@ -9,7 +9,7 @@ from core.models import MQTTMessage
 from core.tasks.main import run_workers, run_pinger, stop_all
 
 from transport import serializers
-from transport.interfaces import send_message
+from transport.interfaces import send_message, send_log
 
 
 @api_view(http_method_names=['GET'])
