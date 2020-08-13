@@ -10,3 +10,8 @@ class EventLogSerializer(serializers.ModelSerializer):
         model = EventLog
         fields = '__all__'
         read_only_fields = ('id',)
+
+    def validate_message(self, data):
+        if isinstance(data, dict):
+            data = f"{data}"
+        return data

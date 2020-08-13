@@ -35,15 +35,16 @@ class EventLog(models.Model):
         verbose_name_plural = 'Хроника событий'
 
     timestamp = models.IntegerField(default=int(time.time()))
+    level = models.CharField(default="info", max_length=32)
+    access = models.CharField(default="root", max_length=32)
     message = models.TextField()
-    event_type = models.CharField(default="info", max_length=32)
 
     @property
     def human_time(self):
         return get_time(self.timestamp).split(' ')[1]
 
     def __str__(self):
-        return f'{get_time(self.timestamp)} :: {self.message}'
+        return f'{get_time(self.timestamp)}:{self.level}:{self.access} > {self.message}'
 
 
 class AlertCounter(models.Model):

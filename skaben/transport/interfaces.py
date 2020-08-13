@@ -34,6 +34,9 @@ def send_broadcast_mqtt(topic, command, payload=None):
 
 
 def send_log(message, level="INFO"):
+    if not isinstance(message, dict):
+        message = {"message": message}
+
     level = level.upper()
     accepted = ["DEBUG", "INFO", "WARNING", "ERROR"]
     if level not in accepted:
@@ -44,3 +47,14 @@ def send_log(message, level="INFO"):
         prod.publish(message,
                      exchanges=exchanges.get('log'),
                      routing_key=level)
+
+
+def send_websocket(message, level="info", access="root"):
+    try:
+        with pool.acquire(block=True, timeout=2) as channel:
+            prod = connection.Producer(channel)
+            prod.publish(message,
+                         exchange=exchanges.get("websocket"),
+                         routing_key=f"ws.{access}.{level}")
+    except Exception:
+        raise
