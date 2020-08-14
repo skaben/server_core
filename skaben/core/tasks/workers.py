@@ -1,5 +1,6 @@
 import json
 import time
+import traceback
 import multiprocessing as mp
 
 from kombu.mixins import ConsumerProducerMixin
@@ -10,7 +11,7 @@ from scenario.main import scenario
 from skabenproto import CUP
 from device.services import DEVICES
 from eventlog.serializers import EventLogSerializer
-from transport.interfaces import send_websocket, send_log
+from transport.interfaces import send_websocket, send_log, publish_with_producer
 
 
 class WorkerRunner(mp.Process):
@@ -85,12 +86,7 @@ class BaseWorker(ConsumerProducerMixin):
             raise
 
     def publish(self, payload, exchange, routing_key):
-        self.producer.publish(
-            payload,
-            exchange=exchange,
-            routing_key=routing_key,
-            retry=True,
-        )
+        publish_with_producer(payload, exchange, routing_key, self.producer)
 
     def update_timestamp_only(self, parsed, timestamp=None):
         timestamp = int(time.time()) if not timestamp else timestamp
@@ -114,8 +110,7 @@ class BaseWorker(ConsumerProducerMixin):
         """ report message """
         if not isinstance(message, dict):
             message = {"message": message}
-        self.publish(message, self.exchanges.get('log'), routing_key=level)
-        #send_log(message, level)
+        return send_log(message, routing_key=level, producer=self.producer)
 
     def report_error(self, message):
         """ report exceptions or unwanted behavior """
@@ -129,7 +124,7 @@ class BaseWorker(ConsumerProducerMixin):
             "timestamp": int(time.time()),
             "access": access,
         }
-        return send_websocket(payload, level, access)
+        return send_websocket(payload, level, access, self.producer)
 
     def device_not_found(self, device_type, device_uid):
         """ Spawn notification to front about new device """
@@ -141,6 +136,9 @@ class BaseWorker(ConsumerProducerMixin):
                             accept=['json'],
                             callbacks=[self.handle_message])
         return [consumer]
+
+    def __str__(self):
+        return f"{self.__name__} {self.queues}"
 
 
 class LogWorker(BaseWorker):
@@ -312,8 +310,10 @@ class StateUpdateWorker(BaseWorker):
                 self.update_timestamp_only(parsed)
             parsed.pop("timestamp")
             message.ack()
-
-            #scenario.new(parsed)
+            try:
+                scenario.new(parsed)
+            except Exception:
+                raise Exception(f"scenario cannot be applied: {traceback.format_exc()}")
             if parsed.get("command") == "SUP":
                 self.save_device_config(parsed)
             self.report(f"update from {parsed['device_type']} {parsed['device_uid']} - {body}")

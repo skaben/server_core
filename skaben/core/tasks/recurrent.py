@@ -1,8 +1,9 @@
 import time
+import traceback
 import multiprocessing as mp
 
 from django.conf import settings
-from transport.interfaces import send_broadcast_mqtt
+from transport.interfaces import send_broadcast_mqtt, send_log
 
 
 class Pinger(mp.Process):
@@ -14,13 +15,11 @@ class Pinger(mp.Process):
         super().__init__()
 
     def run(self):
-        try:
-            while True:
+        self.running = True
+        while self.running:
+            try:
                 for topic in self.topics:
                     send_broadcast_mqtt(topic, 'PING')
-                    #self.producer.publish({"timestamp": current_time},
-                    #                      exchange=self.exchange,
-                    #                      routing_key=f'{topic}.all.PING')
                     time.sleep(self.timeout)
-        except Exception:
-            raise
+            except Exception:
+                send_log(f"{self.__name__} while running {traceback.format_exc()}")
