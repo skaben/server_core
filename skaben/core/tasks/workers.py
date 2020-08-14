@@ -77,6 +77,7 @@ class BaseWorker(ConsumerProducerMixin):
         except Exception:
             return f"{json_data}"
 
+
     def parse_basic(self, routing_key):
         device_type, device_uid, command = routing_key
         return dict(device_type=device_type,
@@ -327,4 +328,3 @@ class StateUpdateWorker(BaseWorker):
             self.report(f"{ident} {comment} - {parsed}")
         except Exception as e:
             self.report_error(f"{self} when handling message: {e}")
-            raise

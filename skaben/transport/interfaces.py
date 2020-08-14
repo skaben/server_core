@@ -13,7 +13,7 @@ def publish_without_producer(body, exchange, routing_key, timeout=2):
     except Exception:
         raise
 
-
+        
 def publish_with_producer(body, exchange, routing_key, producer):
     try:
         producer.publish(body,
@@ -24,6 +24,16 @@ def publish_with_producer(body, exchange, routing_key, producer):
         raise
 
 
+def publish_with_producer(body, exchange, routing_key, producer):
+    try:
+        producer.publish(body,
+                         exchange=exchange,
+                         routing_key=routing_key,
+                         retry=True)
+    except Exception:
+        raise
+
+        
 def send_log(message, level="INFO", producer=None):
     try:
         if not isinstance(message, dict):
@@ -47,6 +57,7 @@ def send_log(message, level="INFO", producer=None):
         else:
             kwargs["producer"] = producer
             publish_with_producer(**kwargs)
+
     except Exception:
         raise Exception(f"{traceback.format_exc()}")
 
@@ -61,6 +72,7 @@ def send_websocket(message, level="info", access="root", producer=None):
         if not producer:
             publish_without_producer(**kwargs)
         else:
+
             kwargs["producer"] = producer
             publish_with_producer(**kwargs)
     except Exception:

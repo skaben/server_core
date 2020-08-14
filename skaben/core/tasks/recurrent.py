@@ -22,5 +22,4 @@ class Pinger(mp.Process):
                     send_broadcast_mqtt(topic, 'PING')
                     time.sleep(self.timeout)
             except Exception:
-                pass
-                #send_log(f"{self.__class__.__name__} while running {traceback.format_exc()}")
+                send_log(f"{self.__class__.__name__} while running {traceback.format_exc()}")
