@@ -77,7 +77,6 @@ class BaseWorker(ConsumerProducerMixin):
         except Exception:
             return f"{json_data}"
 
-
     def parse_basic(self, routing_key):
         device_type, device_uid, command = routing_key
         return dict(device_type=device_type,
@@ -204,12 +203,17 @@ class SaveWorker(BaseWorker):
                 #self.device_not_found(_type, _uid)
                 return self.report_error(f"device {_type} {_uid} not found in DB: {e}")
 
+            data = parsed["datahold"]
             serializer = device["serializer"](device_instance,
-                                              data=parsed["datahold"],
+                                              data=data,
                                               partial=True)
 
             if serializer.is_valid():
                 serializer.save()
+                filtered = {k:v for k,v in data.items() if k != "timestamp"}
+                if filtered:
+                    self.report(f"{_type} {_uid} updated - {filtered}")
+
         except Exception as e:
             self.report_error(f"{self} when handling message: {e}")
 
@@ -307,24 +311,25 @@ class StateUpdateWorker(BaseWorker):
 
     """ Worker apply scenarios based on SUP/INFO messages """
 
+    def filter_before_send_to_log(self, parsed):
+        allowed = ['datahold']
+        return {k:v for k,v in parsed.items() if k in allowed}
+
     def handle_message(self, body, message):
         try:
             parsed = super().handle_message(body, message)
             message.ack()
 
-            ident = f"{parsed['device_type']}_{parsed['device_uid']} {parsed['command']}"
-
             if parsed.get("command") == "SUP":
                 self.save_device_config(parsed)
-                comment = "config updated"
             else:
-                comment = "new info message"
+                ident = f"{parsed['device_type']}_{parsed['device_uid']} {parsed['command']}"
+                self.report(f"{ident} new info message - {parsed.get('datahold')}")
 
             #try:
             #    scenario.new(parsed)
             #except Exception:
             #    raise Exception(f"scenario cannot be applied: {traceback.format_exc()}")
 
-            self.report(f"{ident} {comment} - {parsed}")
         except Exception as e:
             self.report_error(f"{self} when handling message: {e}")

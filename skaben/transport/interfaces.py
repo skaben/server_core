@@ -72,7 +72,6 @@ def send_websocket(message, level="info", access="root", producer=None):
         if not producer:
             publish_without_producer(**kwargs)
         else:
-
             kwargs["producer"] = producer
             publish_with_producer(**kwargs)
     except Exception:
