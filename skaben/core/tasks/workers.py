@@ -69,8 +69,13 @@ class BaseWorker(ConsumerProducerMixin):
         publish_with_producer(payload, exchange, routing_key, self.producer)
 
     def parse_json(self, json_data=None):
-        if json_data:
+        if isinstance(json_data, dict) or not json_data:
+            return json_data
+
+        try:
             return json.loads(json_data)
+        except Exception:
+            return f"{json_data}"
 
     def parse_basic(self, routing_key):
         device_type, device_uid, command = routing_key
@@ -79,7 +84,7 @@ class BaseWorker(ConsumerProducerMixin):
                     command=command)
 
     def parse_smart(self, data):
-        parsed = data
+        parsed = f"{data}"
         if isinstance(data, dict):
             parsed = dict(
                 timestamp=int(data.get('timestamp', 0)),
@@ -138,7 +143,7 @@ class BaseWorker(ConsumerProducerMixin):
         return [consumer]
 
     def __str__(self):
-        return f"{self.__class__.__name__} {self.queues}"
+        return f"{self.__class__.__name__}"
 
 
 class LogWorker(BaseWorker):
@@ -305,20 +310,21 @@ class StateUpdateWorker(BaseWorker):
         try:
             parsed = super().handle_message(body, message)
             message.ack()
-            if timestamp_expired(parsed['timestamp']):
-                return self.push_device_config(parsed)
-            else:
-                self.update_timestamp_only(parsed)
-            if parsed.get('timestamp'):
-                parsed.pop("timestamp")
-            try:
-                scenario.new(parsed)
-            except Exception:
-                raise Exception(f"scenario cannot be applied: {traceback.format_exc()}")
+
+            ident = f"{parsed['device_type']}_{parsed['device_uid']} {parsed['command']}"
+
             if parsed.get("command") == "SUP":
                 self.save_device_config(parsed)
-            msg = f"update from {parsed['device_type']} {parsed['device_uid']} - {body}"
-            self.report(msg)
+                comment = "config updated"
+            else:
+                comment = "new info message"
+
+            #try:
+            #    scenario.new(parsed)
+            #except Exception:
+            #    raise Exception(f"scenario cannot be applied: {traceback.format_exc()}")
+
+            self.report(f"{ident} {comment} - {parsed}")
         except Exception as e:
             self.report_error(f"{self} when handling message: {e}")
             raise
