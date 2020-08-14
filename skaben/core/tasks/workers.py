@@ -114,7 +114,7 @@ class BaseWorker(ConsumerProducerMixin):
         """ report message """
         if not isinstance(message, dict):
             message = {"message": message}
-        return send_log(message, routing_key=level, producer=self.producer)
+        send_log(message, level, self.producer)
 
     def report_error(self, message):
         """ report exceptions or unwanted behavior """
@@ -138,7 +138,7 @@ class BaseWorker(ConsumerProducerMixin):
         return [consumer]
 
     def __str__(self):
-        return f"{self.__name__} {self.queues}"
+        return f"{self.__class__.__name__} {self.queues}"
 
 
 class LogWorker(BaseWorker):
@@ -304,19 +304,21 @@ class StateUpdateWorker(BaseWorker):
     def handle_message(self, body, message):
         try:
             parsed = super().handle_message(body, message)
+            message.ack()
             if timestamp_expired(parsed['timestamp']):
                 return self.push_device_config(parsed)
             else:
                 self.update_timestamp_only(parsed)
-            parsed.pop("timestamp")
-            message.ack()
+            if parsed.get('timestamp'):
+                parsed.pop("timestamp")
             try:
                 scenario.new(parsed)
             except Exception:
                 raise Exception(f"scenario cannot be applied: {traceback.format_exc()}")
             if parsed.get("command") == "SUP":
                 self.save_device_config(parsed)
-            self.report(f"update from {parsed['device_type']} {parsed['device_uid']} - {body}")
+            msg = f"update from {parsed['device_type']} {parsed['device_uid']} - {body}"
+            self.report(msg)
         except Exception as e:
             self.report_error(f"{self} when handling message: {e}")
-
+            raise

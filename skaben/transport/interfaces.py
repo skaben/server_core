@@ -29,8 +29,10 @@ def send_log(message, level="INFO", producer=None):
         if not isinstance(message, dict):
             message = {"message": message}
 
-        level = level.upper()
-        accepted = ["DEBUG", "INFO", "WARNING", "ERROR"]
+        # uppercase is a good association with logging level, but routing keys is lower
+        accepted = [x.lower() for x in ["DEBUG", "INFO", "WARNING", "ERROR"]]
+        level = level.lower()
+
         if level not in accepted:
             return send_log(f"{level} not in accepted log level list: {accepted}", "error")
 
@@ -43,7 +45,8 @@ def send_log(message, level="INFO", producer=None):
         if not producer:
             publish_without_producer(**kwargs)
         else:
-            publish_with_producer(producer, **kwargs)
+            kwargs["producer"] = producer
+            publish_with_producer(**kwargs)
     except Exception:
         raise Exception(f"{traceback.format_exc()}")
 
@@ -58,7 +61,8 @@ def send_websocket(message, level="info", access="root", producer=None):
         if not producer:
             publish_without_producer(**kwargs)
         else:
-            publish_with_producer(producer, **kwargs)
+            kwargs["producer"] = producer
+            publish_with_producer(**kwargs)
     except Exception:
         raise Exception(f"{traceback.format_exc()}")
 
@@ -73,7 +77,7 @@ def send_mqtt(topic, message, producer=None):
         if not producer:
             publish_without_producer(**kwargs)
         else:
-            publish_with_producer(producer, **kwargs)
+            publish_with_producer(producer=producer, **kwargs)
     except Exception:
         raise Exception(f"{traceback.format_exc()}")
 
