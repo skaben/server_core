@@ -30,6 +30,6 @@ for router in routers:
 urlpatterns = [
     path('auth/token/', CreateTokenView.as_view(), name='token'),
     path('admin/', admin.site.urls),
-    path('api/', include(core_router.urls)),
+    path('api/', include((core_router.urls, "core"), namespace="api")),
     path('transport/', include('transport.urls'))
 ]

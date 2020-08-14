@@ -9,7 +9,7 @@ from core.models import MQTTMessage
 from core.tasks.main import run_workers, run_pinger, stop_all
 
 from transport import serializers
-from transport.interfaces import send_message, send_log
+from transport.interfaces import send_message_over_mqtt, send_log
 
 
 @api_view(http_method_names=['GET'])
@@ -49,7 +49,7 @@ def send(request):
         uid = request.data.get('uid', '')
         command = request.data.get('command', '')
         payload = request.data.get('payload', {})
-        result = send_message(topic, uid, command, payload)
+        result = send_message_over_mqtt(topic, uid, command, payload)
         return Response(result)
     except Exception as e:
         return Response({'exception': f'{e}'},

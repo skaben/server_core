@@ -1,60 +1,94 @@
 import time
+import traceback
 from transport.rabbitmq import exchanges, pool, connection
 
 
-def send_plain(topic, data):
-    with pool.acquire(block=True, timeout=10) as channel:
-        prod = connection.Producer(channel)
-        try:
-            prod.publish(data,
-                         exchange=exchanges.get('mqtt'),
-                         routing_key=f"{topic}")
-            res = f'success: {topic} with {data}'
-        except Exception as e:
-            send_log(f"FAILED: {topic} with {data} >> {e}", level="ERROR")
-        finally:
-            #channel.release()
-            return res
+def publish_without_producer(body, exchange, routing_key, timeout=2):
+    try:
+        with pool.acquire(block=True, timeout=timeout) as channel:
+            prod = connection.Producer(channel)
+            prod.publish(body,
+                         exchange=exchange,
+                         routing_key=routing_key)
+    except Exception:
+        raise
 
 
-def send_message(topic, uid, command, payload=None):
+def publish_with_producer(body, exchange, routing_key, producer):
+    try:
+        producer.publish(body,
+                         exchange=exchange,
+                         routing_key=routing_key,
+                         retry=True)
+    except Exception:
+        raise
+
+
+def send_log(message, level="INFO", producer=None):
+    try:
+        if not isinstance(message, dict):
+            message = {"message": message}
+
+        level = level.upper()
+        accepted = ["DEBUG", "INFO", "WARNING", "ERROR"]
+        if level not in accepted:
+            return send_log(f"{level} not in accepted log level list: {accepted}", "error")
+
+        kwargs = {
+            "body": message,
+            "exchange": exchanges.get('log'),
+            "routing_key": level
+        }
+
+        if not producer:
+            publish_without_producer(**kwargs)
+        else:
+            publish_with_producer(producer, **kwargs)
+    except Exception:
+        raise Exception(f"{traceback.format_exc()}")
+
+
+def send_websocket(message, level="info", access="root", producer=None):
+    try:
+        kwargs = {
+            "body": message,
+            "exchange": exchanges.get("websocket"),
+            "routing_key": f"ws.{access}.{level}"
+        }
+        if not producer:
+            publish_without_producer(**kwargs)
+        else:
+            publish_with_producer(producer, **kwargs)
+    except Exception:
+        raise Exception(f"{traceback.format_exc()}")
+
+
+def send_mqtt(topic, message, producer=None):
+    try:
+        kwargs = {
+            "body": message,
+            "exchange": exchanges.get('mqtt'),
+            "routing_key": f"{topic}"
+        }
+        if not producer:
+            publish_without_producer(**kwargs)
+        else:
+            publish_with_producer(producer, **kwargs)
+    except Exception:
+        raise Exception(f"{traceback.format_exc()}")
+
+
+def send_message_over_mqtt(topic, uid, command, payload=None):
     data = {"timestamp": int(time.time())}
     if payload:
         data["datahold"] = payload
-    send_plain(f"{topic}.{uid}.{command}", data)
+    send_mqtt(f"{topic}.{uid}.{command}", data)
 
 
 def send_unicast_mqtt(topic, uid, command, payload=None):
-    send_message(topic, uid, command, payload)
+    send_message_over_mqtt(topic, uid, command, payload)
 
 
 def send_broadcast_mqtt(topic, command, payload=None):
     # FIXME: YAGNI
-    send_message(topic, 'all', command, payload)
-
-
-def send_log(message, level="INFO"):
-    if not isinstance(message, dict):
-        message = {"message": message}
-
-    level = level.upper()
-    accepted = ["DEBUG", "INFO", "WARNING", "ERROR"]
-    if level not in accepted:
-        return send_log(f"{level} not in accepted log level list: {accepted}", "error")
-
-    with pool.acquire(block=True, timeout=2) as channel:
-        prod = connection.Producer(channel)
-        prod.publish(message,
-                     exchanges=exchanges.get('log'),
-                     routing_key=level)
-
-
-def send_websocket(message, level="info", access="root"):
-    try:
-        with pool.acquire(block=True, timeout=2) as channel:
-            prod = connection.Producer(channel)
-            prod.publish(message,
-                         exchange=exchanges.get("websocket"),
-                         routing_key=f"ws.{access}.{level}")
-    except Exception:
-        raise
+    send_message_over_mqtt(topic, 'all', command, payload)

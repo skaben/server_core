@@ -34,7 +34,7 @@ class TestPrivateAlertStateApi(APITestCase):
     def test_retrieve_alert_states(self):
         for x in range(2):
             AlertState.objects.create(name=f'test_state_{x}',
-                                      descr='notimportant',
+                                      info='notimportant',
                                       current=False
                                       )
         res = self.client.get(API_URL)
@@ -49,7 +49,7 @@ class TestPrivateAlertStateApi(APITestCase):
             without any other AlertState objects
         """
         state = AlertState.objects.create(name='statename',
-                                          descr='testdescr',
+                                          info='testinfo',
                                           current=False)
         instance_url = f'{API_URL}{str(state.id)}/set_current/'
         res = self.client.post(instance_url)
@@ -57,15 +57,15 @@ class TestPrivateAlertStateApi(APITestCase):
         patched = AlertState.objects.get(id=state.id)
 
         assert res.status_code == status.HTTP_200_OK, res.data
-        assert patched.descr == state.descr, 'state change expected'
+        assert patched.info == state.info, 'state change expected'
 
     def test_alert_state_set_current_normal(self):
         """ Test action set_current for alert state"""
         old = AlertState.objects.create(name='stateold',
-                                        descr='test2',
+                                        info='test2',
                                         current=True)
         new = AlertState.objects.create(name='statenew',
-                                        descr='test',
+                                        info='test',
                                         current=False)
         counter = AlertCounter.objects.create(value='100500',
                                               comment='test')
@@ -97,7 +97,7 @@ class TestPrivateAlertStateApi(APITestCase):
     def test_update_alert_state_fail(self):
         """ Test partial update existing alert state fails """
         state = AlertState.objects.create(name='statename',
-                                          descr='testdescr',
+                                          info='testinfo',
                                           current=False)
         payload = {'current': True, 'name': '12345'}
         instance_url = API_URL + str(state.id) + '/'

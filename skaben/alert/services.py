@@ -3,7 +3,7 @@ from django.conf import settings
 
 from core.models import AlertState, Lock, Terminal, Simple
 from device.services import save_devices
-from transport.interfaces import send_plain
+from transport.interfaces import send_mqtt
 
 
 def new_alert_threshold_lg_current(level_name):
@@ -102,7 +102,7 @@ class StateManager:
         self.escalate = None
 
     def indicate(self, color):
-        send_plain(self.indicator, color)
+        send_mqtt(self.indicator, color)
 
     def apply(self, level_name, service=None):
         """
