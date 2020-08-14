@@ -35,26 +35,6 @@ class BaseWorker(ConsumerProducerMixin):
         self.queues = queues
         self.exchanges = exchanges
 
-    def parse_json(self, json_data=None):
-        if json_data:
-            return json.loads(json_data)
-
-    def parse_basic(self, routing_key):
-        device_type, device_uid, command = routing_key
-        return dict(device_type=device_type,
-                    device_uid=device_uid,
-                    command=command)
-
-    def parse_smart(self, data):
-        parsed = data
-        if isinstance(data, dict):
-            parsed = dict(
-                timestamp=int(data.get('timestamp', 0)),
-                task_id=data.get('task_id'),
-                datahold=self.parse_json(data.get('datahold')),
-            )
-        return parsed
-
     def handle_message(self, body, message):
         """ Parse MQTT message to dict or return untouched if already dict """
         try:
@@ -88,6 +68,26 @@ class BaseWorker(ConsumerProducerMixin):
     def publish(self, payload, exchange, routing_key):
         publish_with_producer(payload, exchange, routing_key, self.producer)
 
+    def parse_json(self, json_data=None):
+        if json_data:
+            return json.loads(json_data)
+
+    def parse_basic(self, routing_key):
+        device_type, device_uid, command = routing_key
+        return dict(device_type=device_type,
+                    device_uid=device_uid,
+                    command=command)
+
+    def parse_smart(self, data):
+        parsed = data
+        if isinstance(data, dict):
+            parsed = dict(
+                timestamp=int(data.get('timestamp', 0)),
+                task_id=data.get('task_id'),
+                datahold=self.parse_json(data.get('datahold')),
+            )
+        return parsed
+
     def update_timestamp_only(self, parsed, timestamp=None):
         timestamp = int(time.time()) if not timestamp else timestamp
         parsed['timestamp'] = timestamp
@@ -105,6 +105,10 @@ class BaseWorker(ConsumerProducerMixin):
         self.publish(parsed,
                      exchange=self.exchanges.get('internal'),
                      routing_key="save")
+
+    def device_not_found(self, device_type, device_uid):
+        """ Spawn notification to front about new device """
+        raise NotImplementedError
 
     def report(self, message, level='info'):
         """ report message """
@@ -125,10 +129,6 @@ class BaseWorker(ConsumerProducerMixin):
             "access": access,
         }
         return send_websocket(payload, level, access, self.producer)
-
-    def device_not_found(self, device_type, device_uid):
-        """ Spawn notification to front about new device """
-        raise NotImplementedError
 
     def get_consumers(self, Consumer, channel):
         """ Setup consumer and assign callback """

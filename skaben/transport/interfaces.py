@@ -71,7 +71,6 @@ def send_mqtt(topic, message, producer=None):
             "routing_key": f"{topic}"
         }
         if not producer:
-            #publish_without_producer(message, exchange=exchanges.get("mqtt"), routing_key=f"{topic}")
             publish_without_producer(**kwargs)
         else:
             publish_with_producer(producer, **kwargs)
