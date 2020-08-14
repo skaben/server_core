@@ -319,3 +319,4 @@ class StateUpdateWorker(BaseWorker):
             self.report(f"update from {parsed['device_type']} {parsed['device_uid']} - {body}")
         except Exception as e:
             self.report_error(f"{self} when handling message: {e}")
+
