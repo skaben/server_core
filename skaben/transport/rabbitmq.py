@@ -47,4 +47,5 @@ with pool.acquire(timeout=10) as channel:
 exchanges = {'ask': bound_ask_exchange,
              'internal': bound_events_exchange,
              'mqtt': bound_mqtt_exchange,
-             'log': bound_log_exchange}
+             'log': bound_log_exchange,
+             'websocket': bound_ws_exchange}
