@@ -1,4 +1,5 @@
 import time
+from . import storages
 
 from django.conf import settings
 from django.db import models
@@ -131,12 +132,57 @@ class MenuItem(models.Model):
         return f'[{self.action}] {self.label} <{self.response}>'
 
 
+class AudioFile(models.Model):
+
+    class Meta:
+        verbose_name = 'файл аудио'
+        verbose_name_plural = "файлы аудио"
+
+    name = models.CharField(max_length=128, default="filename")
+    file = models.FileField(storage=storages.audio_storage)
+
+    def __str__(self):
+        return f"audio {self.name}"
+
+
+class VideoFile(models.Model):
+
+    class Meta:
+        verbose_name = 'файл видео'
+        verbose_name_plural = "файлы видео"
+
+    name = models.CharField(max_length=128, default="filename")
+    file = models.FileField(storage=storages.video_storage)
+
+    def __str__(self):
+        return f"video {self.name}"
+
+
+class ImageFile(models.Model):
+    class Meta:
+        verbose_name = 'файл изображения'
+        verbose_name_plural = "файлы изображений"
+
+    name = models.CharField(max_length=128, default="filename")
+    file = models.FileField(storage=storages.image_storage)
+
+    def __str__(self):
+        return f"image {self.name}"
+
+
+class TextDocument(models.Model):
+
+    class Meta:
+        verbose_name = 'текстовый документ'
+        verbose_name_plural = 'текстовые документы'
+
+    header = models.CharField(max_length=64, default="text document")
+    content = models.TextField()
+
+
 class Document(models.Model):
     """
-        In-game document
-
-        Todos:
-            separate image document
+        FIXME: stinky legacy
     """
 
     image = 'img'
@@ -152,7 +198,7 @@ class Document(models.Model):
         verbose_name_plural = 'Игровые документы'
 
     header = models.CharField(max_length=64)
-    content = models.TextField()  # image name for images
+    content = models.TextField()
     doctype = models.CharField(max_length=64,
                                choices=type_choices,
                                default=text)
