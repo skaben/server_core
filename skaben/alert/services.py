@@ -1,7 +1,7 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 
-from core.models import AlertState, Lock, Terminal, Simple
+from core.models import AlertState, Lock, SimpleLight #Terminal, Simple
 from device.services import save_devices
 from transport.interfaces import send_mqtt
 
@@ -95,8 +95,8 @@ class StateManager:
 
     def __init__(self):
         self.locks = Lock.objects.all()
-        self.terms = Terminal.objects.all()
-        self.simple = Simple.objects.all()
+        #self.terms = Terminal.objects.all()
+        self.simple = SimpleLight.objects.all()
 
         # state changing from lower to upper or not?
         self.escalate = None
@@ -118,7 +118,7 @@ class StateManager:
             if call and level_name != 'white':
                 # exclude all manual controlled device from updates
                 self.locks = self.locks.exclude(override=True)
-                self.terms = self.terms.exclude(override=True)
+                #self.terms = self.terms.exclude(override=True)
             call()
         except Exception as e:
             self.indicate("255,0,255")

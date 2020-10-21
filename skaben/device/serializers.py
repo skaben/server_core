@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from core.models import Lock, Terminal, Simple, SimpleLight
+from core.models import Lock, SimpleLight, Terminal
 from transport.interfaces import send_unicast_mqtt
 
 
@@ -44,16 +44,6 @@ class TerminalSerializer(DeviceSerializer):
 
     class Meta:
         model = Terminal
-        fields = '__all__'
-        read_only_fields = ('id',)
-
-
-class SimpleSerializer(DeviceSerializer):
-
-    topic = 'simple'
-
-    class Meta:
-        model = Simple
         fields = '__all__'
         read_only_fields = ('id',)
 

@@ -93,78 +93,55 @@ class AlertState(models.Model):
             return s
 
 
-class ConfigString(models.Model):
+class UserInput(models.Model):
 
-    """
-        Simple Device configuration string
-    """
+    name = models.CharField(default="inputname",
+                            blank=False,
+                            unique=True,
+                            max_length=48)
+    require = models.CharField(default="input", max_length=48)
+    callback = models.CharField(default="callback", max_length=48)
+
+
+class File(models.Model):
 
     class Meta:
-        verbose_name = 'Конфиг: неуправляемые ус-ва'
+        abstract = True
 
-    dev_subtype = models.CharField(max_length=64)
-    state_name = models.CharField(max_length=32)
-    config = models.CharField(max_length=256)
-
-    def __str__(self):
-        return f'{self.dev_subtype.upper()}-{self.state_name}'
+    name = models.CharField(max_length=128, default="filename")
 
 
-class MenuItem(models.Model):
-    ### TODO: режим доступа должен настраиваться отдельно для каждого терминала. не должно быть общего
-    """
-        In-game Terminal menu item
-    """
-    class Meta:
-        verbose_name = 'Игровой пункт меню'
-        verbose_name_plural = 'Игровые пункты меню'
-
-    label = models.CharField(max_length=128)
-    action = models.CharField(max_length=16)
-    response = models.CharField(max_length=16, blank=True)
-    access = models.CharField(max_length=2, default='10')
-
-    @property
-    def uid(self):
-        return self.id
-
-    def __str__(self):
-        return f'[{self.action}] {self.label} <{self.response}>'
-
-
-class AudioFile(models.Model):
+class AudioFile(File):
 
     class Meta:
         verbose_name = 'файл аудио'
         verbose_name_plural = "файлы аудио"
 
-    name = models.CharField(max_length=128, default="filename")
     file = models.FileField(storage=storages.audio_storage)
 
     def __str__(self):
         return f"audio {self.name}"
 
 
-class VideoFile(models.Model):
+class VideoFile(File):
 
     class Meta:
         verbose_name = 'файл видео'
         verbose_name_plural = "файлы видео"
 
-    name = models.CharField(max_length=128, default="filename")
     file = models.FileField(storage=storages.video_storage)
 
     def __str__(self):
         return f"video {self.name}"
 
 
-class ImageFile(models.Model):
+class ImageFile(File):
+
     class Meta:
         verbose_name = 'файл изображения'
         verbose_name_plural = "файлы изображений"
 
-    name = models.CharField(max_length=128, default="filename")
-    file = models.FileField(storage=storages.image_storage)
+    file = models.ImageField(storage=storages.image_storage)
 
     def __str__(self):
         return f"image {self.name}"
@@ -176,49 +153,44 @@ class TextDocument(models.Model):
         verbose_name = 'текстовый документ'
         verbose_name_plural = 'текстовые документы'
 
+    name = models.CharField(max_length=128, default="game doc")
     header = models.CharField(max_length=64, default="text document")
     content = models.TextField()
 
 
-class Document(models.Model):
-    """
-        FIXME: stinky legacy
-    """
+class MenuItem(models.Model):
 
-    image = 'img'
-    text = 'text'
+    AUDIO = "audio"
+    VIDEO = "video"
+    IMAGE = "image"
+    TEXT = "text"
+    GAME = "game"
+    USER = "user"
 
-    type_choices = (
-        (image, 'image file name'),
-        (text, 'plain text'),
+    TYPE_CHOICES = (
+        (AUDIO, "audio"),
+        (VIDEO, "video"),
+        (IMAGE, "image"),
+        (TEXT, "text"),
+        (GAME, "game"),
+        (USER, "input"),
     )
 
-    class Meta:
-        verbose_name = 'Игровой документ'
-        verbose_name_plural = 'Игровые документы'
-
-    header = models.CharField(max_length=64)
-    content = models.TextField()
-    doctype = models.CharField(max_length=64,
-                               choices=type_choices,
-                               default=text)
-    # lock terminal after time
-    timer = models.IntegerField(default=0, blank=True)
-
-    @property
-    def title(self):
-        # backward compat.
-        return self.header
-
-    @property
-    def uid(self):
-        return self.id
+    name = models.CharField(max_length=48, default="menu action")
+    timer = models.IntegerField(default=-1)
+    option = models.CharField(choices=TYPE_CHOICES,
+                              default=USER,
+                              max_length=32)
+    game = models.ForeignKey("HackGame", on_delete=models.CASCADE, blank=True, null=True)
+    image_file = models.ForeignKey("ImageFile", on_delete=models.CASCADE, blank=True, null=True)
+    text_file = models.ForeignKey("TextDocument", on_delete=models.CASCADE, blank=True, null=True)
+    user_input = models.ForeignKey("UserInput", on_delete=models.CASCADE, blank=True, null=True)
+    audio_file = models.ForeignKey("AudioFile", on_delete=models.CASCADE, blank=True, null=True)
+    video_file = models.ForeignKey("VideoFile", on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
-        s = f'<{self.doctype}> {self.header}'
-        if self.timer:
-            s = f'[TIMER: {self.timer}] ' + s
-        return s
+        timer = f"{self.timer}s" if self.timer > 0 else "not set"
+        return f"Menu Item `{self.name}` ({self.option}) with timer: {timer}"
 
 
 # MINIGAMES
@@ -243,11 +215,10 @@ class HackGame(models.Model):
         verbose_name_plural = 'Настройки мини-игр взлома'
 
     attempts = models.IntegerField(default=3)
-    difficulty = models.IntegerField(
-                                     choices=difficulty_choices,
-                                     default=easy)
+    difficulty = models.IntegerField(choices=difficulty_choices,
+                                     default=normal)
     wordcount = models.IntegerField(default=15)
-    chance = models.IntegerField(default=10)
+    chance = models.IntegerField(default=15)
 
 
 class AnotherGame(models.Model):
@@ -281,7 +252,47 @@ class AccessCode(models.Model):
         return f'<{self.code}> {self.position} {self.surname}'
 
 
+# TERMINAL MODES (REGIMES)
+
+
+class WorkMode(models.Model):
+    """Terminal work regime"""
+
+# todo:
+#    default = "default"
+#    extended = "extended"
+#    terminal_themes = (
+#        (default, 'default green'),
+#        (extended, 'extended blue'),
+#    )
+
+    class Meta:
+        verbose_name = 'Режим работы терминала'
+        verbose_name_plural = 'Режимы работы терминала'
+
+    name = models.CharField(max_length=48, default="terminal mode")
+    state_id = models.ManyToManyField(AlertState, blank=True)
+    main_header = models.CharField(max_length=48, default="terminal vt40k")
+    menu_normal = models.ManyToManyField(MenuItem, related_name="menu_normal")
+    menu_hacked = models.ManyToManyField(MenuItem, related_name="menu_hacked")
+
+    @property
+    def get_associated_files(self):
+        for item in self.menu_hacked.all():
+            print(item)
+
+    def __str__(self):
+        return f"[terminal regime {self.id}] "
+
+# todo:
+#    style_image = models.ForeignKey(ImageFile, on_delete=models.CASCADE)
+#    style_theme = models.CharField(max_length=48)
 #  DEVICES
+
+#  TODO: abstract models
+
+# DEVICES
+
 
 class Simple(models.Model, DeviceMixin):
     """
@@ -290,6 +301,7 @@ class Simple(models.Model, DeviceMixin):
     """
 
     class Meta:
+        abstract = True
         verbose_name = 'Устройство пассивное'
         verbose_name_plural = 'Устройства пассивные'
 
@@ -299,15 +311,16 @@ class Simple(models.Model, DeviceMixin):
     online = models.BooleanField(default=False)
     ip = models.GenericIPAddressField()
     subtype = models.CharField(max_length=32, default='rgb')
-    config = models.ManyToManyField(ConfigString,
-                                    blank=False,
-                                    default='noop')
+    config = models.CharField(max_length=512, default='none')
+   # config = models.ManyToManyField(ConfigString,
+   #                                 blank=False,
+   #                                 default='noop')
 
     def __str__(self):
         return f'DUMB ID: {self.id} {self.info}'
 
 
-class SimpleLight(models.Model, DeviceMixin):
+class SimpleLight(Simple):
     """
         Simple dumb device, such as lights, sirens, rgb-leds
         Controls only by predefined config in ConfigString
@@ -317,18 +330,23 @@ class SimpleLight(models.Model, DeviceMixin):
         verbose_name = 'Устройство RGB пассивное'
         verbose_name_plural = 'Устройства RGB пассивные'
 
+    def __str__(self):
+        return f'RGB light device {self.id} {self.info}'
+
+
+class Complex(models.Model, DeviceMixin):
+
+    class Meta:
+        abstract = True
+
     timestamp = models.IntegerField(default=int(time.time()))
     uid = models.CharField(max_length=16, unique=True)
-    info = models.CharField(max_length=256, default='simple dumb')
-    online = models.BooleanField(default=False)
+    info = models.CharField(max_length=128, default='smart complex device')
     ip = models.GenericIPAddressField()
-    config = models.CharField(max_length=256, default='')
-
-    def __str__(self):
-        return f'DUMB ID: {self.id} {self.info}'
+    override = models.BooleanField(default=False)
 
 
-class Lock(models.Model, DeviceMixin):
+class Lock(Complex):
     """
         Lock device class
     """
@@ -369,70 +387,19 @@ class Lock(models.Model, DeviceMixin):
         return f'<{self.id}> {self.info}'
 
 
-class Terminal(models.Model, DeviceMixin):
-    """
-        Terminal device class
-    """
+class Terminal(Complex):
 
-    hack = 'hack'
-    alert = 'alert'
-    text = 'text'
-
-    menu_choices = (
-        (hack, 'hack access'),
-        (alert, 'lower alert'),
-        (text, 'read texts'),
-    )
+    """Smart terminal"""
 
     class Meta:
         verbose_name = 'Устройство (акт.): Терминал'
         verbose_name_plural = 'Устройства (акт.): Терминалы'
 
-    timestamp = models.IntegerField(default=int(time.time()))
-    uid = models.CharField(max_length=16, unique=True)
-    info = models.CharField(max_length=128, default='simple terminal')
-    ip = models.GenericIPAddressField()
-    override = models.BooleanField(default=False)
     powered = models.BooleanField(default=False)
     blocked = models.BooleanField(default=False)
     block_time = models.IntegerField(default=10)
     hacked = models.BooleanField(default=False)
-    menu_normal = models.ManyToManyField(MenuItem, related_name='menu_normal')
-    menu_hacked = models.ManyToManyField(MenuItem, related_name='menu_hacked')
-    dev_header = models.CharField(max_length=128, default='terminal SK-100')
-    status_header = models.CharField(max_length=128, default='', blank=True)
-    mini_game = models.ManyToManyField(HackGame)
-    document = models.ManyToManyField(Document,
-                                      blank=True,
-                                      default=None)
-
-    @property
-    def menu_items(self):
-        # TODO: menu items set mode 10, 01, 11 for hacked/normal/both
-        menu_items = []
-        hacked = self.menu_hacked.all()
-        normal = self.menu_normal.all()
-
-        for item in hacked:
-            as_dict = item.to_dict()
-            if as_dict.get('action') == 'hack':
-                # cannot be hacked twice
-                continue
-            if item in normal:
-                as_dict.update({"access": "11"})
-            else:
-                as_dict.update({"access": "01"})
-            menu_items.append(as_dict)
-        for item in normal:
-            # rare scenario
-            if item not in hacked:
-                as_dict = item.to_dict()
-                as_dict.update({"access": "10"})
-            menu_items.append(as_dict)
-        return menu_items
-
-    def __str__(self):
-        return f'TERMINAL ID: {self.id} {self.info}'
+    modes = models.ForeignKey(WorkMode, on_delete=models.CASCADE, blank=True, default=None)
 
 
 class Permission(models.Model):
