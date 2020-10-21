@@ -35,7 +35,7 @@ services:
   rabbitmq:
     build: './docker_build/rabbitmq'
     hostname: "rabbitmq"
-    env_file: '.env'
+    #env_file: '.env'
     ports:
       - "15672:15672"
       - "15674:15674"
@@ -50,14 +50,11 @@ services:
   db:
     image: postgres:10-alpine
     restart: unless-stopped
-    environment:
-      - POSTGRES_DB=skaben
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=superpass123
     volumes:
       - db_volume:/var/lib/postgresql/data
     networks:
       - core_network
+    env_file: ".env"
 
   nginx:
     build: './docker_build/nginx'
