@@ -9,7 +9,7 @@ class PermissionsSerializer(serializers.HyperlinkedModelSerializer):
     acl_full = serializers.ReadOnlyField()
     url = serializers.HyperlinkedRelatedField(
         read_only=True,
-        view_name='permission-detail'
+        view_name='permission-detail',
     )
 
     class Meta:
@@ -30,14 +30,3 @@ class AccessCodeSerializer(serializers.HyperlinkedModelSerializer):
         model = AccessCode
         fields = '__all__'
         read_only_fields = ('id',)
-
-
-# class PermissionsSerializer(serializers.ModelSerializer):
-#     """ Serializer for lock-card relation objects """
-
-    # acl_full = serializers.ReadOnlyField()
-
-    # class Meta:
-    #     model = Lock
-    #     fields = ('id', 'acl_full')
-    #     read_only_fields = ('id',)

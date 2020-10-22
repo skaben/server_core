@@ -1,5 +1,4 @@
 FROM python:3.7-slim
-MAINTAINER Zerthmonk
  
 ENV PYTHONUBUFFERED=1
 ENV PATH="/venv/bin:$PATH"

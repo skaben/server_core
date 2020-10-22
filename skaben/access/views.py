@@ -22,11 +22,3 @@ class PermissionsViewSet(viewsets.ModelViewSet):
 
     queryset = Permission.objects.all()
     serializer_class = serializers.PermissionsSerializer
-
-# class PermissionsViewSet(viewsets.ModelViewSet):
-#     """ Events in database """
-#     authentication_classes = (TokenAuthentication,)
-#     permission_classes = (IsAuthenticated,)
-
-    # queryset = Lock.objects.all()
-    # serializer_class = serializers.PermissionsSerializer
