@@ -15,7 +15,3 @@ RUN python -m venv /venv && \
 
 RUN mkdir -p /skaben/static
 WORKDIR /skaben
-COPY ./skaben /skaben
-
-#RUN useradd skaben
-#USER skaben

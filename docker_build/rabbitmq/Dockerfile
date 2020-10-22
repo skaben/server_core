@@ -1,4 +1,4 @@
-FROM rabbitmq:3.8.3-management-alpine
+FROM rabbitmq:3.8.9-management-alpine
 
 ENV RABBITMQ_VERSION=3.8.3
 
@@ -11,7 +11,7 @@ RUN rabbitmq-plugins enable --offline rabbitmq_mqtt
 RUN rabbitmq-plugins enable --offline rabbitmq_web_stomp
 RUN rabbitmq-plugins enable --offline  rabbitmq_prometheus
 
-RUN echo 'NODENAME=rabbit@localhost' >> /etc/rabbitmq/rabbitmq-env.conf
+RUN echo 'NODENAME=rabbit@localhost' > /etc/rabbitmq/rabbitmq-env.conf
 
 EXPOSE 15672
 EXPOSE 15674
