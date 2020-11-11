@@ -110,6 +110,9 @@ class File(models.Model):
 
     name = models.CharField(max_length=128, default="filename")
 
+    def __str__(self):
+        return f"<FILE {self.file.path}>"
+
 
 class AudioFile(File):
 
@@ -118,9 +121,6 @@ class AudioFile(File):
         verbose_name_plural = "файлы аудио"
 
     file = models.FileField(storage=storages.audio_storage)
-
-    def __str__(self):
-        return f"audio {self.name}"
 
 
 class VideoFile(File):
@@ -131,9 +131,6 @@ class VideoFile(File):
 
     file = models.FileField(storage=storages.video_storage)
 
-    def __str__(self):
-        return f"video {self.name}"
-
 
 class ImageFile(File):
 
@@ -142,9 +139,6 @@ class ImageFile(File):
         verbose_name_plural = "файлы изображений"
 
     file = models.ImageField(storage=storages.image_storage)
-
-    def __str__(self):
-        return f"image {self.name}"
 
 
 class TextDocument(models.Model):
@@ -182,11 +176,11 @@ class MenuItem(models.Model):
                               default=USER,
                               max_length=32)
     game = models.ForeignKey("HackGame", on_delete=models.CASCADE, blank=True, null=True)
-    image_file = models.ForeignKey("ImageFile", on_delete=models.CASCADE, blank=True, null=True)
-    text_file = models.ForeignKey("TextDocument", on_delete=models.CASCADE, blank=True, null=True)
     user_input = models.ForeignKey("UserInput", on_delete=models.CASCADE, blank=True, null=True)
     audio_file = models.ForeignKey("AudioFile", on_delete=models.CASCADE, blank=True, null=True)
     video_file = models.ForeignKey("VideoFile", on_delete=models.CASCADE, blank=True, null=True)
+    text_file = models.ForeignKey("TextDocument", on_delete=models.CASCADE, blank=True, null=True)
+    image_file = models.ForeignKey("ImageFile", on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
         timer = f"{self.timer}s" if self.timer > 0 else "not set"
@@ -266,6 +260,11 @@ class WorkMode(models.Model):
 #        (extended, 'extended blue'),
 #    )
 
+    AUDIO = "audio"
+    VIDEO = "video"
+    IMAGE = "image"
+    TEXT = "text"
+
     class Meta:
         verbose_name = 'Режим работы терминала'
         verbose_name_plural = 'Режимы работы терминала'
@@ -277,9 +276,22 @@ class WorkMode(models.Model):
     menu_hacked = models.ManyToManyField(MenuItem, related_name="menu_hacked")
 
     @property
-    def get_associated_files(self):
-        for item in self.menu_hacked.all():
-            print(item)
+    def get_assoc_files(self):
+        # todo: refactor ASAP
+        conformity = {
+            self.AUDIO: "audio_file",
+            self.VIDEO: "video_file",
+            self.IMAGE: "image_file",
+            self.TEXT: "text_file"
+        }
+        files = []
+        for qs in [self.menu_hacked, self.menu_normal]:
+            for item in qs.all():
+                attr = conformity.get(item.option)
+                if attr:
+                    related = getattr(item, attr)
+                    files.append(related)
+        return list(set(files))
 
     def __str__(self):
         return f"[terminal regime {self.id}] "

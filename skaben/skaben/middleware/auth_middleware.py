@@ -1,9 +1,10 @@
-# from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 
 
 class AuthRequiredMiddleware(object):
 
     allowed = (
+        '/auth/login',
         '/auth/token',
         '/favicon'
     )
@@ -12,7 +13,8 @@ class AuthRequiredMiddleware(object):
         self.get_response = get_response
 
     def __call__(self, request):
-        response = self.get_response(request)
-        # if not request.path_info.startswith(self.allowed) and not request.user.is_authenticated:
-        #    return HttpResponse("Unauthorized", status=401)
-        return response
+        #if not hasattr(request, "user") or not request.user.is_authenticated:
+        #    if not request.path_info.startswith(self.allowed):
+        #        return HttpResponseRedirect('/auth/login')
+
+        return self.get_response(request)

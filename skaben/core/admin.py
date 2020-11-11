@@ -1,6 +1,11 @@
 from django.contrib import admin
 from core import models
 
+
+class WorkModeAdmin(admin.ModelAdmin):
+    readonly_fields = ["get_assoc_files", ]
+
+
 # Register your models here.
 
 admin.site.register(models.AccessCode)
@@ -15,7 +20,7 @@ admin.site.register(models.MenuItem)
 admin.site.register(models.Permission)
 admin.site.register(models.SimpleLight)
 admin.site.register(models.Terminal)
-admin.site.register(models.WorkMode)
+admin.site.register(models.WorkMode, WorkModeAdmin)
 admin.site.register(models.AudioFile)
 admin.site.register(models.VideoFile)
 admin.site.register(models.ImageFile)

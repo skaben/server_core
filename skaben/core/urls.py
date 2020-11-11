@@ -10,7 +10,7 @@ from device.urls import router as device_router
 from menu_item.urls import router as menu_router
 from transport.urls import router as transport_router
 
-from core.views import CreateTokenView
+from core.views import CreateTokenView, login_view
 
 # setting up nested router
 core_router = DefaultRouter()
@@ -29,6 +29,7 @@ for router in routers:
 
 urlpatterns = [
     path('auth/token/', CreateTokenView.as_view(), name='token'),
+    path('auth/login/', login_view, name="login"),
     path('admin/', admin.site.urls),
     path('api/', include((core_router.urls, "core"), namespace="api")),
     path('transport/', include('transport.urls'))
