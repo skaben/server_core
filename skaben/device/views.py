@@ -2,7 +2,7 @@ from rest_framework import viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 
-from core.models import Lock, Terminal, SimpleLight
+from core.models import Lock, Terminal #, SimpleLight
 from device import serializers
 
 
@@ -22,12 +22,12 @@ class TerminalViewSet(viewsets.ModelViewSet):
 
     queryset = Terminal.objects.all()
     serializer_class = serializers.TerminalSerializer
-
-
-class SimpleLightViewSet(viewsets.ModelViewSet):
-    """ Manage lesser devices in database """
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
-
-    queryset = SimpleLight.objects.all()
-    serializer_class = serializers.SimpleLightSerializer
+#
+#
+# class SimpleLightViewSet(viewsets.ModelViewSet):
+#     """ Manage lesser devices in database """
+#     authentication_classes = (TokenAuthentication,)
+#     permission_classes = (IsAuthenticated,)
+#
+#     queryset = SimpleLight.objects.all()
+#     serializer_class = serializers.SimpleLightSerializer

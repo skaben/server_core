@@ -1,7 +1,7 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 
-from core.models import AlertState, Lock, SimpleLight #Terminal, Simple
+from core.models import AlertState, Lock #, SimpleLight #Terminal, Simple
 from device.services import save_devices
 from transport.interfaces import send_mqtt
 
@@ -84,6 +84,8 @@ class StateManager:
         DRY violation for more obvious ruleset
     """
 
+    # TODO: make alert-dependent device settings configurable
+
     indicator = "RGB.ce436600"
 
     standart_lock = dict(closed=True,
@@ -95,8 +97,8 @@ class StateManager:
 
     def __init__(self):
         self.locks = Lock.objects.all()
-        #self.terms = Terminal.objects.all()
-        self.simple = SimpleLight.objects.all()
+        # self.terms = Terminal.objects.all()
+        # self.simple = SimpleLight.objects.all()
 
         # state changing from lower to upper or not?
         self.escalate = None

@@ -1,7 +1,8 @@
 from rest_framework import serializers
 
-from core.models import Lock, SimpleLight, Terminal
+from core.models import Lock, Terminal
 from transport.interfaces import send_unicast_mqtt
+from access.serializers import PermissionsSerializer
 
 
 class DeviceSerializer(serializers.ModelSerializer):
@@ -29,29 +30,30 @@ class LockHyperlinkedSerializer(DeviceSerializer):
 
     topic = 'lock'
     online = serializers.ReadOnlyField()
-    permissions = serializers.ReadOnlyField()
+    acl_full = serializers.ReadOnlyField()
 
     class Meta:
         model = Lock
         fields = '__all__'
-        read_only_fields = ('id',)
+        read_only_fields = ('id', 'online', 'acl_full')
 
 
 class TerminalSerializer(DeviceSerializer):
     """ Terminal serializer """
 
     topic = 'terminal'
+    file_list = serializers.ReadOnlyField()
 
     class Meta:
         model = Terminal
         fields = '__all__'
         read_only_fields = ('id',)
 
-
-class SimpleLightSerializer(DeviceSerializer):
-
-    topic = 'rgb'
-
-    class Meta:
-        model = SimpleLight
-        fields = ('online', 'config', 'timestamp')
+#
+# class SimpleLightSerializer(DeviceSerializer):
+#
+#     topic = 'rgb'
+#
+#     class Meta:
+#         model = SimpleLight
+#         fields = ('online', 'config', 'timestamp')

@@ -12,10 +12,10 @@ DEVICES = {
         'serializer': serializers.TerminalSerializer,
         'model': models.Terminal
     },
-    'rgb': {
-        'serializer': serializers.SimpleLightSerializer,
-        'model': models.SimpleLight
-    }
+    # 'rgb': {
+    #     'serializer': serializers.SimpleLightSerializer,
+    #     'model': models.SimpleLight
+    # }
 }
 
 DEVICES['term'] = DEVICES['terminal']
