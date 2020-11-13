@@ -17,28 +17,32 @@ class AudioFileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AudioFile
-        exclude = ("id", "name",)
+        fields = ("file",)
 
 
 class VideoFileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = VideoFile
-        exclude = ("id", "name",)
+        fields = ("file",)
 
 
 class ImageFileSerializer(serializers.ModelSerializer):
 
+    def to_representation(self, instance):
+        result = super().to_representation(instance)
+        return result
+
     class Meta:
         model = ImageFile
-        exclude = ("id", "name",)
+        fields = ("file",)
 
 
 class TextFileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TextFile
-        exclude = ("id", "name",)
+        fields = ("file",)
 
 
 class HackGameSerializer(serializers.ModelSerializer):
@@ -69,7 +73,7 @@ class MenuItemSerializer(serializers.ModelSerializer):
 
 class WorkModeSerializer(serializers.ModelSerializer):
 
-    menu_set = serializers.HyperlinkedIdentityField(view_name="api:menuitem-detail", many=True)
+    menu_set = MenuItemSerializer(many=True)
 
     class Meta:
         model = WorkMode
