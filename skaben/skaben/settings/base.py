@@ -49,7 +49,7 @@ INSTALLED_APPS = [
     'alert',
     'core',
     'device',
-    'menu_item',
+    'assets',
     'eventlog',
     'transport'
 ]

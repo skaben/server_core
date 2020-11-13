@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from core.models import Lock, Terminal
 from transport.interfaces import send_unicast_mqtt
-from access.serializers import PermissionsSerializer
+from assets.serializers import WorkModeSerializer
 
 
 class DeviceSerializer(serializers.ModelSerializer):
@@ -43,10 +43,12 @@ class TerminalSerializer(DeviceSerializer):
 
     topic = 'terminal'
     file_list = serializers.ReadOnlyField()
+    modes_normal = serializers.HyperlinkedIdentityField(view_name="api:workmode-detail", many=True)
+    modes_extended = serializers.HyperlinkedIdentityField(view_name="api:workmode-detail", many=True)
 
     class Meta:
         model = Terminal
-        fields = '__all__'
+        fields = "__all__"
         read_only_fields = ('id',)
 
 #

@@ -27,12 +27,19 @@ class EventLog(models.Model):
 
 class UserInput(models.Model):
 
+    class Meta:
+        verbose_name = 'Обратная связь - команда'
+        verbose_name_plural = 'Обратная связь - команды'
+
     name = models.CharField(default="inputname",
                             blank=False,
                             unique=True,
                             max_length=48)
     require = models.CharField(default="input", max_length=48)
     callback = models.CharField(default="callback", max_length=48)
+
+    def __str__(self):
+        return f"on input `{self.require}` send back `{self.callback}`"
 
 
 class MQTTMessage(models.Model):

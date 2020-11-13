@@ -27,7 +27,7 @@ class AlertState(models.Model):
         verbose_name = 'База: Тревога: именной статус'
         verbose_name_plural = 'База: Тревога: именные статусы'
 
-    name = models.CharField(max_length=32)  # alert level color name
+    name = models.CharField(max_length=32, blank=False, unique=True)  # alert level color name
     info = models.CharField(max_length=256)
     bg_color = models.CharField(max_length=7, default='#000000')
     fg_color = models.CharField(max_length=7, default='#ffffff')

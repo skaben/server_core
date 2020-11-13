@@ -15,10 +15,10 @@ class AccessCodeViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.AccessCodeSerializer
 
 
-class PermissionsViewSet(viewsets.ModelViewSet):
+class PermissionViewSet(viewsets.ModelViewSet):
     """ Events in database """
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
 
     queryset = Permission.objects.all()
-    serializer_class = serializers.PermissionsSerializer
+    serializer_class = serializers.PermissionSerializer

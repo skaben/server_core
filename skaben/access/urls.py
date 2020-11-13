@@ -7,7 +7,7 @@ app_name = 'access'
 
 router = SimpleRouter()
 router.register('accesscode', views.AccessCodeViewSet)
-router.register('permissions', views.PermissionsViewSet)
+router.register('permission', views.PermissionViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),

@@ -3,30 +3,23 @@ from rest_framework import serializers
 from core.models import Permission, AccessCode
 
 
-class PermissionsSerializer(serializers.HyperlinkedModelSerializer):
-    """ Serializer for lock-card relation objects """
-
-    acl_full = serializers.ReadOnlyField()
-    url = serializers.HyperlinkedRelatedField(
-        read_only=True,
-        view_name='permission-detail',
-    )
-
-    class Meta:
-        model = Permission
-        fields = '__all__'
-        read_only_fields = ('id',)
-
-
-class AccessCodeSerializer(serializers.HyperlinkedModelSerializer):
+class AccessCodeSerializer(serializers.ModelSerializer):
     """ Serializer for access code objects """
-
-    url = serializers.HyperlinkedRelatedField(
-        read_only=True,
-        view_name='accesscode-detail'
-    )
 
     class Meta:
         model = AccessCode
         fields = '__all__'
         read_only_fields = ('id',)
+
+
+class PermissionSerializer(serializers.ModelSerializer):
+    """ Serializer for lock-card relation objects """
+
+    card = serializers.HyperlinkedIdentityField(view_name="api:accesscode-detail")
+    lock = serializers.HyperlinkedIdentityField(view_name="api:lock-detail")
+    state_id = serializers.HyperlinkedIdentityField(view_name="api:alertstate-detail", many=True)
+
+    class Meta:
+        model = Permission
+        fields = "__all__"
+
