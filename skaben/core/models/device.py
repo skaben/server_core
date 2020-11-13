@@ -2,7 +2,6 @@ import time
 from django.db import models
 from django.conf import settings
 
-from .config import LockConfig, TerminalConfig
 from .menu import WorkMode
 
 
@@ -22,10 +21,10 @@ class ComplexDevice(models.Model, DeviceMixin):
     class Meta:
         abstract = True
 
-    timestamp = models.IntegerField(default=int(time.time()))
     uid = models.CharField(max_length=16, unique=True)
     info = models.CharField(max_length=128, default='smart complex device')
     ip = models.GenericIPAddressField()
+    timestamp = models.IntegerField(default=int(time.time()))
     override = models.BooleanField(default=False)
 
 
@@ -35,10 +34,13 @@ class Lock(ComplexDevice):
     """
 
     class Meta:
-        verbose_name = 'Устройство (акт.): Замок'
-        verbose_name_plural = 'Устройства (акт.): Замки'
+        verbose_name = 'Клиент (устройство) Замок'
+        verbose_name_plural = 'Клиент (устройство) Замки'
 
-    config = models.ForeignKey(LockConfig, on_delete=models.CASCADE)
+    sound = models.BooleanField(default=False)
+    closed = models.BooleanField(default=True)
+    blocked = models.BooleanField(default=False)
+    timer = models.IntegerField(default=10)
 
     @property
     def acl(self):
@@ -58,10 +60,13 @@ class Terminal(ComplexDevice):
     """Smart terminal"""
 
     class Meta:
-        verbose_name = 'Устройство (акт.): Терминал (консоль)'
-        verbose_name_plural = 'Устройства (акт.): Терминалы (консоли)'
+        verbose_name = 'Клиент (устройство) Терминал'
+        verbose_name_plural = 'Клиент (устройство) Терминалы'
 
-    config = models.ForeignKey(TerminalConfig, on_delete=models.CASCADE)
+    powered = models.BooleanField(default=False)
+    blocked = models.BooleanField(default=False)
+    block_time = models.IntegerField(default=10)
+    hacked = models.BooleanField(default=False)
     modes_normal = models.ManyToManyField(WorkMode, related_name="mode_normal", blank=True, default=None)
     modes_extended = models.ManyToManyField(WorkMode, related_name="mode_extended", blank=True, default=None)
 

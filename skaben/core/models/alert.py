@@ -7,8 +7,8 @@ class AlertCounter(models.Model):
     """In-game Global Alert State counter"""
 
     class Meta:
-        verbose_name = 'Тревога: изменение уровня'
-        verbose_name_plural = 'Тревога: изменения уровня'
+        verbose_name = 'База: Тревога: счетчик уровня'
+        verbose_name_plural = 'База: Тревога: счетчик уровня'
 
     value = models.IntegerField(default=0)
     comment = models.CharField(default='changed by admin', max_length=256)
@@ -24,8 +24,8 @@ class AlertState(models.Model):
     """In-game Global Alert State"""
 
     class Meta:
-        verbose_name = 'Тревога: статус'
-        verbose_name_plural = 'Тревога: статусы'
+        verbose_name = 'База: Тревога: именной статус'
+        verbose_name_plural = 'База: Тревога: именные статусы'
 
     name = models.CharField(max_length=32)  # alert level color name
     info = models.CharField(max_length=256)

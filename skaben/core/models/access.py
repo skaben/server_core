@@ -7,8 +7,8 @@ class AccessCode(models.Model):
     """In-game access code or card id"""
 
     class Meta:
-        verbose_name = 'Игровой код доступа'
-        verbose_name_plural = 'Игровые коды доступа'
+        verbose_name = 'Настройки: (Замок) код - данные карты'
+        verbose_name_plural = 'Настройки: (Замок) код - данные карты'
 
     code = models.CharField(max_length=8)
     name = models.CharField(max_length=64)
@@ -24,8 +24,8 @@ class Permission(models.Model):
 
     class Meta:
         unique_together = ('card', 'lock')
-        verbose_name = 'Игровые права доступа карт'
-        verbose_name_plural = 'Игровые права доступа карт'
+        verbose_name = 'Настройки: (Замок) код - права допуска'
+        verbose_name_plural = 'Настройки: (Замок) код - права допуска'
 
     card = models.ForeignKey(AccessCode, on_delete=models.CASCADE)
     lock = models.ForeignKey(Lock, on_delete=models.CASCADE)

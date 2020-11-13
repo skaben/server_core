@@ -22,6 +22,10 @@ class MenuItem(models.Model):
         (USER, "input"),
     )
 
+    class Meta:
+        verbose_name = 'Настройки: (Терминал) элемент меню'
+        verbose_name_plural = 'Настройки: (Терминал) элементы меню'
+
     name = models.CharField(max_length=48, default="menu action")
     timer = models.IntegerField(default=-1)
     option = models.CharField(choices=TYPE_CHOICES,
@@ -48,8 +52,8 @@ class WorkMode(models.Model):
     TEXT = "text"
 
     class Meta:
-        verbose_name = 'Режим работы терминала'
-        verbose_name_plural = 'Режимы работы терминала'
+        verbose_name = 'Настройки: (Терминал) режим работы меню'
+        verbose_name_plural = 'Настройки: (Терминал) режим работы меню'
 
     name = models.CharField(max_length=48, default="terminal mode")
     state = models.ManyToManyField(AlertState, blank=True)

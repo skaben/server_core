@@ -30,12 +30,12 @@ class LockHyperlinkedSerializer(DeviceSerializer):
 
     topic = 'lock'
     online = serializers.ReadOnlyField()
-    acl_full = serializers.ReadOnlyField()
+    acl = serializers.ReadOnlyField()
 
     class Meta:
         model = Lock
         fields = '__all__'
-        read_only_fields = ('id', 'online', 'acl_full')
+        read_only_fields = ('id', 'online', 'acl')
 
 
 class TerminalSerializer(DeviceSerializer):

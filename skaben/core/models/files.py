@@ -16,8 +16,8 @@ class File(models.Model):
 class AudioFile(File):
 
     class Meta:
-        verbose_name = 'файл аудио'
-        verbose_name_plural = "файлы аудио"
+        verbose_name = 'файл: аудио'
+        verbose_name_plural = "файлы: аудио"
 
     file = models.FileField(storage=storages.audio_storage)
 
@@ -25,8 +25,8 @@ class AudioFile(File):
 class VideoFile(File):
 
     class Meta:
-        verbose_name = 'файл видео'
-        verbose_name_plural = "файлы видео"
+        verbose_name = 'файл: видео'
+        verbose_name_plural = "файлы: видео"
 
     file = models.FileField(storage=storages.video_storage)
 
@@ -34,8 +34,8 @@ class VideoFile(File):
 class ImageFile(File):
 
     class Meta:
-        verbose_name = 'файл изображения'
-        verbose_name_plural = "файлы изображений"
+        verbose_name = 'файл: изображения'
+        verbose_name_plural = "файлы: изображений"
 
     file = models.ImageField(storage=storages.image_storage)
 
@@ -43,8 +43,8 @@ class ImageFile(File):
 class TextFile(models.Model):
 
     class Meta:
-        verbose_name = 'текстовый документ'
-        verbose_name_plural = 'текстовые документы'
+        verbose_name = 'файл: текст'
+        verbose_name_plural = 'файлы: тексты'
 
     name = models.CharField(max_length=128, default="game doc")
     header = models.CharField(max_length=64, default="text document")
