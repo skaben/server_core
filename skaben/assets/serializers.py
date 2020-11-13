@@ -17,32 +17,28 @@ class AudioFileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AudioFile
-        fields = ("file",)
+        fields = ("uri",)
 
 
 class VideoFileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = VideoFile
-        fields = ("file",)
+        fields = ("uri",)
 
 
 class ImageFileSerializer(serializers.ModelSerializer):
 
-    def to_representation(self, instance):
-        result = super().to_representation(instance)
-        return result
-
     class Meta:
         model = ImageFile
-        fields = ("file",)
+        fields = ("uri",)
 
 
 class TextFileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TextFile
-        fields = ("file",)
+        fields = ("uri",)
 
 
 class HackGameSerializer(serializers.ModelSerializer):
