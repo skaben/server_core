@@ -35,11 +35,6 @@ class AlertService:
             next_threshold = getattr(next, 'threshold', self._max_val)
             self.state_ranges.update({index: [item.threshold, next_threshold]})
 
-    def reset_counter_to_threshold(self, instance):
-        data = {'value': instance.threshold,
-                'comment': f'changed to {instance.name} by API call'}
-        return data
-
     def get_state_by_alert(self, alert_value: int):
         try:
             alert_value = int(alert_value)
@@ -56,7 +51,14 @@ class AlertService:
         except ObjectDoesNotExist:
             raise
 
-    def set_state_current(self, instance):
+    @staticmethod
+    def reset_counter_to_threshold(instance):
+        data = {'value': instance.threshold,
+                'comment': f'changed to {instance.name} by API call'}
+        return data
+
+    @staticmethod
+    def set_state_current(instance):
         try:
             if not instance.current:
                 qs = AlertState.objects.filter(current=True)

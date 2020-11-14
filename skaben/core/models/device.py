@@ -65,7 +65,6 @@ class Terminal(ComplexDevice):
 
     powered = models.BooleanField(default=False)
     blocked = models.BooleanField(default=False)
-    block_time = models.IntegerField(default=10)
     hacked = models.BooleanField(default=False)
     modes_normal = models.ManyToManyField(WorkMode, related_name="mode_normal", blank=True, default=None)
     modes_extended = models.ManyToManyField(WorkMode, related_name="mode_extended", blank=True, default=None)

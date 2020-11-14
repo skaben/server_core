@@ -23,16 +23,6 @@ def publish_with_producer(body, exchange, routing_key, producer):
     except Exception:
         raise
 
-
-def publish_with_producer(body, exchange, routing_key, producer):
-    try:
-        producer.publish(body,
-                         exchange=exchange,
-                         routing_key=routing_key,
-                         retry=True)
-    except Exception:
-        raise
-
         
 def send_log(message, level="INFO", producer=None):
     try:

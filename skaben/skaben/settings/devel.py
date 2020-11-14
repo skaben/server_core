@@ -41,7 +41,8 @@ APPCFG = {
         'ping': 1
     },
     'device_types': [
-        'term',
+        'terminal',
+        'audio',
         'lock',
         'rgb',
         'pwr',

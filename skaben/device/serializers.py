@@ -8,8 +8,9 @@ from assets.serializers import WorkModeSerializer
 class DeviceSerializer(serializers.ModelSerializer):
 
     def save(self):
-        if self.context and self.context.get('send_config'):
-            send_unicast_mqtt(self.topic, self.instance.uid, 'CUP', self.validated_data)
+        if self.context and self.context.get('no_send'):
+            return super().save()
+        send_unicast_mqtt(self.topic, self.instance.uid, 'CUP', self.validated_data)
         super().save()
 
 
@@ -17,39 +18,42 @@ class LockSerializer(DeviceSerializer):
     """ Lock serializer for internal ops and MQTT """
 
     topic = 'lock'
+
     acl = serializers.ReadOnlyField()
 
     class Meta:
         model = Lock
         exclude = ['id', 'ip', 'override', 'info']
-        read_only_fields = ('id',)
+        read_only_fields = ('id', 'online', 'acl', "timestamp")
 
 
 class LockHyperlinkedSerializer(DeviceSerializer):
     """ Lock serializer for DRF web API """
 
     topic = 'lock'
+
     online = serializers.ReadOnlyField()
     acl = serializers.ReadOnlyField()
 
     class Meta:
         model = Lock
         fields = '__all__'
-        read_only_fields = ('id', 'online', 'acl')
+        read_only_fields = ('id', 'online', 'acl', "timestamp")
 
 
 class TerminalSerializer(DeviceSerializer):
     """ Terminal serializer """
 
     topic = 'terminal'
+
     file_list = serializers.ReadOnlyField()
     modes_normal = serializers.HyperlinkedIdentityField(view_name="api:workmode-detail", many=True)
     modes_extended = serializers.HyperlinkedIdentityField(view_name="api:workmode-detail", many=True)
 
     class Meta:
         model = Terminal
-        fields = "__all__"
-        read_only_fields = ('id',)
+        exclude = ("id", "info", "uid", "override", "ip")
+        read_only_fields = ('id', 'online', "timestamp")
 
 #
 # class SimpleLightSerializer(DeviceSerializer):

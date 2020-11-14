@@ -35,6 +35,7 @@ class BaseWorker(ConsumerProducerMixin):
         self.queues = queues
         self.exchanges = exchanges
 
+    @fix_database_conn
     def handle_message(self, body, message):
         """ Parse MQTT message to dict or return untouched if already dict """
         try:
@@ -200,8 +201,7 @@ class SaveWorker(BaseWorker):
             try:
                 device_instance = device['model'].objects.get(uid=_uid)
             except Exception as e:  # DoesNotExist - todo: make normal exception
-                #self.device_not_found(_type, _uid)
-                return self.report_error(f"device {_type} {_uid} not found in DB: {e}")
+                raise Exception(f"database error: {e}")
 
             data = parsed["datahold"]
             serializer = device["serializer"](device_instance,
@@ -239,6 +239,7 @@ class SendConfigWorker(BaseWorker):
 
     smart = DEVICES
 
+    @fix_database_conn
     def handle_message(self, body, message):
         try:
             parsed = super().handle_message(body, message)
@@ -263,13 +264,13 @@ class SendConfigWorker(BaseWorker):
             ser = device['serializer'](instance=device_instance)
             return ser.data
         except Exception as e:  # DoesNotExist - fixme: make normal exception
-            return self.report_error(f"device {device_type} {device_uid} not found in DB: {e}")
+            raise Exception(f"[DB error] {device_type} {device_uid}: {e}")
 
     def send_config(self, device_type, device_uid):
-        config = self.get_config(device_type, device_uid)
-        if not config:
-            return self.report_error(f"device {device_type} uid {device_uid} missing in database")
-            #return self.device_not_found(device_type, device_uid)
+        try:
+            config = self.get_config(device_type, device_uid)
+        except Exception:
+            raise
 
         packet = CUP(
             topic=device_type,
@@ -315,6 +316,7 @@ class StateUpdateWorker(BaseWorker):
         allowed = ['datahold']
         return {k:v for k,v in parsed.items() if k in allowed}
 
+    @fix_database_conn
     def handle_message(self, body, message):
         try:
             parsed = super().handle_message(body, message)
