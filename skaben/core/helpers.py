@@ -3,8 +3,16 @@ import pytz
 from random import randint
 from datetime import datetime
 
+import base64
+import hashlib
+
 from django import db
 from django.conf import settings
+
+
+def simple_hash(_string: str, shorten=10) -> str:
+    hasher = hashlib.md5(bytes(_string, encoding="utf-8"))
+    return base64.urlsafe_b64encode(hasher.digest()[:shorten]).decode("utf-8")
 
 
 def timestamp_expired(timestamp):

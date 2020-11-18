@@ -87,11 +87,11 @@ class Terminal(ComplexDevice):
     @property
     def file_list(self):
         """get full unique file list for all modes"""
-        result = []
+        result = {}
         for qs in [self.modes_normal, self.modes_extended]:
             for mode in qs.all():
-                result.extend([item.file.path for item in mode.has_files])
-        return list(set(result))
+                result.update(**mode.has_files)
+        return result
 
     def __str__(self):
         return f"KONSOLE {self.ip} {self.info}"

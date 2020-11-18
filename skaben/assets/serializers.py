@@ -17,28 +17,31 @@ class AudioFileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AudioFile
-        fields = ("uri",)
+        exclude = ("id", )
+        read_only_fields = ("hash", "uri")
 
 
 class VideoFileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = VideoFile
-        fields = ("uri",)
+        exclude = ("id",)
+        read_only_fields = ("hash", "uri")
 
 
 class ImageFileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ImageFile
-        fields = ("uri",)
+        exclude = ("id",)
+        read_only_fields = ("hash", "uri")
 
 
 class TextFileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TextFile
-        fields = ("uri",)
+        fields = ("hash",)
 
 
 class HackGameSerializer(serializers.ModelSerializer):
@@ -63,7 +66,14 @@ class MenuItemSerializer(serializers.ModelSerializer):
         exclude = ("id", "option")
 
     def to_representation(self, instance):
-        result = super().to_representation(instance)
+        representation = super().to_representation(instance)
+        is_files = ('audio', 'text', 'video', 'image')
+        result = representation
+        for key in representation:
+            if key in is_files:
+                file_repr = representation.get(key)
+                if file_repr:
+                    result[key] = file_repr["hash"]
         return OrderedDict([(key, result[key]) for key in result if result[key] is not None])
 
 

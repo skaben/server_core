@@ -62,12 +62,11 @@ class WorkMode(models.Model):
 
     @property
     def has_files(self):
-        # todo: refactor ASAP
-        files = []
+        files = {}
         for item in self.menu_set.all():
             related = getattr(item, item.option)
-            files.append(related)
-        return list(set(files))
+            files.update({related.hash: related.uri})
+        return files
 
     def __str__(self):
         return f"Mode <{self.name}>"

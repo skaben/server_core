@@ -23,22 +23,8 @@ class LockSerializer(DeviceSerializer):
 
     class Meta:
         model = Lock
-        exclude = ['id', 'ip', 'override', 'info']
-        read_only_fields = ('id', 'online', 'acl', "timestamp")
-
-
-class LockHyperlinkedSerializer(DeviceSerializer):
-    """ Lock serializer for DRF web API """
-
-    topic = 'lock'
-
-    online = serializers.ReadOnlyField()
-    acl = serializers.ReadOnlyField()
-
-    class Meta:
-        model = Lock
-        fields = '__all__'
-        read_only_fields = ('id', 'online', 'acl', "timestamp")
+        exclude = ('ip', 'override', 'info')
+        read_only_fields = ("id", 'uid', 'online', 'acl', "timestamp")
 
 
 class TerminalSerializer(DeviceSerializer):
