@@ -1,7 +1,7 @@
 import hashlib
 
 from django.db import models
-from . import storages
+from assets import storages
 from django.conf import settings
 from core.helpers import simple_hash
 
@@ -16,10 +16,11 @@ class File(models.Model):
 
     @property
     def uri(self):
-        return ''.join((settings.BASE_URL, self.file.path))
+        return f"{settings.DEFAULT_DOMAIN}{self.file.path}"
 
     def save(self, *args, **kwargs):
-        self.hash = f"{simple_hash(self.uri, 8)}"
+        hashable = self.name + self.uri
+        self.hash = f"{simple_hash(hashable)}"
         super().save(*args, **kwargs)
 
     def __str__(self):

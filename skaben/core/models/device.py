@@ -70,19 +70,15 @@ class Terminal(ComplexDevice):
     modes_extended = models.ManyToManyField(WorkMode, related_name="mode_extended", blank=True, default=None)
 
     @property
-    def modes(self):
-
-        def get_mode_list(queryset):
-            res = {}
-            for mode in queryset.all():
-                state_list = [state.id for state in mode.state.all()]
-                res[mode.id].update({"states": state_list})
-            return res
+    def mode_list(self):
+        def get_mode_url(mode_queryset):
+            return [mode.url for mode in mode_queryset.all()]
 
         return {
-            "ext": get_mode_list(self.modes_extended),
-            "norm": get_mode_list(self.modes_normal)
+            "normal": get_mode_url(self.modes_normal),
+            "extended": get_mode_url(self.modes_extended)
         }
+
 
     @property
     def file_list(self):

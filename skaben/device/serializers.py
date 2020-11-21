@@ -32,14 +32,25 @@ class TerminalSerializer(DeviceSerializer):
 
     topic = 'terminal'
 
-    file_list = serializers.ReadOnlyField()
     modes_normal = serializers.HyperlinkedIdentityField(view_name="api:workmode-detail", many=True)
     modes_extended = serializers.HyperlinkedIdentityField(view_name="api:workmode-detail", many=True)
 
     class Meta:
         model = Terminal
-        exclude = ("id", "info", "uid", "override", "ip")
-        read_only_fields = ('id', 'online', "timestamp")
+        exclude = ("id", "info", "override", "ip", 'uid')
+        read_only_fields = ('id', 'online', "timestamp", "modes_normal", "modes_extended")
+
+
+class TerminalMQTTSerializer(DeviceSerializer):
+    """ Terminal serializer """
+
+    topic = 'terminal'
+    file_list = serializers.ReadOnlyField()
+    mode_list = serializers.ReadOnlyField()
+
+    class Meta:
+        model = Terminal
+        exclude = ("id", "info", "override", "ip", "modes_normal", "modes_extended")
 
 #
 # class SimpleLightSerializer(DeviceSerializer):

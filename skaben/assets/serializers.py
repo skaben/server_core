@@ -2,7 +2,7 @@ from collections import OrderedDict
 from rest_framework import serializers
 
 from core.models import MenuItem, WorkMode, HackGame, UserInput, \
-                        AudioFile, VideoFile, TextFile, ImageFile
+                        AudioFile, VideoFile, TextFile, ImageFile, File
 
 
 class UserInputSerializer(serializers.ModelSerializer):
@@ -13,35 +13,47 @@ class UserInputSerializer(serializers.ModelSerializer):
         exclude = ("id", "name",)
 
 
-class AudioFileSerializer(serializers.ModelSerializer):
+class FileSerializer(serializers.ModelSerializer):
+
+    file = serializers.SerializerMethodField('get_file_url')
+
+    def get_file_url(self, obj):
+        return self.context['request'].build_absolute_uri(obj.file.path)
+
+    class Meta:
+        model = File
+        abstract = True
+
+
+class AudioFileSerializer(FileSerializer):
 
     class Meta:
         model = AudioFile
         exclude = ("id", )
-        read_only_fields = ("hash", "uri")
+        read_only_fields = ("hash", )
 
 
-class VideoFileSerializer(serializers.ModelSerializer):
+class VideoFileSerializer(FileSerializer):
 
     class Meta:
         model = VideoFile
         exclude = ("id",)
-        read_only_fields = ("hash", "uri")
+        read_only_fields = ("hash", )
 
 
-class ImageFileSerializer(serializers.ModelSerializer):
+class ImageFileSerializer(FileSerializer):
 
     class Meta:
         model = ImageFile
         exclude = ("id",)
-        read_only_fields = ("hash", "uri")
+        read_only_fields = ("hash", )
 
 
 class TextFileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TextFile
-        fields = ("hash",)
+        fields = "__all__"
 
 
 class HackGameSerializer(serializers.ModelSerializer):

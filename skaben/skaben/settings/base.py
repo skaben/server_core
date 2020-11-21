@@ -14,7 +14,8 @@ import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-BASE_URL = os.environ.get('BASE_URL', "http://127.0.0.1")
+#BASE_URL = os.environ.get('BASE_URL', "http://127.0.0.1")
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
@@ -25,9 +26,11 @@ STATIC_URL = os.environ['STATIC_URL']
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-
 ALLOWED_HOSTS = []
 
+DEFAULT_DOMAIN = os.environ.get('DEFAULT_DOMAIN', "http://127.0.0.1")
+MEDIA_URL = "media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "/media/")
 
 # Application definition
 

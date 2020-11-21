@@ -9,7 +9,7 @@ DEVICES = {
         'model': models.Lock
     },
     'terminal': {
-        'serializer': serializers.TerminalSerializer,
+        'serializer': serializers.TerminalMQTTSerializer,
         'model': models.Terminal
     },
     # 'rgb': {

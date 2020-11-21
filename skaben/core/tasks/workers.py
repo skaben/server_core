@@ -250,7 +250,7 @@ class SendConfigWorker(BaseWorker):
                 self.update_timestamp_only(parsed)
                 self.send_config(device_type, device_uid)
             except Exception as e:
-                raise Exception(f"{e} {body} {message} {parsed}")
+                raise Exception(f"{body} {message} {parsed} {e}")
         except Exception as e:
             self.report_error(f"{self} when handling message: {e}")
 
@@ -264,7 +264,7 @@ class SendConfigWorker(BaseWorker):
             ser = device['serializer'](instance=device_instance)
             return ser.data
         except Exception as e:  # DoesNotExist - fixme: make normal exception
-            raise Exception(f"[DB error] {device_type} {device_uid}: {e}")
+            self.report_error(f"[DB error] {device_type} {device_uid}: {e}")
 
     def send_config(self, device_type, device_uid):
         try:

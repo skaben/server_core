@@ -1,5 +1,6 @@
 from django.db import models
 from .alert import AlertState
+from django.conf import settings
 
 
 class MenuItem(models.Model):
@@ -59,6 +60,11 @@ class WorkMode(models.Model):
     state = models.ManyToManyField(AlertState, blank=True)
     main_header = models.CharField(max_length=48, default="terminal vt40k")
     menu_set = models.ManyToManyField(MenuItem)
+
+    @property
+    def url(self):
+        # well, DRF needed request object for generate URL, but workers don't know about request at all
+        return '/'.join((settings.DEFAULT_DOMAIN, 'api/workmode', f"{self.id}"))
 
     @property
     def has_files(self):
