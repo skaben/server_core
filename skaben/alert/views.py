@@ -9,19 +9,18 @@ from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 
 from core.models import AlertState, AlertCounter
+from core.views import DynamicAuthMixin
 from alert import serializers
 
 
 class AlertStateViewSet(mixins.ListModelMixin,
                         mixins.RetrieveModelMixin,
-                        viewsets.GenericViewSet):
+                        viewsets.GenericViewSet,
+                        DynamicAuthMixin):
     """ Global alert state viewset
 
         warn: only partial_update is allowed - see readonly field in serializer
     """
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
-
     queryset = AlertState.objects.all()
     serializer_class = serializers.AlertStateSerializer
     filter_backends = [DjangoFilterBackend]
@@ -53,8 +52,5 @@ class AlertCounterViewSet(mixins.ListModelMixin,
     """
         Alert counter viewset
     """
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
-
     queryset = AlertCounter.objects.all()
     serializer_class = serializers.AlertCounterSerializer

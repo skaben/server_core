@@ -1,9 +1,5 @@
 from .base import *
 
-STATIC_ROOT = "/static/"
-
-APP_ENV = 'dev'
-
 ALLOWED_HOSTS = ['*']
 
 CORS_ORIGIN_ALLOW_ALL = True
@@ -18,6 +14,13 @@ LOGGING['loggers'].update({
             'propagate': False
         }
 })
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [],
+    'DEFAULT_PERMISSION_CLASSES': [],
+    'UNAUTHENTICATED_USER': None,
+}
 
 
 APPCFG = {

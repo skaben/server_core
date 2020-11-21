@@ -23,6 +23,10 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ['SECRET_KEY']
 STATIC_URL = os.environ['STATIC_URL']
+STATIC_ROOT = "/static/"
+
+#ENVIRONMENT = os.environ.get("DJANGO_ENV")
+ENVIRONMENT = 'dev'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -206,3 +210,6 @@ LOGGING = {
         }
     }
 }
+
+if ENVIRONMENT == 'dev':
+    from .devel import *

@@ -3,22 +3,17 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 
 from core.models import Permission, AccessCode
+from core.views import DynamicAuthMixin
 from access import serializers
 
 
-class AccessCodeViewSet(viewsets.ModelViewSet):
+class AccessCodeViewSet(viewsets.ModelViewSet, DynamicAuthMixin):
     """ Events in database """
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
-
     queryset = AccessCode.objects.all()
     serializer_class = serializers.AccessCodeSerializer
 
 
-class PermissionViewSet(viewsets.ModelViewSet):
+class PermissionViewSet(viewsets.ModelViewSet, DynamicAuthMixin):
     """ Events in database """
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
-
     queryset = Permission.objects.all()
     serializer_class = serializers.PermissionSerializer

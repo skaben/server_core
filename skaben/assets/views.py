@@ -4,76 +4,53 @@ from rest_framework.permissions import IsAuthenticated
 
 from core.models import MenuItem, WorkMode, HackGame, UserInput,\
                         TextFile, ImageFile, AudioFile, VideoFile
+from core.views import DynamicAuthMixin
 from assets import serializers
 
 
-class UserInputViewSet(viewsets.ModelViewSet):
+class UserInputViewSet(viewsets.ModelViewSet, DynamicAuthMixin):
     """ Manage locks in database """
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
-
     queryset = UserInput.objects.all()
     serializer_class = serializers.UserInputSerializer
 
 
-class TextFileViewSet(viewsets.ModelViewSet):
+class TextFileViewSet(viewsets.ModelViewSet, DynamicAuthMixin):
     """ Manage locks in database """
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
-
     queryset = TextFile.objects.all()
     serializer_class = serializers.TextFileSerializer
 
 
-class ImageFileViewSet(viewsets.ModelViewSet):
+class ImageFileViewSet(viewsets.ModelViewSet, DynamicAuthMixin):
     """ Manage locks in database """
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
-
     queryset = ImageFile.objects.all()
     serializer_class = serializers.ImageFileSerializer
 
 
-class AudioFileViewSet(viewsets.ModelViewSet):
+class AudioFileViewSet(viewsets.ModelViewSet, DynamicAuthMixin):
     """ Manage locks in database """
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
-
     queryset = AudioFile.objects.all()
     serializer_class = serializers.AudioFileSerializer
 
 
-class VideoFileViewSet(viewsets.ModelViewSet):
+class VideoFileViewSet(viewsets.ModelViewSet, DynamicAuthMixin):
     """ Manage locks in database """
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
-
     queryset = VideoFile.objects.all()
     serializer_class = serializers.VideoFileSerializer
 
 
-class MenuItemViewSet(viewsets.ModelViewSet):
+class MenuItemViewSet(viewsets.ModelViewSet, DynamicAuthMixin):
     """ Manage locks in database """
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
-
     queryset = MenuItem.objects.all()
     serializer_class = serializers.MenuItemSerializer
 
 
-class WorkModeViewSet(viewsets.ModelViewSet):
+class WorkModeViewSet(viewsets.ModelViewSet, DynamicAuthMixin):
     """ Manage locks in database """
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
-
     queryset = WorkMode.objects.all()
     serializer_class = serializers.WorkModeSerializer
 
 
-class HackGameViewSet(viewsets.ModelViewSet):
+class HackGameViewSet(viewsets.ModelViewSet, DynamicAuthMixin):
     """ Manage locks in database """
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
-
     queryset = HackGame.objects.all()
     serializer_class = serializers.HackGameSerializer

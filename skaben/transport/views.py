@@ -6,6 +6,7 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 
 from core.models import MQTTMessage
+from core.views import DynamicAuthMixin
 from core.tasks.main import run_workers, run_pinger, stop_all
 
 from transport import serializers
@@ -56,10 +57,7 @@ def send(request):
                         status=status.HTTP_403_FORBIDDEN)
 
 
-class MQTTMessageViewSet(viewsets.ModelViewSet):
+class MQTTMessageViewSet(viewsets.ModelViewSet, DynamicAuthMixin):
     """ MQTT message all """
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
-
     queryset = MQTTMessage.objects.all()
     serializer_class = serializers.MQTTMessageSerializer

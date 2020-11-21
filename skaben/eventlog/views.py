@@ -5,15 +5,13 @@ from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 
 from core.models import EventLog
+from core.views import DynamicAuthMixin
 from eventlog import serializers
 from transport.interfaces import send_websocket, send_log
 
 
-class EventLogViewSet(viewsets.ModelViewSet):
+class EventLogViewSet(viewsets.ModelViewSet, DynamicAuthMixin):
     """ Events in database """
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
-
     queryset = EventLog.objects.all()
     serializer_class = serializers.EventLogSerializer
 

@@ -3,23 +3,18 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 
 from core.models import Lock, Terminal #, SimpleLight
+from core.views import DynamicAuthMixin
 from device import serializers
 
 
-class LockViewSet(viewsets.ModelViewSet):
+class LockViewSet(viewsets.ModelViewSet, DynamicAuthMixin):
     """ Manage locks in database """
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
-
     queryset = Lock.objects.all()
     serializer_class = serializers.LockSerializer
 
 
-class TerminalViewSet(viewsets.ModelViewSet):
+class TerminalViewSet(viewsets.ModelViewSet, DynamicAuthMixin):
     """ Manage terminals in database """
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
-
     queryset = Terminal.objects.all()
     serializer_class = serializers.TerminalSerializer
 #
