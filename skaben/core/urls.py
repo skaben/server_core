@@ -34,5 +34,6 @@ urlpatterns = [
     path('auth/login/', login_view, name="login"),
     path('admin/', admin.site.urls),
     path('api/', include((core_router.urls, "core"), namespace="api")),
-    path('transport/', include('transport.urls'))
+    path('transport/', include('transport.urls')),
+    path('device/', include('device.urls'))
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

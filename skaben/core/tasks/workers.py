@@ -3,6 +3,10 @@ import time
 import traceback
 import multiprocessing as mp
 
+from typing import Optional, Union
+
+from kombu import Connection, Exchange
+from kombu.message import Message
 from kombu.mixins import ConsumerProducerMixin
 
 from core.helpers import timestamp_expired, fix_database_conn, get_task_id
@@ -15,10 +19,14 @@ from transport.interfaces import send_websocket, send_log, publish_with_producer
 
 
 class WorkerRunner(mp.Process):
+    """worker process runner"""
 
-    """ Worker process wrapper """
-
-    def __init__(self, worker_class, connection, queues, exchanges, *args, **kwargs):
+    def __init__(self,
+                 worker_class: ConsumerProducerMixin,
+                 connection: Connection,
+                 queues: list,
+                 exchanges: dict,
+                 *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.worker = worker_class(connection, queues, exchanges)
 
@@ -27,22 +35,24 @@ class WorkerRunner(mp.Process):
 
 
 class BaseWorker(ConsumerProducerMixin):
+    """abstract Worker class"""
 
-    """ Base Worker class """
-
-    def __init__(self, connection, queues, exchanges):
+    def __init__(self,
+                 connection: Connection,
+                 queues: list,
+                 exchanges: dict):
         self.connection = connection
         self.queues = queues
         self.exchanges = exchanges
 
-    @fix_database_conn
-    def handle_message(self, body, message):
-        """ Parse MQTT message to dict or return untouched if already dict """
+    def handle_message(self, body: Union[str, dict], message: Message) -> dict:
+        """parse MQTT message to dict or return untouched if it's already dict
+
+           only messages which comes with 'ask.*' routing key should be parsed
+        """
         try:
             rk = message.delivery_info.get('routing_key').split('.')
             if rk[0] == 'ask':
-                # only messages from mqtt comes with 'ask.*' routing key
-                # only this type of message should be parsed
                 try:
                     rk = rk[1:]
                 except Exception as e:
@@ -58,75 +68,84 @@ class BaseWorker(ConsumerProducerMixin):
                 if parsed.get("device_type") in ['lock', 'terminal']:
                     parsed.update(self.parse_smart(data))
                 else:
-                    parsed.update({"datahold": data})
+                    parsed.update(datahold=data)
                 return parsed
             else:
-                # messages not from mqtt is already parsed
+                # just return already parsed message
                 return body
         except Exception:
             raise
 
-    def publish(self, payload, exchange, routing_key):
+    def publish(self, payload: dict, exchange: Exchange, routing_key: str):
+        """publish abstract method"""
         publish_with_producer(payload, exchange, routing_key, self.producer)
 
-    def parse_json(self, json_data=None):
-        if isinstance(json_data, dict) or not json_data:
+    @staticmethod
+    def parse_json(json_data: Optional[str] = None) -> dict:
+        """get dict from json"""
+        if isinstance(json_data, dict):
             return json_data
+
+        if not json_data:
+            return {}
 
         try:
             return json.loads(json_data)
         except Exception:
             return f"{json_data}"
 
-    def parse_basic(self, routing_key):
+    @staticmethod
+    def parse_basic(routing_key: str) -> dict:
+        """get device parameters from topic name (routing key)"""
         device_type, device_uid, command = routing_key
         return dict(device_type=device_type,
                     device_uid=device_uid,
                     command=command)
 
-    def parse_smart(self, data):
-        parsed = f"{data}"
+    def parse_smart(self, data: dict) -> dict:
+        """get additional data-fields from smart device"""
+        parsed = {'datahold': f'{data}'}
         if isinstance(data, dict):
             parsed = dict(
                 timestamp=int(data.get('timestamp', 0)),
                 task_id=data.get('task_id'),
-                datahold=self.parse_json(data.get('datahold')),
+                datahold=self.parse_json(data.get('datahold', {})),
             )
         return parsed
 
-    def update_timestamp_only(self, parsed, timestamp=None):
+    def update_timestamp_only(self, parsed: dict, timestamp: Union[str, int] = None):
         timestamp = int(time.time()) if not timestamp else timestamp
         parsed['timestamp'] = timestamp
-        parsed['datahold'] = {"timestamp": timestamp}
-        parsed['command'] = "SUP"
+        parsed['datahold'] = {'timestamp': timestamp}
+        parsed['command'] = 'SUP'
         self.save_device_config(parsed)
 
-    def push_device_config(self, parsed):
+    def push_device_config(self, parsed: dict):
+        """send config to device (emulates config request from device'"""
         routing_key = f"{parsed['device_type']}.{parsed['device_uid']}.CUP"
         self.publish(parsed,
                      exchange=self.exchanges.get('ask'),
                      routing_key=routing_key)
 
-    def save_device_config(self, parsed):
+    def save_device_config(self, parsed: dict):
+        """save device config"""
         self.publish(parsed,
                      exchange=self.exchanges.get('internal'),
-                     routing_key="save")
+                     routing_key='save')
 
-    def device_not_found(self, device_type, device_uid):
-        """ Spawn notification to front about new device """
-        raise NotImplementedError
-
-    def report(self, message, level='info'):
-        """ report message """
+    def report(self, message: Union[dict, str], level: str = 'info'):
+        """report message"""
         if not isinstance(message, dict):
-            message = {"message": message}
+            message = {'message': message}
+        message.update(timestamp=int(time.time()))
         send_log(message, level, self.producer)
 
-    def report_error(self, message):
-        """ report exceptions or unwanted behavior """
+    def report_error(self, message: str):
+        """report unwanted behavior"""
         self.report(message, "error")
 
-    def send_websocket(self, message, level="info", access="root"):
+    def send_websocket(self, message: str, level: str = "info", access: str = "root"):
+        """prepare data and send via _external_ `send_websocket` function"""
         payload = {
             "message": message,
             "level": level,
@@ -136,22 +155,21 @@ class BaseWorker(ConsumerProducerMixin):
         }
         return send_websocket(payload, level, access, self.producer)
 
-    def get_consumers(self, Consumer, channel):
-        """ Setup consumer and assign callback """
-        consumer = Consumer(queues=self.queues,
-                            accept=['json'],
-                            callbacks=[self.handle_message])
-        return [consumer]
+    def get_consumers(self, consumer, channel):
+        """setup consumer and assign callback"""
+        _consumer = consumer(queues=self.queues,
+                             accept=['json'],
+                             callbacks=[self.handle_message])
+        return [_consumer]
 
     def __str__(self):
         return f"{self.__class__.__name__}"
 
 
 class LogWorker(BaseWorker):
+    """log messages (events) worker"""
 
-    """ Worker log messages """
-
-    def handle_message(self, body, message):
+    def handle_message(self, body: Union[str, dict], message: Message):
         try:
             parsed = super().handle_message(body, message)
             access = "root"
@@ -166,25 +184,41 @@ class LogWorker(BaseWorker):
                 access=access
             )
 
-            serializer = EventLogSerializer(data=data)
-            if serializer.is_valid():
-                serializer.save()
-
-            send_websocket(**data)
+            self.send_to_endpoints(data)
+            self.save_message(data)
             message.ack()
         except Exception as e:
             self.report_error(f"{self} when handling message: {e}")
 
+    @staticmethod
+    def send_to_endpoints(data):
+        """send to websocket endpoint"""
+        send_websocket(**data)
+
+    @staticmethod
+    def save_message(data: dict):
+        """save message as log record"""
+        serializer = EventLogSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+
 
 class SaveWorker(BaseWorker):
-
-    """ Worker updates database """
+    """update database worker"""
 
     smart = DEVICES
 
+    def device_not_found(self, device_type: str, device_uid: str):
+        """spawn notification about unregistered device"""
+        raise NotImplementedError
+
     @fix_database_conn
-    def handle_message(self, body, message):
-        """ handling server update message """
+    def handle_message(self, body: Union[str, dict], message: Message):
+        """handling server update message
+
+           save device state to database without sending update packet (CUP) back
+           serializer context {"no_send": True} do the trick
+        """
         try:
             parsed = super().handle_message(body, message)
             message.ack()
@@ -206,11 +240,12 @@ class SaveWorker(BaseWorker):
             data = parsed["datahold"]
             serializer = device["serializer"](device_instance,
                                               data=data,
-                                              partial=True)
+                                              partial=True,
+                                              context={"no_send": True})
 
             if serializer.is_valid():
                 serializer.save()
-                filtered = {k:v for k,v in data.items() if k != "timestamp"}
+                filtered = {k: v for k, v in data.items() if k != "timestamp"}
                 if filtered:
                     self.report(f"{_type} {_uid} updated - {filtered}")
 
@@ -219,10 +254,12 @@ class SaveWorker(BaseWorker):
 
 
 class PingPongWorker(BaseWorker):
+    """update timestamp or send back config if timestamp outdated
 
-    """ Worker receives PONG, updates timestamp or send back config """
+       NOTE: all keep-alive timeouts are set in django.settings.APPCFG
+    """
 
-    def handle_message(self, body, message):
+    def handle_message(self, body: Union[str, dict], message: Message):
         try:
             parsed = super().handle_message(body, message)
             if timestamp_expired(parsed['timestamp']):
@@ -235,12 +272,12 @@ class PingPongWorker(BaseWorker):
 
 
 class SendConfigWorker(BaseWorker):
-    """ Worker send config to clients (CUP) """
+    """send config update to clients (CUP)"""
 
     smart = DEVICES
 
     @fix_database_conn
-    def handle_message(self, body, message):
+    def handle_message(self, body: Union[str, dict], message: Message):
         try:
             parsed = super().handle_message(body, message)
             device_type = parsed.get('device_type')
@@ -254,7 +291,7 @@ class SendConfigWorker(BaseWorker):
         except Exception as e:
             self.report_error(f"{self} when handling message: {e}")
 
-    def get_config(self, device_type, device_uid):
+    def get_config(self, device_type: str, device_uid: str) -> dict:
         device = self.smart.get(device_type)
         if not device:
             return self.report_error(f"device not in smart list, but CUP received: {device_type}")
@@ -266,7 +303,7 @@ class SendConfigWorker(BaseWorker):
         except Exception as e:  # DoesNotExist - fixme: make normal exception
             self.report_error(f"[DB error] {device_type} {device_uid}: {e}")
 
-    def send_config(self, device_type, device_uid):
+    def send_config(self, device_type: str, device_uid: str):
         try:
             config = self.get_config(device_type, device_uid)
         except Exception:
@@ -285,8 +322,10 @@ class SendConfigWorker(BaseWorker):
 
 
 class AckNackWorker(BaseWorker):
+    """checks task_id and mark it as success/fail
 
-    """ Worker checks task_id and mark it as success/fail """
+       todo: work in process
+    """
 
     def handle_message(self, body, message):
         message.ack()
@@ -309,14 +348,8 @@ class AckNackWorker(BaseWorker):
 
 
 class StateUpdateWorker(BaseWorker):
+    """apply scenarios based on SUP/INFO messages"""
 
-    """ Worker apply scenarios based on SUP/INFO messages """
-
-    def filter_before_send_to_log(self, parsed):
-        allowed = ['datahold']
-        return {k:v for k,v in parsed.items() if k in allowed}
-
-    @fix_database_conn
     def handle_message(self, body, message):
         try:
             parsed = super().handle_message(body, message)
@@ -325,8 +358,8 @@ class StateUpdateWorker(BaseWorker):
             if parsed.get("command") == "SUP":
                 self.save_device_config(parsed)
             else:
-                ident = f"{parsed['device_type']}_{parsed['device_uid']} {parsed['command']}"
-                self.report(f"{ident} new info message - {parsed.get('datahold')}")
+                ident = '{device_type}_{device_uid} {command}'.format(**parsed)
+                self.report(f"{ident} :: {parsed.get('datahold', {})}")
 
             #try:
             #    scenario.new(parsed)

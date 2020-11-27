@@ -10,8 +10,11 @@ class DeviceSerializer(serializers.ModelSerializer):
     def save(self):
         if self.context and self.context.get('no_send'):
             return super().save()
-        send_unicast_mqtt(self.topic, self.instance.uid, 'CUP', self.validated_data)
+        self.send_config()
         super().save()
+
+    def send_config(self):
+        return send_unicast_mqtt(self.topic, self.instance.uid, 'CUP', self.validated_data)
 
 
 class LockSerializer(DeviceSerializer):
@@ -38,7 +41,7 @@ class TerminalSerializer(DeviceSerializer):
     class Meta:
         model = Terminal
         exclude = ("id", "info", "override", "ip", 'uid')
-        read_only_fields = ('id', 'online', "timestamp", "modes_normal", "modes_extended")
+        read_only_fields = ('id', 'online', 'timestamp', 'modes_normal', 'modes_extended', 'alert')
 
 
 class TerminalMQTTSerializer(DeviceSerializer):
@@ -47,6 +50,7 @@ class TerminalMQTTSerializer(DeviceSerializer):
     topic = 'terminal'
     file_list = serializers.ReadOnlyField()
     mode_list = serializers.ReadOnlyField()
+    alert = serializers.ReadOnlyField()
 
     class Meta:
         model = Terminal

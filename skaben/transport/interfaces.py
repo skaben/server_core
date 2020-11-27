@@ -1,27 +1,24 @@
+import json
 import time
 import traceback
+
 from transport.rabbitmq import exchanges, pool, connection
 
 
-def publish_without_producer(body, exchange, routing_key, timeout=2):
-    try:
-        with pool.acquire(block=True, timeout=timeout) as channel:
-            prod = connection.Producer(channel)
-            prod.publish(body,
-                         exchange=exchange,
-                         routing_key=routing_key)
-    except Exception:
-        raise
+def publish_without_producer(body: dict, exchange: str, routing_key: str):
+    with pool.acquire() as channel:
+        prod = connection.Producer(channel)
+        prod.publish(body,
+                     exchange=exchange,
+                     routing_key=routing_key,
+                     retry=True)
 
         
-def publish_with_producer(body, exchange, routing_key, producer):
-    try:
-        producer.publish(body,
-                         exchange=exchange,
-                         routing_key=routing_key,
-                         retry=True)
-    except Exception:
-        raise
+def publish_with_producer(body: dict, exchange: str, routing_key: str, producer):
+    producer.publish(body,
+                     exchange=exchange,
+                     routing_key=routing_key,
+                     retry=True)
 
         
 def send_log(message, level="INFO", producer=None):

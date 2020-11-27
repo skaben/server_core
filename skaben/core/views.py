@@ -35,7 +35,7 @@ def login_view(request):
         <title>login</title>
       </head>
       <body>
-      It is now redirected.
+      permission denied.
       </body>
     </html>
     """

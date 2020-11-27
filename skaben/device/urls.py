@@ -12,4 +12,5 @@ router.register('terminal', views.TerminalViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('update/', views.update_devices)
 ]

@@ -13,6 +13,7 @@ urlpatterns = [
     path('start/', views.start),
     path('stop/', views.stop),
     path('ping/', views.ping),
+    path('status/', views.healthcheck)
 ]
 
 # path('status/', views.stop),

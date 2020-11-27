@@ -2,7 +2,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 
 from core.models import AlertState, Lock #, SimpleLight #Terminal, Simple
-from device.services import save_devices
+from device.services import update_smart_devices
 from transport.interfaces import send_mqtt
 
 
@@ -150,7 +150,7 @@ class StateManager:
                             hack_chance=10,
                             hack_attempts=4)
 
-        save_devices('lock', lock_payload, self.locks)
+        #save_devices('lock', lock_payload, self.locks)
         #self.terms.update(**term_payload)
 
     def blue(self):
@@ -163,7 +163,7 @@ class StateManager:
         lock_payload = self.standart_lock
         term_payload = self.standart_term
 
-        save_devices('lock', lock_payload, self.locks)
+        #save_devices('lock', lock_payload, self.locks)
         #self.terms.update(**term_payload)
 
     def cyan(self):
@@ -175,7 +175,7 @@ class StateManager:
         self.indicate("0,255,255")
         lock_payload = self.standart_lock
         term_payload = self.standart_term
-        save_devices('lock', lock_payload, self.locks)
+        #save_devices('lock', lock_payload, self.locks)
         #self.terms.update(**term_payload)
 
     def green(self):
@@ -197,7 +197,7 @@ class StateManager:
                             hack_difficulty=6
         )
 
-        save_devices('lock', lock_payload, self.locks)
+        #save_devices('lock', lock_payload, self.locks)
         #self.terms.update(**term_payload)
 
     def yellow(self):
@@ -217,7 +217,7 @@ class StateManager:
             lock_payload.update({"blocked": False})
             term_payload.update({"blocked": False})
 
-        save_devices('lock', lock_payload, self.locks)
+        #save_devices('lock', lock_payload, self.locks)
         #self.terms.update(**term_payload)
 
     def red(self):
@@ -237,7 +237,7 @@ class StateManager:
             lock_payload.update({"blocked": False})
             term_payload.update({"blocked": False})
 
-        save_devices('lock', lock_payload, self.locks)
+        #save_devices('lock', lock_payload, self.locks)
         #self.terms.update(**term_payload)
 
     def black(self):
@@ -255,7 +255,7 @@ class StateManager:
                             blocked=True,
         )
 
-        save_devices('lock', lock_payload, self.locks)
+        #save_devices('lock', lock_payload, self.locks)
         #self.terms.update(**term_payload)
 
     def __enter__(self):

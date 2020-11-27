@@ -7,7 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from core.models import MQTTMessage
 from core.views import DynamicAuthMixin
-from core.tasks.main import run_workers, run_pinger, stop_all
+from core.tasks.main import run_workers, run_pinger, stop_all, WORKERS, RECURRENT
 
 from transport import serializers
 from transport.interfaces import send_message_over_mqtt, send_log
@@ -55,6 +55,11 @@ def send(request):
     except Exception as e:
         return Response({'exception': f'{e}'},
                         status=status.HTTP_403_FORBIDDEN)
+
+
+@api_view(http_method_names=['GET'])
+def healthcheck(request):
+    return Response({'workers': WORKERS, 'recurrent': RECURRENT})
 
 
 class MQTTMessageViewSet(viewsets.ModelViewSet, DynamicAuthMixin):
