@@ -58,7 +58,8 @@ class WorkMode(models.Model):
 
     name = models.CharField(max_length=48, default="terminal mode")
     state = models.ManyToManyField(AlertState, blank=True)
-    main_header = models.CharField(max_length=48, default="terminal vt40k")
+    header = models.CharField(max_length=48, default="terminal vt40k")
+    footer = models.CharField(max_length=48, default="unauthorized access is strictly prohibited")
     menu_set = models.ManyToManyField(MenuItem)
 
     @property

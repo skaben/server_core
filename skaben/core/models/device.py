@@ -3,6 +3,7 @@ from django.db import models
 from django.conf import settings
 
 from .menu import WorkMode
+from .alert import AlertState
 
 
 class DeviceMixin:
@@ -79,6 +80,11 @@ class Terminal(ComplexDevice):
             "extended": get_mode_url(self.modes_extended)
         }
 
+    @property
+    def alert(self):
+        state = AlertState.objects.filter(current=True).first()
+        _id = state.id if state else 0
+        return str(_id)
 
     @property
     def file_list(self):

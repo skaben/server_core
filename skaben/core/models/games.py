@@ -3,6 +3,11 @@ from django.db import models
 
 class HackGame(models.Model):
 
+    """Fallout-style hacking game
+
+       difficulty choices is a length of words
+    """
+
     easy = 6
     normal = 8
     medium = 10
