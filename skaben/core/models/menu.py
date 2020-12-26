@@ -72,7 +72,8 @@ class WorkMode(models.Model):
         files = {}
         for item in self.menu_set.all():
             related = getattr(item, item.option)
-            files.update({related.hash: related.uri})
+            if hasattr(related, 'hash'):
+                files.update({related.hash: related.uri})
         return files
 
     def __str__(self):
