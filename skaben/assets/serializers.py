@@ -92,7 +92,6 @@ class MenuItemSerializer(serializers.ModelSerializer):
 class WorkModeSerializer(serializers.ModelSerializer):
 
     menu_set = MenuItemSerializer(many=True)
-    has_files = serializers.ReadOnlyField()
 
     class Meta:
         model = WorkMode
