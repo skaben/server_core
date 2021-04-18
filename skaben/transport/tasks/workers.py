@@ -120,7 +120,7 @@ class BaseWorker(ConsumerProducerMixin):
 
     def push_device_config(self, parsed: dict):
         """send config to device (emulates config request from device'"""
-        routing_key = f"{parsed['device_type']}.{parsed['device_uid']}.CUP"
+        routing_key = f"{parsed['device_type']}.{parsed['device_uid']}.cup"
         self.publish(parsed,
                      exchange=self.exchanges.get('ask'),
                      routing_key=routing_key)
@@ -316,7 +316,7 @@ class SendConfigWorker(BaseWorker):
         )
         self.publish(packet.payload,
                      exchange=self.exchanges.get('mqtt'),
-                     routing_key=f"{device_type}.{device_uid}.CUP")
+                     routing_key=f"{device_type}.{device_uid}.cup")
 
 
 class AckNackWorker(BaseWorker):
