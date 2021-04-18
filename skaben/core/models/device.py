@@ -4,7 +4,7 @@ from django.conf import settings
 from django.db import models
 
 from .alert import AlertState
-from .menu import WorkMode
+from .device_config import WorkMode, SimpleConfig
 
 
 class DeviceMixin:
@@ -25,7 +25,7 @@ class ComplexDevice(models.Model, DeviceMixin):
 
     uid = models.CharField(max_length=16, unique=True)
     info = models.CharField(max_length=128, default='smart complex device')
-    ip = models.GenericIPAddressField()
+    ip = models.GenericIPAddressField(null=True, blank=True)
     timestamp = models.IntegerField(default=int(time.time()))
     override = models.BooleanField(default=False)
 
@@ -100,7 +100,6 @@ class Terminal(ComplexDevice):
         return f"KONSOLE {self.ip} {self.info}"
 
 
-
 class Simple(models.Model, DeviceMixin):
     """
         Simple dumb device, such as lights, sirens, rgb-leds
@@ -108,33 +107,15 @@ class Simple(models.Model, DeviceMixin):
     """
 
     class Meta:
-        abstract = True
-        verbose_name = 'Устройство пассивное'
-        verbose_name_plural = 'Устройства пассивные'
+        verbose_name = 'Клиент пассивный'
+        verbose_name_plural = 'Клиенты пассивные'
 
     timestamp = models.IntegerField(default=int(time.time()))
     uid = models.CharField(max_length=16, unique=True)
     online = models.BooleanField(default=False)
-    ip = models.GenericIPAddressField()
+    ip = models.GenericIPAddressField(blank=True)
+    subtype = models.CharField(max_length=16)
+    config = models.ManyToManyField(SimpleConfig, blank=True, default=None)
 
     def __str__(self):
-        return 'not implemented'
-        #return f'DUMB ID: {self.id} {self.info}'
-
-
-class SimpleLight(Simple):
-    """
-        Simple dumb device, such as lights, sirens, rgb-leds
-    """
-
-    class Meta:
-        verbose_name = 'Устройство RGB пассивное'
-        verbose_name_plural = 'Устройства RGB пассивные'
-
-    light = models.CharField(max_length=1024)
-    rgb = models.CharField(max_length=1024)
-    strobe = models.CharField(max_length=1024)
-    subtype = models.CharField(max_length=16, default='rgb')
-
-    def __str__(self):
-        return f'RGB light device {self.id} {self.info}'
+        return f'Simple Device {self.subtype}: {self.id} {self.info}'

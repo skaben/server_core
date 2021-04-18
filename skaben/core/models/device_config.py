@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.contrib.postgres.fields import JSONField
 from django.db import models
 
 from .alert import AlertState
@@ -79,3 +80,19 @@ class WorkMode(models.Model):
 
     def __str__(self):
         return f"Mode <{self.name}>"
+
+
+class SimpleConfig(models.Model):
+    """
+        Simple dumb device, such as lights, sirens, rgb-leds
+    """
+
+    class Meta:
+        verbose_name = 'Клиент ('
+        verbose_name_plural = 'Конфиг тупых устройств'
+
+    config = JSONField()
+    state = models.ManyToManyField(AlertState, blank=True)
+
+    def __str__(self):
+        return f'Simple Config [state: {self.state}] {self.config}'
