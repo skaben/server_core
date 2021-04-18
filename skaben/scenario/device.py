@@ -1,8 +1,9 @@
 from typing import Optional
 
+from django.conf import settings
+
 from core import models
 from device import serializers
-from django import settings
 from transport.interfaces import publish_without_producer, send_log
 from transport.rabbitmq import exchanges
 
