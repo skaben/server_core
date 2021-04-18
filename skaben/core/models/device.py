@@ -3,7 +3,7 @@ import time
 from django.conf import settings
 from django.db import models
 
-from .alert import AlertState
+from .alert import AlertState, get_current_alert_state
 from .device_config import WorkMode, SimpleConfig
 
 
@@ -83,9 +83,8 @@ class Terminal(ComplexDevice):
 
     @property
     def alert(self):
-        state = AlertState.objects.filter(current=True).first()
-        _id = state.id if state else 0
-        return str(_id)
+        return str(get_current_alert_state())
+
 
     @property
     def file_list(self):
@@ -112,10 +111,19 @@ class Simple(models.Model, DeviceMixin):
 
     timestamp = models.IntegerField(default=int(time.time()))
     uid = models.CharField(max_length=16, unique=True)
-    online = models.BooleanField(default=False)
-    ip = models.GenericIPAddressField(blank=True)
-    subtype = models.CharField(max_length=16)
-    config = models.ManyToManyField(SimpleConfig, blank=True, default=None)
+    ip = models.GenericIPAddressField(null=True, blank=True)
+    dev_type = models.CharField(max_length=16)
+
+    @property
+    def config(self):
+        state = get_current_alert_state()
+        simple_config = SimpleConfig.objects.filter(
+            dev_type=self.dev_type,
+            state__id__lte=state
+            ).order_by('state__order').all()
+        if simple_config:
+            return simple_config.last().config
+        return {}
 
     def __str__(self):
-        return f'Simple Device {self.subtype}: {self.id} {self.info}'
+        return f'device {self.dev_type} {self.uid} config: {self.config}'

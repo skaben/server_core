@@ -60,10 +60,6 @@ class AlertService:
     def set_state_current(instance):
         try:
             if not instance.current:
-                qs = AlertState.objects.filter(current=True)
-                with StateManager() as manager:
-                    manager.apply(instance.name, service=True)
-                qs.update(current=False)
                 instance.current = True
                 instance.save()
                 send_config_all()

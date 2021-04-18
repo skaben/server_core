@@ -9,6 +9,8 @@ class WorkModeAdmin(admin.ModelAdmin):
 class DeviceAdmin(admin.ModelAdmin):
     readonly_fields = ('timestamp',)
 
+class SimpleConfigAdmin(admin.ModelAdmin):
+    readonly_fields = ('config',)
 
 class FileAdmin(admin.ModelAdmin):
     exclude = ('hash',)
@@ -23,7 +25,8 @@ admin.site.register(models.EventLog)
 admin.site.register(models.Lock, DeviceAdmin)
 admin.site.register(models.MenuItem)
 admin.site.register(models.Permission)
-# admin.site.register(models.SimpleLight)
+admin.site.register(models.Simple)
+admin.site.register(models.SimpleConfig)
 admin.site.register(models.Terminal, DeviceAdmin)
 admin.site.register(models.WorkMode, WorkModeAdmin)
 admin.site.register(models.TextFile)
