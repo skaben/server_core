@@ -112,7 +112,7 @@ class Simple(models.Model, DeviceMixin):
     timestamp = models.IntegerField(default=int(time.time()))
     uid = models.CharField(max_length=16, unique=True)
     online = models.BooleanField(default=False)
-    ip = models.GenericIPAddressField(blank=True)
+    ip = models.GenericIPAddressField(null=True, blank=True)
     dev_type = models.CharField(max_length=16)
 
     @property

@@ -1,5 +1,5 @@
 from django.apps import AppConfig
 
 
-class PermissionsConfig(AppConfig):
-    name = 'permissions'
+class AccessConfig(AppConfig):
+    name = 'access'
