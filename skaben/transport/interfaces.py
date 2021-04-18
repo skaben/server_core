@@ -85,12 +85,3 @@ def send_message_over_mqtt(topic, uid, command, payload=None):
     if payload:
         data["datahold"] = payload
     send_mqtt(f"{topic}.{uid}.{command}", data)
-
-
-def send_unicast_mqtt(topic, uid, command, payload=None):
-    send_message_over_mqtt(topic, uid, command, payload)
-
-
-def send_broadcast_mqtt(topic, command, payload=None):
-    # FIXME: YAGNI
-    send_message_over_mqtt(topic, 'all', command, payload)
