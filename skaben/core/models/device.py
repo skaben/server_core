@@ -111,15 +111,19 @@ class Simple(models.Model, DeviceMixin):
 
     timestamp = models.IntegerField(default=int(time.time()))
     uid = models.CharField(max_length=16, unique=True)
-    online = models.BooleanField(default=False)
     ip = models.GenericIPAddressField(null=True, blank=True)
     dev_type = models.CharField(max_length=16)
 
     @property
     def config(self):
         state = get_current_alert_state()
-        simple_config = SimpleConfig.objects.filter(dev_type=self.dev_type, state__id=state)
-        return simple_config.config
+        simple_config = SimpleConfig.objects.filter(
+            dev_type=self.dev_type,
+            state__id__lte=state
+            ).order_by('state__order').all()
+        if simple_config:
+            return simple_config.last().config
+        return {}
 
     def __str__(self):
-        return f'Simple Device {self.subtype}: {self.id} {self.info}'
+        return f'device {self.dev_type} {self.uid} config: {self.config}'
