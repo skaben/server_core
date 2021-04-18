@@ -1,5 +1,4 @@
 from django.conf import settings
-from django.contrib.postgres.fields import JSONField
 from django.db import models
 
 from .alert import AlertState
@@ -91,7 +90,8 @@ class SimpleConfig(models.Model):
         verbose_name = 'Клиент ('
         verbose_name_plural = 'Конфиг тупых устройств'
 
-    config = JSONField()
+    config = models.JSONField()
+    dev_type = models.CharField(max_length=16)
     state = models.ManyToManyField(AlertState, blank=True)
 
     def __str__(self):

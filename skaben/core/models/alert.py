@@ -42,3 +42,7 @@ class AlertState(models.Model):
         else:
             return s
 
+
+def get_current_alert_state() -> int:
+    state = AlertState.objects.filter(current=True).first()
+    return state.id if state else 0
