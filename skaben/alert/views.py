@@ -31,10 +31,11 @@ class AlertStateViewSet(mixins.ListModelMixin,
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
         # calling update, passing instance
+        update_data = {'current': True}
         serializer = serializers.AlertStateSerializer(instance=state,
-                                                      data={'current': True})
+                                                      data=update_data)
         if serializer.is_valid():
-            serializer.save()
+            serializer.update(state, update_data)
             return Response('state successfully updated',
                             status=status.HTTP_200_OK)
         else:

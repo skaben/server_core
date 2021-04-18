@@ -3,8 +3,8 @@ import time
 from django.conf import settings
 from django.db import models
 
-from .alert import AlertState
-from .menu import WorkMode
+from .alert import AlertState, get_current_alert_state
+from .device_config import WorkMode, SimpleConfig
 
 
 class DeviceMixin:
@@ -25,7 +25,7 @@ class ComplexDevice(models.Model, DeviceMixin):
 
     uid = models.CharField(max_length=16, unique=True)
     info = models.CharField(max_length=128, default='smart complex device')
-    ip = models.GenericIPAddressField()
+    ip = models.GenericIPAddressField(null=True, blank=True)
     timestamp = models.IntegerField(default=int(time.time()))
     override = models.BooleanField(default=False)
 
@@ -83,9 +83,8 @@ class Terminal(ComplexDevice):
 
     @property
     def alert(self):
-        state = AlertState.objects.filter(current=True).first()
-        _id = state.id if state else 0
-        return str(_id)
+        return str(get_current_alert_state())
+
 
     @property
     def file_list(self):
@@ -100,7 +99,6 @@ class Terminal(ComplexDevice):
         return f"KONSOLE {self.ip} {self.info}"
 
 
-
 class Simple(models.Model, DeviceMixin):
     """
         Simple dumb device, such as lights, sirens, rgb-leds
@@ -108,33 +106,24 @@ class Simple(models.Model, DeviceMixin):
     """
 
     class Meta:
-        abstract = True
-        verbose_name = 'Устройство пассивное'
-        verbose_name_plural = 'Устройства пассивные'
+        verbose_name = 'Клиент пассивный'
+        verbose_name_plural = 'Клиенты пассивные'
 
     timestamp = models.IntegerField(default=int(time.time()))
     uid = models.CharField(max_length=16, unique=True)
-    online = models.BooleanField(default=False)
-    ip = models.GenericIPAddressField()
+    ip = models.GenericIPAddressField(null=True, blank=True)
+    dev_type = models.CharField(max_length=16)
+
+    @property
+    def config(self):
+        state = get_current_alert_state()
+        simple_config = SimpleConfig.objects.filter(
+            dev_type=self.dev_type,
+            state__id__lte=state
+            ).order_by('state__order').all()
+        if simple_config:
+            return simple_config.last().config
+        return {}
 
     def __str__(self):
-        return 'not implemented'
-        #return f'DUMB ID: {self.id} {self.info}'
-
-
-class SimpleLight(Simple):
-    """
-        Simple dumb device, such as lights, sirens, rgb-leds
-    """
-
-    class Meta:
-        verbose_name = 'Устройство RGB пассивное'
-        verbose_name_plural = 'Устройства RGB пассивные'
-
-    light = models.CharField(max_length=1024)
-    rgb = models.CharField(max_length=1024)
-    strobe = models.CharField(max_length=1024)
-    subtype = models.CharField(max_length=16, default='rgb')
-
-    def __str__(self):
-        return f'RGB light device {self.id} {self.info}'
+        return f'device {self.dev_type} {self.uid} config: {self.config}'

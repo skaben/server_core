@@ -3,7 +3,7 @@ import time
 import traceback
 
 from django.conf import settings
-from transport.interfaces import send_broadcast_mqtt, send_log
+from transport.interfaces import send_message_over_mqtt, send_log
 
 
 class Pinger(mp.Process):
@@ -19,7 +19,7 @@ class Pinger(mp.Process):
         while self.running:
             try:
                 for topic in self.topics:
-                    send_broadcast_mqtt(topic, 'PING')
+                    send_message_over_mqtt(topic, 'all', 'PING')
                     time.sleep(self.timeout)
             except Exception:
                 send_log(f"{self.__class__.__name__} while running {traceback.format_exc()}")

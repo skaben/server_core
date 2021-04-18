@@ -1,8 +1,9 @@
 from typing import Optional
 
+from django.conf import settings
+
 from core import models
 from device import serializers
-from django import settings
 from transport.interfaces import publish_without_producer, send_log
 from transport.rabbitmq import exchanges
 
@@ -35,7 +36,7 @@ def send_config_all(include_overrided: Optional[bool] = False):
                 'device_type': dev,
                 'device_uid': device.uid
             }
-            rk = '{device_type}.{device_uid}.CUP'.format(**payload)
+            rk = '{device_type}.{device_uid}.cup'.format(**payload)
             try:
                 publish_without_producer(body=payload,
                                          exchange=exchanges.get('ask'),

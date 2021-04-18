@@ -10,36 +10,36 @@ MAIN_EXCHANGE = exchanges.get('internal')
 pong_queue = Queue('pong',
                    durable=False,
                    exchange=ASK_EXCHANGE,
-                   routing_key='#.PONG')
+                   routing_key='#.pong')
 
 # sending configs to client
 cup_queue = Queue('cup',
                   durable=False,
                   exchange=ASK_EXCHANGE,
-                  routing_key='#.CUP')
+                  routing_key='#.cup')
 
 # receive updates from clients
 sup_queue = Queue('sup',
                   durable=False,
                   exchange=ASK_EXCHANGE,
-                  routing_key="#.SUP")
+                  routing_key="#.sup")
 
 info_queue = Queue('info',
                    durable=False,
                    exchange=ASK_EXCHANGE,
-                   routing_key="#.INFO")
+                   routing_key="#.info")
 
 # task confirm as susccess
 ack_queue = Queue('ack',
                   durable=False,
                   exchange=ASK_EXCHANGE,
-                  routing_key='#.ACK')
+                  routing_key='#.ack')
 
 # task confirm as fail
 nack_queue = Queue('nack',
                    durable=False,
                    exchange=ASK_EXCHANGE,
-                   routing_key='#.NACK')
+                   routing_key='#.nack')
 
 # internal exchange
 

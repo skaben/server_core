@@ -1,7 +1,7 @@
 from assets.serializers import WorkModeSerializer
 from core.models import Lock, Terminal
 from rest_framework import serializers
-from transport.interfaces import send_unicast_mqtt
+from transport.interfaces import send_message_over_mqtt
 
 
 class DeviceSerializer(serializers.ModelSerializer):
@@ -13,7 +13,7 @@ class DeviceSerializer(serializers.ModelSerializer):
         super().save()
 
     def send_config(self):
-        return send_unicast_mqtt(self.topic, self.instance.uid, 'CUP', self.validated_data)
+        return send_message_over_mqtt(self.topic, self.instance.uid, 'CUP', self.validated_data)
 
 
 class LockSerializer(DeviceSerializer):

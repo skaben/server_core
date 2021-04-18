@@ -96,3 +96,8 @@ class WorkModeSerializer(serializers.ModelSerializer):
     class Meta:
         model = WorkMode
         exclude = ("id", "name",)
+
+
+class SimpleConfigSerializer(serializers.ModelSerializer):
+
+    pass
