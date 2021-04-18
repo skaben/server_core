@@ -1,13 +1,11 @@
+from core.models import EventLog
+from core.views import DynamicAuthMixin
+from django_filters.rest_framework import DjangoFilterBackend
+from eventlog import serializers
 from rest_framework import viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
-
-from django_filters.rest_framework import DjangoFilterBackend
-
-from core.models import EventLog
-from core.views import DynamicAuthMixin
-from eventlog import serializers
-from transport.interfaces import send_websocket, send_log
+from transport.interfaces import send_log, send_websocket
 
 
 class EventLogViewSet(viewsets.ModelViewSet, DynamicAuthMixin):

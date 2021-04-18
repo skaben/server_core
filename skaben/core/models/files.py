@@ -1,9 +1,9 @@
 import hashlib
 
-from django.db import models
 from assets import storages
-from django.conf import settings
 from core.helpers import simple_hash
+from django.conf import settings
+from django.db import models
 
 
 class File(models.Model):

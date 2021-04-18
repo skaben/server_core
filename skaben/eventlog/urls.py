@@ -1,7 +1,6 @@
-from django.urls import path, include
-from rest_framework.routers import SimpleRouter
-
+from django.urls import include, path
 from eventlog import views
+from rest_framework.routers import SimpleRouter
 
 app_name = 'eventlog'
 

@@ -1,12 +1,11 @@
-from rest_framework.authtoken.views import ObtainAuthToken
-from rest_framework.authtoken.serializers import AuthTokenSerializer
+from django.conf import settings
+from django.http import HttpResponse
+from rest_framework import viewsets
 from rest_framework.authentication import TokenAuthentication
+from rest_framework.authtoken.serializers import AuthTokenSerializer
+from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.settings import api_settings
-from rest_framework import viewsets
-
-from django.http import HttpResponse
-from django.conf import settings
 
 
 class CreateTokenView(ObtainAuthToken):

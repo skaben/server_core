@@ -1,21 +1,19 @@
 import json
+import multiprocessing as mp
 import time
 import traceback
-import multiprocessing as mp
-
 from typing import Optional, Union
 
+from core.helpers import fix_database_conn, get_task_id, timestamp_expired
+from eventlog.serializers import EventLogSerializer
 from kombu import Connection, Exchange
 from kombu.message import Message
 from kombu.mixins import ConsumerProducerMixin
-
-from core.helpers import timestamp_expired, fix_database_conn, get_task_id
+from scenario.device import DEVICES
 from scenario.main import scenario
-
 from skabenproto import CUP
-from device.services import DEVICES
-from eventlog.serializers import EventLogSerializer
-from transport.interfaces import send_websocket, send_log, publish_with_producer
+from transport.interfaces import (publish_with_producer, send_log,
+                                  send_websocket)
 
 
 class WorkerRunner(mp.Process):
@@ -188,7 +186,7 @@ class LogWorker(BaseWorker):
             self.save_message(data)
             message.ack()
         except Exception as e:
-            self.report_error(f"{self} when handling message: {e}")
+            logging.exception(f"{self} when handling message: {e}")
 
     @staticmethod
     def send_to_endpoints(data):
@@ -204,7 +202,7 @@ class LogWorker(BaseWorker):
 
 
 class SaveWorker(BaseWorker):
-    """update database worker"""
+    """State Update worker"""
 
     smart = DEVICES
 
@@ -361,10 +359,10 @@ class StateUpdateWorker(BaseWorker):
                 ident = '{device_type}_{device_uid} {command}'.format(**parsed)
                 self.report(f"{ident} :: {parsed.get('datahold', {})}")
 
-            #try:
-            #    scenario.new(parsed)
-            #except Exception:
-            #    raise Exception(f"scenario cannot be applied: {traceback.format_exc()}")
+            try:
+                scenario.apply(parsed)
+            except Exception:
+                raise Exception(f"scenario cannot be applied: {traceback.format_exc()}")
 
         except Exception as e:
             self.report_error(f"{self} when handling message: {e}")

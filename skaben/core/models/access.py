@@ -1,4 +1,5 @@
 from django.db import models
+
 from .alert import AlertState
 from .device import Lock
 

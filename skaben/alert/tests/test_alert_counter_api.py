@@ -1,13 +1,10 @@
 import pytest
-from django.urls import reverse
+from alert.serializers import AlertCounterSerializer
+from core.models import AlertCounter, AlertState
 from django.contrib.auth import get_user_model
-
+from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
-
-from core.models import AlertState, AlertCounter
-from alert.serializers import AlertCounterSerializer
-
 
 API_URL = reverse('api:alertcounter-list')
 

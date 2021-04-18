@@ -1,13 +1,10 @@
 import pytest
-from django.urls import reverse
-from django.contrib.auth import get_user_model
-
-from rest_framework import status
-from rest_framework.test import APITestCase
-
 from core.models import Lock
 from device.serializers import LockSerializer
-
+from django.contrib.auth import get_user_model
+from django.urls import reverse
+from rest_framework import status
+from rest_framework.test import APITestCase
 from testing.assembly.device import device_assembly
 
 LOCK_URL = reverse('api:lock-list')

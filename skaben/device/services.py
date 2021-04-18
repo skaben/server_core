@@ -1,9 +1,7 @@
 from core import models
 from device import serializers
-from transport.interfaces import send_log
-from transport.interfaces import publish_without_producer
+from transport.interfaces import publish_without_producer, send_log
 from transport.rabbitmq import exchanges
-
 
 DEVICES = {
     'lock': {

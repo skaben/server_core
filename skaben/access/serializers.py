@@ -1,6 +1,5 @@
+from core.models import AccessCode, Permission
 from rest_framework import serializers
-
-from core.models import Permission, AccessCode
 
 
 class AccessCodeSerializer(serializers.ModelSerializer):

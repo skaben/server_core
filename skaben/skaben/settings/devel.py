@@ -49,6 +49,11 @@ APPCFG = {
         'lock',
         'rgb',
         'pwr',
+        'scl'
+    ],
+    'smart_devices': [
+        'lock',
+        'terminal'
     ],
     'additional_channels': [
         'aux_1',

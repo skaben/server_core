@@ -1,14 +1,12 @@
-from rest_framework.decorators import api_view
-
-from rest_framework import status, viewsets
-from rest_framework.response import Response
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import IsAuthenticated
-
-from core.models import Lock, Terminal #, SimpleLight
+from core.models import Lock, Terminal  # , SimpleLight
 from core.views import DynamicAuthMixin
 from device import serializers
-from device.services import send_config_all
+from rest_framework import status, viewsets
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.decorators import api_view
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from scenario.device import send_config_all
 
 
 @api_view(http_method_names=['GET'])

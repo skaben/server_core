@@ -1,4 +1,5 @@
 import sys
+
 from django.apps import AppConfig
 
 
@@ -7,7 +8,7 @@ class CoreConfig(AppConfig):
 
     def ready(self):
         if 'runserver' in sys.argv:
-            from core.tasks.main import run_workers, run_pinger
+            from transport.tasks.main import run_pinger, run_workers
             print('running workers')
             run_workers()
             run_pinger()

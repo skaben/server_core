@@ -1,9 +1,10 @@
 import time
-from django.db import models
-from django.conf import settings
 
-from .menu import WorkMode
+from django.conf import settings
+from django.db import models
+
 from .alert import AlertState
+from .menu import WorkMode
 
 
 class DeviceMixin:
@@ -111,14 +112,10 @@ class Simple(models.Model, DeviceMixin):
         verbose_name = 'Устройство пассивное'
         verbose_name_plural = 'Устройства пассивные'
 
-    # todo:
-    # timestamp = models.IntegerField(default=int(time.time()))
-    # uid = models.CharField(max_length=16, unique=True)
-    # info = models.CharField(max_length=256, default='simple dumb')
-    # online = models.BooleanField(default=False)
-    # ip = models.GenericIPAddressField()
-    # subtype = models.CharField(max_length=32, default='rgb')
-    # config = models.CharField(max_length=512, default='none')
+    timestamp = models.IntegerField(default=int(time.time()))
+    uid = models.CharField(max_length=16, unique=True)
+    online = models.BooleanField(default=False)
+    ip = models.GenericIPAddressField()
 
     def __str__(self):
         return 'not implemented'
@@ -128,12 +125,16 @@ class Simple(models.Model, DeviceMixin):
 class SimpleLight(Simple):
     """
         Simple dumb device, such as lights, sirens, rgb-leds
-        Controls only by predefined config in ConfigString
     """
 
     class Meta:
         verbose_name = 'Устройство RGB пассивное'
         verbose_name_plural = 'Устройства RGB пассивные'
+
+    light = models.CharField(max_length=1024)
+    rgb = models.CharField(max_length=1024)
+    strobe = models.CharField(max_length=1024)
+    subtype = models.CharField(max_length=16, default='rgb')
 
     def __str__(self):
         return f'RGB light device {self.id} {self.info}'

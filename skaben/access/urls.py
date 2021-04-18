@@ -1,7 +1,6 @@
-from django.urls import path, include
-from rest_framework.routers import SimpleRouter
-
 from access import views
+from django.urls import include, path
+from rest_framework.routers import SimpleRouter
 
 app_name = 'access'
 

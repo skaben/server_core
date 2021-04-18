@@ -1,5 +1,6 @@
 import pytest
-from core.tasks import workers
+from transport.tasks import workers
+
 
 @pytest.fixture
 def make_worker(monkeypatch):

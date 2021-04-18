@@ -1,7 +1,6 @@
 import kombu
-
-from kombu import Connection, Exchange
 from django.conf import settings
+from kombu import Connection, Exchange
 
 connection = Connection(settings.AMQP_URL)
 pool = connection.ChannelPool()

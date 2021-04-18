@@ -1,11 +1,10 @@
+from assets import serializers
+from core.models import (AudioFile, HackGame, ImageFile, MenuItem, TextFile,
+                         UserInput, VideoFile, WorkMode)
+from core.views import DynamicAuthMixin
 from rest_framework import viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
-
-from core.models import MenuItem, WorkMode, HackGame, UserInput,\
-                        TextFile, ImageFile, AudioFile, VideoFile
-from core.views import DynamicAuthMixin
-from assets import serializers
 
 
 class UserInputViewSet(viewsets.ModelViewSet, DynamicAuthMixin):

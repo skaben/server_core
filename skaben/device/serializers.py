@@ -1,8 +1,7 @@
-from rest_framework import serializers
-
-from core.models import Lock, Terminal
-from transport.interfaces import send_unicast_mqtt
 from assets.serializers import WorkModeSerializer
+from core.models import Lock, Terminal
+from rest_framework import serializers
+from transport.interfaces import send_unicast_mqtt
 
 
 class DeviceSerializer(serializers.ModelSerializer):

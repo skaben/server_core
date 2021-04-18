@@ -1,6 +1,7 @@
-from django.db import models
-from .alert import AlertState
 from django.conf import settings
+from django.db import models
+
+from .alert import AlertState
 
 
 class MenuItem(models.Model):

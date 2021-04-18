@@ -1,10 +1,9 @@
+from access import serializers
+from core.models import AccessCode, Permission
+from core.views import DynamicAuthMixin
 from rest_framework import viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
-
-from core.models import Permission, AccessCode
-from core.views import DynamicAuthMixin
-from access import serializers
 
 
 class AccessCodeViewSet(viewsets.ModelViewSet, DynamicAuthMixin):

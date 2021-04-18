@@ -1,13 +1,10 @@
 import pytest
-from django.urls import reverse
+from core.models import MenuItem, Terminal
+from device.serializers import TerminalSerializer
 from django.contrib.auth import get_user_model
-
+from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
-
-from core.models import Terminal, MenuItem
-from device.serializers import TerminalSerializer
-
 from testing.assembly.device import device_assembly
 from testing.assembly.ingame import ingame_assembly
 

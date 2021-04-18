@@ -1,6 +1,5 @@
-from rest_framework import serializers
-
 from core.models import EventLog
+from rest_framework import serializers
 
 
 class EventLogSerializer(serializers.ModelSerializer):

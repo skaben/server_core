@@ -1,11 +1,9 @@
-from django.urls import reverse
+from core.models import MenuItem
 from django.contrib.auth import get_user_model
-
+from django.urls import reverse
+from menu_item.serializers import MenuItemSerializer
 from rest_framework import status
 from rest_framework.test import APITestCase
-
-from core.models import MenuItem
-from menu_item.serializers import MenuItemSerializer
 from testing.assembly.ingame import ingame_assembly
 
 MI_URL = reverse('api:menuitem-list')

@@ -1,8 +1,8 @@
 from collections import OrderedDict
-from rest_framework import serializers
 
-from core.models import MenuItem, WorkMode, HackGame, UserInput, \
-                        AudioFile, VideoFile, TextFile, ImageFile, File
+from core.models import (AudioFile, File, HackGame, ImageFile, MenuItem,
+                         TextFile, UserInput, VideoFile, WorkMode)
+from rest_framework import serializers
 
 
 class UserInputSerializer(serializers.ModelSerializer):

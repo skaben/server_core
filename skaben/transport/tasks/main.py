@@ -1,10 +1,9 @@
-from core.tasks.workers import WorkerRunner, \
-    AckNackWorker, SaveWorker, StateUpdateWorker, \
-    PingPongWorker, SendConfigWorker, LogWorker
-from core.tasks.recurrent import Pinger
-from transport.rabbitmq import connection, exchanges
 import transport.queues as tq
-
+from transport.rabbitmq import connection, exchanges
+from transport.tasks.recurrent import Pinger
+from transport.tasks.workers import (AckNackWorker, LogWorker, PingPongWorker,
+                                     SaveWorker, SendConfigWorker,
+                                     StateUpdateWorker, WorkerRunner)
 
 WORKERS = []
 RECURRENT = {}

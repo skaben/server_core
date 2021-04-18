@@ -1,6 +1,6 @@
+import multiprocessing as mp
 import time
 import traceback
-import multiprocessing as mp
 
 from django.conf import settings
 from transport.interfaces import send_broadcast_mqtt, send_log

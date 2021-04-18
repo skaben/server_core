@@ -1,5 +1,5 @@
-from testing.helpers import gen_random_str
 from testing.assembly import Assembly
+from testing.helpers import gen_random_str
 
 
 class MenuItem(Assembly):

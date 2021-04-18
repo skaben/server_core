@@ -1,16 +1,14 @@
-from rest_framework.decorators import api_view
-
-from rest_framework import status, viewsets
-from rest_framework.response import Response
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import IsAuthenticated
-
 from core.models import MQTTMessage
 from core.views import DynamicAuthMixin
-from core.tasks.main import run_workers, run_pinger, stop_all, WORKERS, RECURRENT
-
+from rest_framework import status, viewsets
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.decorators import api_view
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from transport import serializers
-from transport.interfaces import send_message_over_mqtt, send_log
+from transport.interfaces import send_log, send_message_over_mqtt
+from transport.tasks.main import (RECURRENT, WORKERS, run_pinger, run_workers,
+                                  stop_all)
 
 
 @api_view(http_method_names=['GET'])

@@ -2,7 +2,7 @@ import json
 import time
 import traceback
 
-from transport.rabbitmq import exchanges, pool, connection
+from transport.rabbitmq import connection, exchanges, pool
 
 
 def publish_without_producer(body: dict, exchange: str, routing_key: str):
