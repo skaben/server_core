@@ -12,7 +12,7 @@ class AlertStateSerializer(serializers.ModelSerializer):
     class Meta:
         model = AlertState
         fields = '__all__'
-        read_only_fields = ('id', 'name', 'info', 'order')
+        read_only_fields = ('id', 'name', 'info', 'order', 'increment')
 
     def update(self, instance, validated_data):
         """ set state current """

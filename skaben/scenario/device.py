@@ -71,21 +71,3 @@ def send_config_to(channel: str):
 
 def send_state_update(channel: str, packet: dict):
     pass
-
-
-# def update_smart_devices(device_type: str, payload: dict, queryset, no_send: bool = False):
-#     """update all smart device configuration"""
-#     device = DEVICES.get(device_type)
-#     try:
-#         if not device:
-#             raise Exception(f"{device} not found")
-
-#         for instance in queryset:
-#             serializer = device['serializer'](instance,
-#                                               data=payload,
-#                                               partial=True,
-#                                               context={"no_send": no_send})
-#             if serializer.is_valid():
-#                 return serializer.save()
-#     except Exception as e:
-#         send_log(f"exception occured when save device: {e}", "error")

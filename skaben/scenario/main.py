@@ -1,18 +1,28 @@
+from core.models import GameConfig
+
 from core.helpers import fix_database_conn
 from scenario.alert import AlertService
 
 
-def reset_alert_to_normal():
-    with AlertService() as manager:
-        manager.set_state_by_name("green")
+def is_alert(data: dict):
+    if data.get("alert") == "reset":
+        with AlertService() as manager:
+            manager.set_state_by_name("green")
 
 
-class Scenario:
+def is_message(message: dict):
+    msg = data.get('message', '').split(' ')
+    if len(msg) > 1 and msg[1] == 'denied':
+        with AlertService() as service:
+            service.change_alert_level()
+
+
+
+class EventManager:
 
     """ Default scenario """
 
     def apply(self, data):
-        # fixme: temporarily testing
         try:
             if not isinstance(data, dict):
                 raise Exception(f"not a dict: {data}")
@@ -28,16 +38,14 @@ class Scenario:
             raise Exception(f"scenario cannot be applied to packet data: {data} \n reason: {e}")
 
     @fix_database_conn
-    def pipeline(self, data):
+    def pipeline(self, data: dict):
         try:
-            if data.get("alert") == "reset":
-                reset_alert_to_normal()
+            if data.get('alert'):
+                is_alert(data)
             else:
-                with AlertService() as manager:
-                    manager.set_state_by_name("yellow")
+                is_message(data)
         except Exception as e:
             raise Exception(f"error when applying scenario {e}")
 
 
-scenario = Scenario()
-
+event_manager = EventManager()

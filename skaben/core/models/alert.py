@@ -37,7 +37,7 @@ class AlertState(models.Model):
     threshold = models.IntegerField(default=-1)
     current = models.BooleanField(default=False)
     order = models.IntegerField(blank=False, unique=True)
-
+    modifier = models.IntegerField(default=5, blank=False)
 
     def __init__(self, *args, **kwargs):
         super(AlertState, self).__init__(*args, **kwargs)
