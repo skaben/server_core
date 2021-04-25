@@ -1,4 +1,3 @@
-from core.models import MQTTMessage
 from core.views import DynamicAuthMixin
 from rest_framework import status, viewsets
 from rest_framework.authentication import TokenAuthentication
@@ -9,6 +8,8 @@ from transport import serializers
 from transport.interfaces import send_log, send_message_over_mqtt
 from transport.tasks.main import (RECURRENT, WORKERS, run_pinger, run_workers,
                                   stop_all)
+
+from .models import MQTTMessage
 
 
 @api_view(http_method_names=['GET'])

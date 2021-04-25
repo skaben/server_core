@@ -1,10 +1,11 @@
+from actions.models import UserInput
 from assets import serializers
-from core.models import (AudioFile, HackGame, ImageFile, MenuItem, TextFile,
-                         UserInput, VideoFile, WorkMode)
 from core.views import DynamicAuthMixin
 from rest_framework import viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
+
+from .models import AudioFile, HackGame, ImageFile, TextFile, VideoFile
 
 
 class UserInputViewSet(viewsets.ModelViewSet, DynamicAuthMixin):
@@ -35,18 +36,6 @@ class VideoFileViewSet(viewsets.ModelViewSet, DynamicAuthMixin):
     """ Manage locks in database """
     queryset = VideoFile.objects.all()
     serializer_class = serializers.VideoFileSerializer
-
-
-class MenuItemViewSet(viewsets.ModelViewSet, DynamicAuthMixin):
-    """ Manage locks in database """
-    queryset = MenuItem.objects.all()
-    serializer_class = serializers.MenuItemSerializer
-
-
-class WorkModeViewSet(viewsets.ModelViewSet, DynamicAuthMixin):
-    """ Manage locks in database """
-    queryset = WorkMode.objects.all()
-    serializer_class = serializers.WorkModeSerializer
 
 
 class HackGameViewSet(viewsets.ModelViewSet, DynamicAuthMixin):

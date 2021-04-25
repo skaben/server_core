@@ -1,7 +1,7 @@
-from assets.serializers import WorkModeSerializer
-from core.models import Lock, Terminal
 from rest_framework import serializers
 from transport.interfaces import send_message_over_mqtt
+
+from .models import Lock, Terminal
 
 
 class DeviceSerializer(serializers.ModelSerializer):
@@ -54,12 +54,3 @@ class TerminalMQTTSerializer(DeviceSerializer):
     class Meta:
         model = Terminal
         exclude = ("id", "info", "override", "ip", "modes_normal", "modes_extended")
-
-#
-# class SimpleLightSerializer(DeviceSerializer):
-#
-#     topic = 'rgb'
-#
-#     class Meta:
-#         model = SimpleLight
-#         fields = ('online', 'config', 'timestamp')

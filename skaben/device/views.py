@@ -1,4 +1,4 @@
-from core.models import Lock, Terminal  # , SimpleLight
+from actions.device import send_config_all
 from core.views import DynamicAuthMixin
 from device import serializers
 from rest_framework import status, viewsets
@@ -6,7 +6,8 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import api_view
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from scenario.device import send_config_all
+
+from .models import Lock, Terminal
 
 
 @api_view(http_method_names=['GET'])
@@ -30,12 +31,3 @@ class TerminalViewSet(viewsets.ModelViewSet, DynamicAuthMixin):
     """ Manage terminals in database """
     queryset = Terminal.objects.all()
     serializer_class = serializers.TerminalSerializer
-#
-#
-# class SimpleLightViewSet(viewsets.ModelViewSet):
-#     """ Manage lesser devices in database """
-#     authentication_classes = (TokenAuthentication,)
-#     permission_classes = (IsAuthenticated,)
-#
-#     queryset = SimpleLight.objects.all()
-#     serializer_class = serializers.SimpleLightSerializer

@@ -1,28 +1,22 @@
 from collections import OrderedDict
 
-from core.models import (AudioFile, File, HackGame, ImageFile, MenuItem,
-                         TextFile, UserInput, VideoFile, WorkMode)
+from actions.serializers import UserInputSerializer
 from rest_framework import serializers
 
-
-class UserInputSerializer(serializers.ModelSerializer):
-    """ Serializer for menu item objects """
-
-    class Meta:
-        model = UserInput
-        exclude = ("id", "name",)
+from .models import (AudioFile, HackGame, ImageFile, SkabenFile, TextFile,
+                     VideoFile)
 
 
 class FileSerializer(serializers.ModelSerializer):
 
     file = serializers.SerializerMethodField('get_file_url')
 
+    class Meta:
+        model = SkabenFile
+        abstract = True
+
     def get_file_url(self, obj):
         return self.context['request'].build_absolute_uri(obj.file.path)
-
-    class Meta:
-        model = File
-        abstract = True
 
 
 class AudioFileSerializer(FileSerializer):
@@ -61,43 +55,3 @@ class HackGameSerializer(serializers.ModelSerializer):
     class Meta:
         model = HackGame
         exclude = ("id",)
-
-
-class MenuItemSerializer(serializers.ModelSerializer):
-    """ Serializer for menu item objects """
-
-    user = UserInputSerializer()
-    game = HackGameSerializer()
-    text = TextFileSerializer()
-    image = ImageFileSerializer()
-    audio = AudioFileSerializer()
-    video = VideoFileSerializer()
-
-    class Meta:
-        model = MenuItem
-        exclude = ("id", "option")
-
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        is_files = ('audio', 'text', 'video', 'image')
-        result = representation
-        for key in representation:
-            if key in is_files:
-                file_repr = representation.get(key)
-                if file_repr:
-                    result[key] = file_repr["hash"]
-        return OrderedDict([(key, result[key]) for key in result if result[key] is not None])
-
-
-class WorkModeSerializer(serializers.ModelSerializer):
-
-    menu_set = MenuItemSerializer(many=True)
-
-    class Meta:
-        model = WorkMode
-        exclude = ("id", "name",)
-
-
-class SimpleConfigSerializer(serializers.ModelSerializer):
-
-    pass

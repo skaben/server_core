@@ -1,7 +1,7 @@
 import time
 
-from django.db import models
 from core.helpers import get_time
+from django.db import models
 
 
 class AlertCounter(models.Model):
@@ -9,8 +9,8 @@ class AlertCounter(models.Model):
     """In-game Global Alert State counter"""
 
     class Meta:
-        verbose_name = 'База: Тревога: счетчик уровня'
-        verbose_name_plural = 'База: Тревога: счетчик уровня'
+        verbose_name = 'Тревога: счетчик уровня'
+        verbose_name_plural = 'Тревога: счетчик уровня'
 
     value = models.IntegerField(default=0)
     comment = models.CharField(default='changed by admin', max_length=256)
@@ -27,8 +27,8 @@ class AlertState(models.Model):
 
     __original_state = None
     class Meta:
-        verbose_name = 'База: Тревога: именной статус'
-        verbose_name_plural = 'База: Тревога: именные статусы'
+        verbose_name = 'Тревога: именной статус'
+        verbose_name_plural = 'Тревога: именные статусы'
 
     name = models.CharField(max_length=32, blank=False, unique=True)  # alert level color name
     info = models.CharField(max_length=256)
@@ -37,7 +37,7 @@ class AlertState(models.Model):
     threshold = models.IntegerField(default=-1)
     current = models.BooleanField(default=False)
     order = models.IntegerField(blank=False, unique=True)
-
+    modifier = models.IntegerField(default=5, blank=False)
 
     def __init__(self, *args, **kwargs):
         super(AlertState, self).__init__(*args, **kwargs)
