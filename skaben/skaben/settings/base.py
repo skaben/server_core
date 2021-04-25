@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'skaben',
     'access',
     'alert',
+    'actions',
     'core',
     'device',
     'assets',
@@ -179,7 +180,7 @@ REST_FRAMEWORK = {
 
 # logging
 
-LOGGING = { 
+LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
@@ -190,7 +191,7 @@ LOGGING = {
         'simple': {
             'format': '%(levelname)s %(message)s'
         },
-    },  
+    },
     'handlers': {
         'console': {
             'level': 'INFO',

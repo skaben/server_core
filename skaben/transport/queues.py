@@ -49,8 +49,7 @@ save_queue = Queue('save',
                    exchange=MAIN_EXCHANGE,
                    routing_key='save')
 
-# log exchange
-
+# logging
 log_queue = Queue("log_info",
                   durable=True,
                   exchange=LOG_EXCHANGE,

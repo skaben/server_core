@@ -1,10 +1,12 @@
 from typing import Optional
 
-from core.models import AlertState, AlertCounter, Lock  # , SimpleLight #Terminal, Simple
+from actions.device import send_config_all
+from device.models import Lock
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
-from scenario.device import send_config_all
 from transport.interfaces import send_mqtt
+
+from .models import AlertCounter, AlertState
 
 
 def get_current() -> AlertState:

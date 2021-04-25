@@ -1,5 +1,6 @@
-from core.models import AccessCode, Permission
 from rest_framework import serializers
+
+from .models import AccessCode, Permission
 
 
 class AccessCodeSerializer(serializers.ModelSerializer):
@@ -21,4 +22,3 @@ class PermissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Permission
         fields = "__all__"
-

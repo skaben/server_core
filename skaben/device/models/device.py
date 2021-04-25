@@ -4,7 +4,7 @@ from django.conf import settings
 from django.db import models
 
 from .alert import AlertState, get_current_alert_state
-from .device_config import WorkMode, SimpleConfig
+from .device_config import SimpleConfig, WorkMode
 
 
 class DeviceMixin:

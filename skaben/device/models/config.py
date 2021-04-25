@@ -92,7 +92,7 @@ class SimpleConfig(models.Model):
 
     config = models.JSONField()
     dev_type = models.CharField(max_length=16)
-    state = models.ForeignKey(AlertState, 
+    state = models.ForeignKey(AlertState,
                               on_delete=models.SET_NULL,
                               null=True,
                               blank=True)

@@ -1,16 +1,17 @@
 import json
+import logging
 import multiprocessing as mp
 import time
 import traceback
 from typing import Optional, Union
 
+from actions.device import DEVICES
+from actions.main import event_manager
 from core.helpers import fix_database_conn, get_task_id, timestamp_expired
 from eventlog.serializers import EventLogSerializer
 from kombu import Connection, Exchange
 from kombu.message import Message
 from kombu.mixins import ConsumerProducerMixin
-from scenario.device import DEVICES
-from scenario.main import event_manager
 from skabenproto import CUP
 from transport.interfaces import (publish_with_producer, send_log,
                                   send_websocket)
@@ -144,6 +145,7 @@ class BaseWorker(ConsumerProducerMixin):
 
     def send_websocket(self, message: str, level: str = "info", access: str = "root"):
         """prepare data and send via _external_ `send_websocket` function"""
+        event_type = 'websocket'
         payload = {
             "message": message,
             "level": level,

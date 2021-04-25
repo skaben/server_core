@@ -1,7 +1,6 @@
+from alert.models import AlertState
+from device.models import Lock
 from django.db import models
-
-from .alert import AlertState
-from .device import Lock
 
 
 class AccessCode(models.Model):

@@ -1,4 +1,4 @@
-from core.models import Lock, Terminal  # , SimpleLight
+from actions.device import send_config_all
 from core.views import DynamicAuthMixin
 from device import serializers
 from rest_framework import status, viewsets
@@ -6,7 +6,8 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import api_view
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from scenario.device import send_config_all
+
+from .models import Lock, Terminal  # , SimpleLight
 
 
 @api_view(http_method_names=['GET'])

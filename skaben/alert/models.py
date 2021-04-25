@@ -1,7 +1,7 @@
 import time
 
-from django.db import models
 from core.helpers import get_time
+from django.db import models
 
 
 class AlertCounter(models.Model):

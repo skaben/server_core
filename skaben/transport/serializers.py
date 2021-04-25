@@ -1,5 +1,6 @@
-from core.models import MQTTMessage
 from rest_framework import serializers
+
+from .models import MQTTMessage
 
 
 class MQTTMessageSerializer(serializers.ModelSerializer):

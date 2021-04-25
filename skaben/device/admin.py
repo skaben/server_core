@@ -1,3 +1,14 @@
-# from django.contrib import admin
+from core import models
+from django.contrib import admin
 
-# Register your models here.
+
+class WorkModeAdmin(admin.ModelAdmin):
+    readonly_fields = ("has_files",)
+
+
+class DeviceAdmin(admin.ModelAdmin):
+    readonly_fields = ('timestamp',)
+
+
+class SimpleConfigAdmin(admin.ModelAdmin):
+    readonly_fields = ('config',)

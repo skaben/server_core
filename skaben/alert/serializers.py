@@ -1,6 +1,7 @@
-from core.models import AlertCounter, AlertState
+from actions.alert import AlertService
 from rest_framework import serializers
-from scenario.alert import AlertService
+
+from .models import AlertCounter, AlertState
 
 
 class AlertStateSerializer(serializers.ModelSerializer):
