@@ -51,13 +51,14 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'django_filters',
     'django_extensions',
-    'skaben',
-    'access',
     'alert',
+    'actions',
+    'assets',
     'core',
     'device',
-    'assets',
     'eventlog',
+    'shape',
+    'skaben',
     'transport'
 ]
 
@@ -179,7 +180,7 @@ REST_FRAMEWORK = {
 
 # logging
 
-LOGGING = { 
+LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
@@ -190,7 +191,7 @@ LOGGING = {
         'simple': {
             'format': '%(levelname)s %(message)s'
         },
-    },  
+    },
     'handlers': {
         'console': {
             'level': 'INFO',

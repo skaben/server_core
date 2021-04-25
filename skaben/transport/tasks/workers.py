@@ -1,16 +1,17 @@
 import json
+import logging
 import multiprocessing as mp
 import time
 import traceback
 from typing import Optional, Union
 
+from actions.device import DEVICES
+from actions.main import event_manager
 from core.helpers import fix_database_conn, get_task_id, timestamp_expired
 from eventlog.serializers import EventLogSerializer
 from kombu import Connection, Exchange
 from kombu.message import Message
 from kombu.mixins import ConsumerProducerMixin
-from scenario.device import DEVICES
-from scenario.main import scenario
 from skabenproto import CUP
 from transport.interfaces import (publish_with_producer, send_log,
                                   send_websocket)
@@ -126,7 +127,7 @@ class BaseWorker(ConsumerProducerMixin):
                      routing_key=routing_key)
 
     def save_device_config(self, parsed: dict):
-        """save device config"""
+        """save device config by passing data to SaveWorker"""
         self.publish(parsed,
                      exchange=self.exchanges.get('internal'),
                      routing_key='save')
@@ -144,6 +145,7 @@ class BaseWorker(ConsumerProducerMixin):
 
     def send_websocket(self, message: str, level: str = "info", access: str = "root"):
         """prepare data and send via _external_ `send_websocket` function"""
+        event_type = 'websocket'
         payload = {
             "message": message,
             "level": level,
@@ -202,7 +204,7 @@ class LogWorker(BaseWorker):
 
 
 class SaveWorker(BaseWorker):
-    """State Update worker"""
+    """Save worker"""
 
     smart = DEVICES
 
@@ -353,14 +355,14 @@ class StateUpdateWorker(BaseWorker):
             parsed = super().handle_message(body, message)
             message.ack()
 
-            if parsed.get("command") == "SUP":
+            if parsed.get("command", "").lower() == "sup":
                 self.save_device_config(parsed)
             else:
                 ident = '{device_type}_{device_uid} {command}'.format(**parsed)
                 self.report(f"{ident} :: {parsed.get('datahold', {})}")
 
             try:
-                scenario.apply(parsed)
+                event_manager.apply(parsed)
             except Exception:
                 raise Exception(f"scenario cannot be applied: {traceback.format_exc()}")
 

@@ -1,6 +1,7 @@
-from core.models import AlertCounter, AlertState
+from actions.alert import AlertService
 from rest_framework import serializers
-from scenario.alert import AlertService
+
+from .models import AlertCounter, AlertState
 
 
 class AlertStateSerializer(serializers.ModelSerializer):
@@ -12,7 +13,7 @@ class AlertStateSerializer(serializers.ModelSerializer):
     class Meta:
         model = AlertState
         fields = '__all__'
-        read_only_fields = ('id', 'name', 'info', 'order')
+        read_only_fields = ('id', 'name', 'info', 'order', 'increment')
 
     def update(self, instance, validated_data):
         """ set state current """

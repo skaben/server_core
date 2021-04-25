@@ -3,7 +3,7 @@ import time
 import traceback
 
 from django.conf import settings
-from transport.interfaces import send_message_over_mqtt, send_log
+from transport.interfaces import send_log, send_message_over_mqtt
 
 
 class Pinger(mp.Process):
