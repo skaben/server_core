@@ -17,6 +17,9 @@ class Action(models.Model):
         payload = self.payload or {}
         return requests.post(str(self.endpoint), data=payload)
 
+    def __str__(self):
+        return f'Action {self.endpoint}'
+
 
 class UserInput(models.Model):
 
@@ -32,4 +35,4 @@ class UserInput(models.Model):
     actions = models.ManyToManyField(Action)
 
     def __str__(self):
-        return f"on input `{self.require}` put internal `{self.callback}`"
+        return f"on input `{self.require}` put internal `{self.actions}`"

@@ -3,7 +3,8 @@ from collections import OrderedDict
 from actions.serializers import UserInputSerializer
 from rest_framework import serializers
 
-from .models import AudioFile, File, HackGame, ImageFile, TextFile, VideoFile
+from .models import (AudioFile, HackGame, ImageFile, SkabenFile, TextFile,
+                     VideoFile)
 
 
 class FileSerializer(serializers.ModelSerializer):
@@ -11,7 +12,7 @@ class FileSerializer(serializers.ModelSerializer):
     file = serializers.SerializerMethodField('get_file_url')
 
     class Meta:
-        model = File
+        model = SkabenFile
         abstract = True
 
     def get_file_url(self, obj):

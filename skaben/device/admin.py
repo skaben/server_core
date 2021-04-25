@@ -1,13 +1,14 @@
 from django.contrib import admin
 
+from skaben.admin import base_site
 
-class WorkModeAdmin(admin.ModelAdmin):
-    readonly_fields = ("has_files",)
+from .models import Lock, Simple, Terminal
 
 
 class DeviceAdmin(admin.ModelAdmin):
     readonly_fields = ('timestamp',)
 
 
-class SimpleConfigAdmin(admin.ModelAdmin):
-    readonly_fields = ('config',)
+admin.site.register(Simple, DeviceAdmin, site=base_site)
+admin.site.register(Lock, DeviceAdmin, site=base_site)
+admin.site.register(Terminal, DeviceAdmin, site=base_site)
