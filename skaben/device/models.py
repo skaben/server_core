@@ -1,10 +1,9 @@
 import time
 
+from alert.models import AlertState, get_current_alert_state
 from django.conf import settings
 from django.db import models
-
-from .alert import AlertState, get_current_alert_state
-from .device_config import SimpleConfig, WorkMode
+from shape.models import MenuItem, WorkMode
 
 
 class DeviceMixin:

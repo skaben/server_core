@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import UserInput
+from .models import Action, UserInput
 
 
 class UserInputSerializer(serializers.ModelSerializer):
@@ -8,4 +8,12 @@ class UserInputSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserInput
+        exclude = ("id", "name",)
+
+
+class ActionSerializer(serializers.ModelSerializer):
+    """ Serializer for action objects """
+
+    class Meta:
+        model = Action
         exclude = ("id", "name",)

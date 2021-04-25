@@ -54,8 +54,3 @@ class HackGameSerializer(serializers.ModelSerializer):
     class Meta:
         model = HackGame
         exclude = ("id",)
-
-
-class SimpleConfigSerializer(serializers.ModelSerializer):
-
-    pass

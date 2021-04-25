@@ -51,14 +51,14 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'django_filters',
     'django_extensions',
-    'skaben',
-    'access',
     'alert',
     'actions',
+    'assets',
     'core',
     'device',
-    'assets',
     'eventlog',
+    'shape',
+    'skaben',
     'transport'
 ]
 

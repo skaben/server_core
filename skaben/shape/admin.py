@@ -5,9 +5,5 @@ class WorkModeAdmin(admin.ModelAdmin):
     readonly_fields = ("has_files",)
 
 
-class DeviceAdmin(admin.ModelAdmin):
-    readonly_fields = ('timestamp',)
-
-
 class SimpleConfigAdmin(admin.ModelAdmin):
     readonly_fields = ('config',)

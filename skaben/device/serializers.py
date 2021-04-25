@@ -1,42 +1,7 @@
 from rest_framework import serializers
 from transport.interfaces import send_message_over_mqtt
 
-from .models import Lock, MenuItem, Terminal, WorkMode
-
-
-class MenuItemSerializer(serializers.ModelSerializer):
-    """ Serializer for menu item objects """
-
-    user = UserInputSerializer()
-    game = HackGameSerializer()
-    text = TextFileSerializer()
-    image = ImageFileSerializer()
-    audio = AudioFileSerializer()
-    video = VideoFileSerializer()
-
-    class Meta:
-        model = MenuItem
-        exclude = ("id", "option")
-
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        is_files = ('audio', 'text', 'video', 'image')
-        result = representation
-        for key in representation:
-            if key in is_files:
-                file_repr = representation.get(key)
-                if file_repr:
-                    result[key] = file_repr["hash"]
-        return OrderedDict([(key, result[key]) for key in result if result[key] is not None])
-
-
-class WorkModeSerializer(serializers.ModelSerializer):
-
-    menu_set = MenuItemSerializer(many=True)
-
-    class Meta:
-        model = WorkMode
-        exclude = ("id", "name",)
+from .models import Lock, Terminal
 
 
 class DeviceSerializer(serializers.ModelSerializer):
@@ -89,12 +54,3 @@ class TerminalMQTTSerializer(DeviceSerializer):
     class Meta:
         model = Terminal
         exclude = ("id", "info", "override", "ip", "modes_normal", "modes_extended")
-
-#
-# class SimpleLightSerializer(DeviceSerializer):
-#
-#     topic = 'rgb'
-#
-#     class Meta:
-#         model = SimpleLight
-#         fields = ('online', 'config', 'timestamp')
