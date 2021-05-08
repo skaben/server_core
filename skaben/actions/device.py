@@ -44,7 +44,6 @@ def send_config_all(include_overrided: Optional[bool] = False):
                 send_log(f'{e}', 'ERROR')
 
 
-
 def send_config_to(channel: str):
     """Send existing config to channel"""
     dev = DEVICES.get(channel)

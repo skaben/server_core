@@ -72,6 +72,8 @@ class Migration(migrations.Migration):
                 ('hash', models.CharField(default='', max_length=64)),
                 ('name', models.CharField(default='game doc', max_length=128)),
                 ('header', models.CharField(default='text document', max_length=64)),
+                ('file', models.FileField(storage=django.core.files.storage.FileSystemStorage(location='/media/text'),
+                                          upload_to='')),
                 ('content', models.TextField()),
             ],
             options={
@@ -85,7 +87,8 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(default='filename', max_length=128)),
                 ('hash', models.CharField(default='', max_length=64)),
-                ('file', models.FileField(storage=django.core.files.storage.FileSystemStorage(location='/media/video'), upload_to='')),
+                ('file', models.FileField(storage=django.core.files.storage.FileSystemStorage(location='/media/video'),
+                                          upload_to='')),
             ],
             options={
                 'verbose_name': 'файл: видео',

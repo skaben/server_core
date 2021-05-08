@@ -29,7 +29,7 @@ def send_config_all():
                 'device_type': dev,
                 'device_uid': device.uid
             }
-            rk = '{device_type}.{device_uid}.CUP'.format(**payload)
+            rk = '{device_type}.{device_uid}.cup'.format(**payload)
             try:
                 publish_without_producer(body=payload,
                                          exchange=exchanges.get('ask'),

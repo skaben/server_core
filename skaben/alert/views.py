@@ -8,6 +8,8 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from django.views.decorators.http import require_http_methods
+
 from .models import AlertCounter, AlertState
 
 
@@ -24,13 +26,7 @@ class AlertStateViewSet(mixins.ListModelMixin,
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['current']
 
-    @action(detail=True, methods=['get'])
-    def set_current(self, request, pk=None):
-        """ Set current """
-        try:
-            state = self.queryset.get(id=pk)
-        except ObjectDoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+    def _set_current(self, state):
         # calling update, passing instance
         update_data = {'current': True}
         serializer = serializers.AlertStateSerializer(instance=state,
@@ -42,6 +38,27 @@ class AlertStateViewSet(mixins.ListModelMixin,
         else:
             return Response(serializer.errors,
                             status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['post'])
+    def set_current_by_name(self, request):
+        try:
+            name = request.data.get('name')
+            if not name:
+                raise ObjectDoesNotExist
+            state = AlertState.objects.filter(name=name).first()
+            return self._set_current(state)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+    @action(detail=True, methods=['get'])
+    def set_current(self, request, pk=None):
+        """ Set Alert State as current """
+        try:
+            state = self.queryset.get(id=pk)
+            return self._set_current(state)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
 
 
 class AlertCounterViewSet(mixins.ListModelMixin,

@@ -1,4 +1,5 @@
 import hashlib
+import time
 import uuid
 
 from assets import storages
@@ -13,6 +14,7 @@ class SkabenFile(models.Model):
     class Meta:
         abstract = True
 
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=128, default="filename")
     hash = models.CharField(max_length=64, default='')
 
@@ -21,7 +23,7 @@ class SkabenFile(models.Model):
         return f"{settings.DEFAULT_DOMAIN}{self.file.path}"
 
     def save(self, *args, **kwargs):
-        self.hash = simple_hash(f'{self.name}{uuid.uuid4()}')
+        self.hash = simple_hash(f'{round(time.time())}{self.uuid}')
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -61,6 +63,7 @@ class TextFile(models.Model):
         verbose_name = 'Текстовый файл'
         verbose_name_plural = 'файлы: тексты'
 
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=128, default="game doc")
     hash = models.CharField(max_length=64, default='')
     header = models.CharField(max_length=64, default="text document")
@@ -72,9 +75,9 @@ class TextFile(models.Model):
         return f"{settings.DEFAULT_DOMAIN}{self.file.path}"
 
     def save(self, *args, **kwargs):
-        self.hash = simple_hash(f'txt{self.name}')
+        self.hash = simple_hash(f'{round(time.time())}{self.uuid}')
         file = ContentFile(self.content)
-        self.file.save(content=file, name=f'{self.hash}_{self.name}.txt', save=False)
+        self.file.save(content=file, name=f'{self.uuid}_{self.name}.txt', save=False)
         super().save(*args, **kwargs)
 
     def __str__(self):

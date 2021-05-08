@@ -154,6 +154,7 @@ RABBITMQ_USER = os.environ.get('RABBITMQ_DEFAULT_USER')
 RABBITMQ_PASS = os.environ.get('RABBITMQ_DEFAULT_PASS')
 
 AMQP_URL = f"pyamqp://{RABBITMQ_USER}:{RABBITMQ_PASS}@rabbitmq:5672"
+API_URL = os.environ.get('DJANGO_API_URL', 'http://127.0.0.1/api')
 
 # CACHE
 
