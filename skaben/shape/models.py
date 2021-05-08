@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.db import models
 
+from django.contrib.postgres.fields import JSONField
+
 
 class MenuItem(models.Model):
 
@@ -121,7 +123,7 @@ class SimpleConfig(models.Model):
         verbose_name = 'Конфиг пассивного устройства'
         verbose_name_plural = 'Конфиги пассивных устройств'
 
-    config = models.JSONField()
+    config = JSONField()
     dev_type = models.CharField(max_length=16)
     state = models.ForeignKey('alert.AlertState',
                               on_delete=models.SET_NULL,
