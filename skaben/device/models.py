@@ -53,7 +53,7 @@ class Lock(ComplexDevice):
         return acl
 
     def __str__(self):
-        return f'LOCK {self.ip} {self.info}'
+        return f'LOCK [ip: {self.ip}] {self.info}'
 
 
 class Terminal(ComplexDevice):
