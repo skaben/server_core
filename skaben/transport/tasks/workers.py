@@ -262,6 +262,10 @@ class PingPongWorker(BaseWorker):
     def handle_message(self, body: Union[str, dict], message: Message):
         try:
             parsed = super().handle_message(body, message)
+            if not parsed.get('timestamp'):
+                # received from simple devices
+                message.ack()
+                return
             if timestamp_expired(parsed['timestamp']):
                 self.push_device_config(parsed)
             else:
