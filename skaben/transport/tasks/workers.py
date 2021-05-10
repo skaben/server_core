@@ -20,6 +20,9 @@ from transport.interfaces import (publish_with_producer, send_log,
                                   send_websocket)
 
 
+SIMPLE = [dev for dev in settings.APPCFG.get('device_types') if dev not in DEVICES]
+
+
 class WorkerRunner(mp.Process):
     """worker process runner"""
 
@@ -105,7 +108,8 @@ class BaseWorker(ConsumerProducerMixin):
                     command=command)
 
         # FIXME: im crutch
-        if device_type in self.should_receive_config:
+
+        if device_type in SIMPLE:
             data = dict(
                 device_type=device_type,
                 device_uid='all',
@@ -301,8 +305,7 @@ class SendConfigWorker(BaseWorker):
             message.ack()
 
             try:
-                self.simple = [dev for dev in settings.APPCFG.get('device_types') if dev not in self.smart]
-                if device_type in self.simple:
+                if device_type in SIMPLE:
                     return self.send_config_simple(device_type, device_uid)
 
                 self.update_timestamp_only(parsed)
