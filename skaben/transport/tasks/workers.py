@@ -36,6 +36,8 @@ class WorkerRunner(mp.Process):
 class BaseWorker(ConsumerProducerMixin):
     """abstract Worker class"""
 
+    should_receive_config = ['rgb', 'scl', 'pwr']
+
     def __init__(self,
                  connection: Connection,
                  queues: list,
@@ -97,9 +99,20 @@ class BaseWorker(ConsumerProducerMixin):
     def parse_basic(routing_key: str) -> dict:
         """get device parameters from topic name (routing key)"""
         device_type, device_uid, command = routing_key
-        return dict(device_type=device_type,
+        data = dict(device_type=device_type,
                     device_uid=device_uid,
                     command=command)
+
+        # FIXME: im crutch
+        if device_type in self.should_receive_config:
+            data = dict(
+                device_type=device_type,
+                command=device_uid
+            )
+        # FIXME: //
+
+        return data
+
 
     def parse_smart(self, data: dict) -> dict:
         """get additional data-fields from smart device"""
@@ -353,8 +366,6 @@ class AckNackWorker(BaseWorker):
 
 class StateUpdateWorker(BaseWorker):
     """apply scenarios based on SUP/INFO messages"""
-
-    should_receive_config = ['rgb', 'scl', 'pwr']
 
     def simple_device_cup_crutch(self, channel):
         """Сделано, потому что мы перепутали в прошивках простых устройств cup с sup"""
