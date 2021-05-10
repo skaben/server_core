@@ -10,7 +10,7 @@ class WorkModeAdmin(admin.ModelAdmin):
 
 
 class SimpleConfigAdmin(admin.ModelAdmin):
-    readonly_fields = ('config',)
+    readonly_fields = ('uid',)
 
 
 admin.site.register(MenuItem, site=base_site)

@@ -1,7 +1,9 @@
 from django.conf import settings
 from django.db import models
 
-from django.contrib.postgres.fields import JSONField
+
+def get_default_dict():
+    return {}
 
 
 class MenuItem(models.Model):
@@ -123,7 +125,8 @@ class SimpleConfig(models.Model):
         verbose_name = 'Конфиг пассивного устройства'
         verbose_name_plural = 'Конфиги пассивных устройств'
 
-    config = JSONField()
+    # fixme: get_default_dict
+    config = models.JSONField(default=get_default_dict)
     dev_type = models.CharField(max_length=16)
     state = models.ForeignKey('alert.AlertState',
                               on_delete=models.SET_NULL,

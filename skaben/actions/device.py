@@ -1,10 +1,12 @@
-from typing import Optional
+from typing import Optional, List
 
 from device import serializers
 from device.models import Lock, Simple, Terminal
 from django.conf import settings
 from transport.interfaces import publish_without_producer, send_log
 from transport.rabbitmq import exchanges
+from alert.models import get_current_alert_state
+
 
 DEVICES = {
     'lock': {
@@ -15,17 +17,30 @@ DEVICES = {
         'serializer': serializers.TerminalMQTTSerializer,
         'model': Terminal
     },
-    # 'rgb': {
-    #     'serializer': serializers.SimpleLightSerializer,
-    #     'model': models.SimpleLight
-    # }
 }
 
 DEVICES['term'] = DEVICES['terminal']
 
 
+def send_config_to_simple(simple_list: Optional[List[str]] = None):
+    """Отправляем конфиг простым устройствам в соответствии с текущим уровнем тревоги"""
+    if not simple_list:
+        simple_list = [dev for dev in settings.APPCFG.get('device_types') if dev not in DEVICES]
+    for device in simple_list:
+        instance = Simple.objects.filter(dev_type=device, state__id=get_current_alert_state()).first()
+        if not instance or not instance.config:
+            continue
+        rk = f'{device}.all.cup'
+        try:
+            publish_without_producer(body=instance.config,
+                                     exchanges=exchanges.get('mqtt'),
+                                     routing_key=rk)
+        except Exception as e:
+            send_log(f'{e}', 'ERROR')
+
+
 def send_config_all(include_overrided: Optional[bool] = False):
-    """Send config to all devices"""
+    """Отправляем конфиг УМНЫМ устройствам"""
     for dev in settings.APPCFG.get('device_types'):
         if not DEVICES.get(dev):
             continue

@@ -6,7 +6,9 @@ from alert.models import AlertState
 from django.db import models
 from django.conf import settings
 
-from django.contrib.postgres.fields import JSONField
+
+def get_default_dict():
+    return {}
 
 
 class Action(models.Model):
@@ -16,7 +18,7 @@ class Action(models.Model):
     )
 
     endpoint = models.URLField()
-    payload = JSONField(blank=True, null=True)
+    payload = models.JSONField(default=get_default_dict, blank=True, null=True)
     comment = models.TextField(default='')
 
     def execute(self):
