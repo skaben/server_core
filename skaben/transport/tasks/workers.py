@@ -9,7 +9,7 @@ from django.conf import settings
 
 from actions.device import DEVICES, send_config_to_simple
 from actions.main import event_manager
-from alert.models import get_current_alert_state
+from alert.models import get_current_alert_state, get_last_counter
 from core.helpers import fix_database_conn, get_task_id, timestamp_expired
 from eventlog.serializers import EventLogSerializer
 from kombu import Connection, Exchange
@@ -336,16 +336,27 @@ class SendConfigWorker(BaseWorker):
 
     def send_config_simple(self, device_type: str, device_uid: Optional[str] = None):
         """Отправляем конфиг простым устройствам в соответствии с текущим уровнем тревоги"""
-        instance = SimpleConfig.objects.filter(dev_type=device_type, state__id=get_current_alert_state()).first()
-        if not device_uid:
-            device_uid = 'all'
-        if not instance or not instance.config:
-            return
+        datahold = {}
+
+        if device_type != 'scl':
+            instance = SimpleConfig.objects.filter(dev_type=device_type, state__id=get_current_alert_state()).first()
+            if not device_uid:
+                device_uid = 'all'
+            if not instance or not instance.config:
+                raise Exception(f'not found {instance} !!!')
+            datahold = instance.config
+
+        if device_type == 'scl':
+            datahold = {
+                'borders': [0, 500, 1000],
+                'level': get_last_counter(),
+                 'state': 'green'
+            }
 
         packet = CUP(
             topic=device_type,
             uid=device_uid,
-            datahold=instance.config,
+            datahold=datahold,
             timestamp=int(time.time())
         )
         self.publish(packet.payload,
