@@ -37,7 +37,7 @@ def send_config_to_simple(simple_list: Optional[List[str]] = None):
         }
         rk = '{device_type}.{device_uid}.cup'.format(**payload)
         publish_without_producer(body=payload,
-                                 exchanges=exchanges.get('ask'),
+                                 exchange=exchanges.get('ask'),
                                  routing_key=rk)
 
         # instance = SimpleConfig.objects.filter(dev_type=device, state__id=get_current_alert_state()).first()
