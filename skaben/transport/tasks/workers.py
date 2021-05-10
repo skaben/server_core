@@ -5,8 +5,11 @@ import time
 import traceback
 from typing import Optional, Union
 
+from django.conf import settings
+
 from actions.device import DEVICES, send_config_to_simple
 from actions.main import event_manager
+from alert.models import get_current_alert_state
 from core.helpers import fix_database_conn, get_task_id, timestamp_expired
 from eventlog.serializers import EventLogSerializer
 from kombu import Connection, Exchange
@@ -35,8 +38,6 @@ class WorkerRunner(mp.Process):
 
 class BaseWorker(ConsumerProducerMixin):
     """abstract Worker class"""
-
-    should_receive_config = ['rgb', 'scl', 'pwr']
 
     def __init__(self,
                  connection: Connection,
@@ -276,10 +277,6 @@ class PingPongWorker(BaseWorker):
     def handle_message(self, body: Union[str, dict], message: Message):
         try:
             parsed = super().handle_message(body, message)
-            if not parsed.get('timestamp'):
-                # received from simple devices
-                message.ack()
-                return
             if timestamp_expired(parsed['timestamp']):
                 self.push_device_config(parsed)
             else:
@@ -293,6 +290,7 @@ class SendConfigWorker(BaseWorker):
     """send config update to clients (CUP)"""
 
     smart = DEVICES
+    simple = []
 
     @fix_database_conn
     def handle_message(self, body: Union[str, dict], message: Message):
@@ -301,7 +299,12 @@ class SendConfigWorker(BaseWorker):
             device_type = parsed.get('device_type')
             device_uid = parsed.get('device_uid')
             message.ack()
+
             try:
+                self.simple = [dev for dev in settings.APPCFG.get('device_types') if dev not in self.smart]
+                if device_type in self.simple:
+                    return self.send_config_simple(device_type, device_uid)
+
                 self.update_timestamp_only(parsed)
                 self.send_config(device_type, device_uid)
             except Exception as e:
@@ -338,6 +341,24 @@ class SendConfigWorker(BaseWorker):
                      exchange=self.exchanges.get('mqtt'),
                      routing_key=f"{device_type}.{device_uid}.cup")
 
+    def send_config_simple(self, device_type: str, device_uid: Optional[str] = None):
+        """Отправляем конфиг простым устройствам в соответствии с текущим уровнем тревоги"""
+        instance = SimpleConfig.objects.filter(dev_type=device_type, state__id=get_current_alert_state()).first()
+        if not device_uid:
+            device_uid = 'all'
+        if not instance or not instance.config:
+            return
+
+        packet = CUP(
+            topic=device_type,
+            uid=device_uid,
+            datahold=instance.config,
+            timestamp=int(time.time())
+        )
+        self.publish(packet.payload,
+                     exchange=self.exchanges.get('mqtt'),
+                     routing_key=f"{device_type}.{device_uid}.cup")
+
 
 class AckNackWorker(BaseWorker):
     """checks task_id and mark it as success/fail
@@ -368,18 +389,10 @@ class AckNackWorker(BaseWorker):
 class StateUpdateWorker(BaseWorker):
     """apply scenarios based on SUP/INFO messages"""
 
-    def simple_device_cup_crutch(self, channel):
-        """Сделано, потому что мы перепутали в прошивках простых устройств cup с sup"""
-        return send_config_to_simple([channel])
-
     def handle_message(self, body, message):
         try:
             parsed = super().handle_message(body, message)
             message.ack()
-
-            device = parsed.get('device_type', '').lower()
-            if device in self.should_receive_config:
-                return self.simple_device_cup_crutch(device)
 
             if parsed.get("command", "").lower() == "sup":
                 self.save_device_config(parsed)
