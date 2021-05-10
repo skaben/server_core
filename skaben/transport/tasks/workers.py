@@ -5,7 +5,7 @@ import time
 import traceback
 from typing import Optional, Union
 
-from actions.device import DEVICES
+from actions.device import DEVICES, send_config_to_simple
 from actions.main import event_manager
 from core.helpers import fix_database_conn, get_task_id, timestamp_expired
 from eventlog.serializers import EventLogSerializer
@@ -350,10 +350,20 @@ class AckNackWorker(BaseWorker):
 class StateUpdateWorker(BaseWorker):
     """apply scenarios based on SUP/INFO messages"""
 
+    should_receive_config = ['rgb', 'scl', 'pwr']
+
+    def simple_device_cup_crutch(self, channel):
+        """Сделано, потому что мы перепутали в прошивках простых устройств cup с sup"""
+        return send_config_to_simple([channel])
+
     def handle_message(self, body, message):
         try:
             parsed = super().handle_message(body, message)
             message.ack()
+
+            device = parsed.get('device_type', '').lower()
+            if device in self.should_receive_config:
+                return self.simple_device_cup_crutch(device)
 
             if parsed.get("command", "").lower() == "sup":
                 self.save_device_config(parsed)
