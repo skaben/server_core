@@ -1,5 +1,7 @@
 from typing import Optional, List
 
+import time
+
 from device import serializers
 from device.models import Lock, Simple, Terminal
 from shape.models import SimpleConfig
@@ -32,8 +34,12 @@ def send_config_to_simple(simple_list: Optional[List[str]] = None):
         if not instance or not instance.config:
             continue
         rk = f'{device}.all.cup'
+        payload = {
+            'timestamp': int(time.time()),
+            'datahold': instance.config
+        }
         try:
-            publish_without_producer(body=instance.config,
+            publish_without_producer(body=payload,
                                      exchange=exchanges.get('mqtt'),
                                      routing_key=rk)
         except Exception as e:
