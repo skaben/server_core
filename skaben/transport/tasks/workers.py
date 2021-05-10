@@ -106,19 +106,7 @@ class BaseWorker(ConsumerProducerMixin):
         data = dict(device_type=device_type,
                     device_uid=device_uid,
                     command=command)
-
-        # FIXME: im crutch
-
-        if device_type in SIMPLE:
-            data = dict(
-                device_type=device_type,
-                device_uid='all',
-                command=device_uid
-            )
-        # FIXME: //
-
         return data
-
 
     def parse_smart(self, data: dict) -> dict:
         """get additional data-fields from smart device"""
