@@ -9,12 +9,8 @@ class WorkModeAdmin(admin.ModelAdmin):
     readonly_fields = ("has_files",)
 
 
-class SimpleConfigAdmin(admin.ModelAdmin):
-    readonly_fields = ('uid',)
-
-
 admin.site.register(MenuItem, site=base_site)
 admin.site.register(WorkMode, WorkModeAdmin, site=base_site)
 admin.site.register(AccessCode, site=base_site)
 admin.site.register(Permission, site=base_site)
-admin.site.register(SimpleConfig, SimpleConfigAdmin, site=base_site)
+admin.site.register(SimpleConfig, site=base_site)
