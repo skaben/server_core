@@ -107,6 +107,7 @@ class BaseWorker(ConsumerProducerMixin):
         if device_type in self.should_receive_config:
             data = dict(
                 device_type=device_type,
+                device_uid='all',
                 command=device_uid
             )
         # FIXME: //
