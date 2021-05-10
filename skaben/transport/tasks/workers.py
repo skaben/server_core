@@ -20,7 +20,8 @@ from transport.interfaces import (publish_with_producer, send_log,
                                   send_websocket)
 
 
-SIMPLE = [dev for dev in settings.APPCFG.get('device_types') if dev not in DEVICES]
+#SIMPLE = [dev for dev in settings.APPCFG.get('device_types') if dev not in DEVICES]
+SIMPLE = ['rgb', 'scl', 'pwr']
 
 
 class WorkerRunner(mp.Process):
@@ -293,6 +294,7 @@ class SendConfigWorker(BaseWorker):
             message.ack()
 
             try:
+                logging.info(f'parsing: {parsed}')
                 if device_type in SIMPLE:
                     return self.send_config_simple(device_type, device_uid)
 
