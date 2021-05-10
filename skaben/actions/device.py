@@ -2,6 +2,7 @@ from typing import Optional, List
 
 from device import serializers
 from device.models import Lock, Simple, Terminal
+from shape.models import SimpleConfig
 from django.conf import settings
 from transport.interfaces import publish_without_producer, send_log
 from transport.rabbitmq import exchanges
@@ -27,7 +28,7 @@ def send_config_to_simple(simple_list: Optional[List[str]] = None):
     if not simple_list:
         simple_list = [dev for dev in settings.APPCFG.get('device_types') if dev not in DEVICES]
     for device in simple_list:
-        instance = Simple.objects.filter(dev_type=device, state__id=get_current_alert_state()).first()
+        instance = SimpleConfig.objects.filter(dev_type=device, state__id=get_current_alert_state()).first()
         if not instance or not instance.config:
             continue
         rk = f'{device}.all.cup'
