@@ -34,7 +34,7 @@ def send_config_to_simple(simple_list: Optional[List[str]] = None):
         rk = f'{device}.all.cup'
         try:
             publish_without_producer(body=instance.config,
-                                     exchanges=exchanges.get('mqtt'),
+                                     exchange=exchanges.get('mqtt'),
                                      routing_key=rk)
         except Exception as e:
             send_log(f'{e}', 'ERROR')
