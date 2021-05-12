@@ -16,12 +16,12 @@ from kombu import Connection, Exchange
 from kombu.message import Message
 from kombu.mixins import ConsumerProducerMixin
 from skabenproto import CUP
+from shape.models import SimpleConfig
 from transport.interfaces import (publish_with_producer, send_log,
                                   send_websocket)
 
 
-#SIMPLE = [dev for dev in settings.APPCFG.get('device_types') if dev not in DEVICES]
-SIMPLE = ['rgb', 'scl', 'pwr']
+SIMPLE = [dev for dev in settings.APPCFG.get('device_types') if dev not in DEVICES]
 
 
 class WorkerRunner(mp.Process):
@@ -343,7 +343,7 @@ class SendConfigWorker(BaseWorker):
             if not device_uid:
                 device_uid = 'all'
             if not instance or not instance.config:
-                raise Exception(f'not found {instance} !!!')
+                return
             datahold = instance.config
 
         if device_type == 'scl':
@@ -357,8 +357,10 @@ class SendConfigWorker(BaseWorker):
             topic=device_type,
             uid=device_uid,
             datahold=datahold,
+            task_id='simple',
             timestamp=int(time.time())
         )
+
         self.publish(packet.payload,
                      exchange=self.exchanges.get('mqtt'),
                      routing_key=f"{device_type}.{device_uid}.cup")
