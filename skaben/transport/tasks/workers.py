@@ -5,16 +5,23 @@ import time
 import traceback
 from typing import Optional, Union
 
-from actions.device import DEVICES
+from django.conf import settings
+
+from actions.device import DEVICES, send_config_to_simple
 from actions.main import event_manager
+from alert.models import get_current_alert_state, get_last_counter
 from core.helpers import fix_database_conn, get_task_id, timestamp_expired
 from eventlog.serializers import EventLogSerializer
 from kombu import Connection, Exchange
 from kombu.message import Message
 from kombu.mixins import ConsumerProducerMixin
 from skabenproto import CUP
+from shape.models import SimpleConfig
 from transport.interfaces import (publish_with_producer, send_log,
                                   send_websocket)
+
+
+SIMPLE = [dev for dev in settings.APPCFG.get('device_types') if dev not in DEVICES]
 
 
 class WorkerRunner(mp.Process):
@@ -97,9 +104,10 @@ class BaseWorker(ConsumerProducerMixin):
     def parse_basic(routing_key: str) -> dict:
         """get device parameters from topic name (routing key)"""
         device_type, device_uid, command = routing_key
-        return dict(device_type=device_type,
+        data = dict(device_type=device_type,
                     device_uid=device_uid,
                     command=command)
+        return data
 
     def parse_smart(self, data: dict) -> dict:
         """get additional data-fields from smart device"""
@@ -275,6 +283,7 @@ class SendConfigWorker(BaseWorker):
     """send config update to clients (CUP)"""
 
     smart = DEVICES
+    simple = []
 
     @fix_database_conn
     def handle_message(self, body: Union[str, dict], message: Message):
@@ -283,7 +292,12 @@ class SendConfigWorker(BaseWorker):
             device_type = parsed.get('device_type')
             device_uid = parsed.get('device_uid')
             message.ack()
+
             try:
+                logging.info(f'parsing: {parsed}')
+                if device_type in SIMPLE:
+                    return self.send_config_simple(device_type, device_uid)
+
                 self.update_timestamp_only(parsed)
                 self.send_config(device_type, device_uid)
             except Exception as e:
@@ -316,6 +330,37 @@ class SendConfigWorker(BaseWorker):
             datahold=config,
             timestamp=int(time.time())
         )
+        self.publish(packet.payload,
+                     exchange=self.exchanges.get('mqtt'),
+                     routing_key=f"{device_type}.{device_uid}.cup")
+
+    def send_config_simple(self, device_type: str, device_uid: Optional[str] = None):
+        """Отправляем конфиг простым устройствам в соответствии с текущим уровнем тревоги"""
+        datahold = {}
+
+        if device_type != 'scl':
+            instance = SimpleConfig.objects.filter(dev_type=device_type, state__id=get_current_alert_state()).first()
+            if not device_uid:
+                device_uid = 'all'
+            if not instance or not instance.config:
+                return
+            datahold = instance.config
+
+        if device_type == 'scl':
+            datahold = {
+                'borders': [0, 500, 1000],
+                'level': get_last_counter(),
+                 'state': 'green'
+            }
+
+        packet = CUP(
+            topic=device_type,
+            uid=device_uid,
+            datahold=datahold,
+            task_id='simple',
+            timestamp=int(time.time())
+        )
+
         self.publish(packet.payload,
                      exchange=self.exchanges.get('mqtt'),
                      routing_key=f"{device_type}.{device_uid}.cup")

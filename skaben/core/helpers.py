@@ -11,7 +11,8 @@ from django.conf import settings
 
 def simple_hash(_string: str, shorten=6) -> str:
     hasher = hashlib.md5(bytes(_string, encoding="utf-8"))
-    return base64.urlsafe_b64encode(hasher.digest()[:shorten]).decode("utf-8")
+    shortened = base64.urlsafe_b64encode(hasher.digest()).decode("utf-8")[:shorten]
+    return f'{round(time.time())}-{shortened}'
 
 
 def timestamp_expired(timestamp):

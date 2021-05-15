@@ -16,6 +16,10 @@ class DeviceMixin:
         alive = settings.APPCFG.get('alive', 60)
         return self.timestamp > current - alive
 
+    @property
+    def alert(self):
+        return str(get_current_alert_state())
+
 
 class ComplexDevice(models.Model, DeviceMixin):
 
@@ -53,7 +57,7 @@ class Lock(ComplexDevice):
         return acl
 
     def __str__(self):
-        return f'LOCK {self.ip} {self.info}'
+        return f'LOCK [ip: {self.ip}] {self.info}'
 
 
 class Terminal(ComplexDevice):
@@ -79,11 +83,6 @@ class Terminal(ComplexDevice):
             "normal": get_mode_url(self.modes_normal),
             "extended": get_mode_url(self.modes_extended)
         }
-
-    @property
-    def alert(self):
-        return str(get_current_alert_state())
-
 
     @property
     def file_list(self):

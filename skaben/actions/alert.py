@@ -1,6 +1,6 @@
 from typing import Optional
 
-from actions.device import send_config_all
+from actions.device import send_config_all, send_config_to_simple
 from alert.models import AlertCounter, AlertState
 from device.models import Lock
 from django.conf import settings
@@ -81,6 +81,7 @@ class AlertService:
                 instance.current = True
                 instance.save()
                 send_config_all()
+                send_config_to_simple()
         except ObjectDoesNotExist:
             pass
         finally:

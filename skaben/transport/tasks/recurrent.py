@@ -19,7 +19,7 @@ class Pinger(mp.Process):
         while self.running:
             try:
                 for topic in self.topics:
-                    send_message_over_mqtt(topic, 'all', 'PING')
+                    send_message_over_mqtt(topic, 'all', 'ping')
                     time.sleep(self.timeout)
             except Exception:
                 send_log(f"{self.__class__.__name__} while running {traceback.format_exc()}")

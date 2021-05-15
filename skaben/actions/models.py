@@ -4,12 +4,21 @@ from typing import Optional
 import requests
 from alert.models import AlertState
 from django.db import models
+from django.conf import settings
+
+
+def get_default_dict():
+    return {}
 
 
 class Action(models.Model):
 
+    ENDPOINT_CHOICES = (
+        ('change_state', f'{settings.API_URL}/alert_state/set_current_by_name')  # existing {'name': 'state_name'}
+    )
+
     endpoint = models.URLField()
-    payload = models.JSONField(blank=True, null=True)
+    payload = models.JSONField(default=get_default_dict, blank=True, null=True)
     comment = models.TextField(default='')
 
     def execute(self):

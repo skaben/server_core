@@ -6,6 +6,11 @@ from .models import Lock, Terminal
 
 class DeviceSerializer(serializers.ModelSerializer):
 
+    alert = serializers.ReadOnlyField()
+
+    class Meta:
+        read_only_fields = ("alert",)
+
     def save(self):
         if self.context and self.context.get('no_send'):
             return super().save()

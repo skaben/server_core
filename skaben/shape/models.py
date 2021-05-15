@@ -2,6 +2,10 @@ from django.conf import settings
 from django.db import models
 
 
+def get_default_dict():
+    return {}
+
+
 class MenuItem(models.Model):
 
     # TODO: refactor choices include naming
@@ -64,7 +68,7 @@ class WorkMode(models.Model):
     @property
     def url(self):
         # well, DRF needed request object for generate URL, but workers don't know about request at all
-        return '/'.join((settings.DEFAULT_DOMAIN, 'api/workmode', f"{self.id}"))
+        return '/'.join((settings.API_URL, 'api/workmode', f"{self.id}"))
 
     @property
     def has_files(self):
@@ -121,7 +125,8 @@ class SimpleConfig(models.Model):
         verbose_name = 'Конфиг пассивного устройства'
         verbose_name_plural = 'Конфиги пассивных устройств'
 
-    config = models.JSONField()
+    # fixme: get_default_dict
+    config = models.JSONField(default=get_default_dict)
     dev_type = models.CharField(max_length=16)
     state = models.ForeignKey('alert.AlertState',
                               on_delete=models.SET_NULL,

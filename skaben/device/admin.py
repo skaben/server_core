@@ -6,7 +6,7 @@ from .models import Lock, Simple, Terminal
 
 
 class DeviceAdmin(admin.ModelAdmin):
-    readonly_fields = ('timestamp',)
+    readonly_fields = ('timestamp', 'alert')
 
 
 admin.site.register(Simple, DeviceAdmin, site=base_site)

@@ -1,4 +1,4 @@
-from actions.device import send_config_all
+from actions.device import send_config_all, send_config_to_simple
 from core.views import DynamicAuthMixin
 from device import serializers
 from rest_framework import status, viewsets
@@ -15,6 +15,7 @@ def update_devices(request):
     """update all devices"""
     try:
         send_config_all()
+        send_config_to_simple()
         return Response('success')
     except Exception as e:
         return Response({'exception': f'{e}'},

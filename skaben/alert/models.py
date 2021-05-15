@@ -70,3 +70,13 @@ class AlertState(models.Model):
 def get_current_alert_state() -> int:
     state = AlertState.objects.filter(current=True).first()
     return state.id if state else 0
+
+
+def get_last_counter() -> int:
+    counter = 0
+    try:
+        instance = AlertCounter.objects.order_by('-timestamp')[0]
+        counter = instance.value
+    except Exception:
+        pass
+    return counter

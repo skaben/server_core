@@ -4,9 +4,9 @@
 cfg/mosquitto/
 logs/
 static/
-skaben/core/migrations/
 *.swp
 tmp/
+skaben/*/migrations/0*.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

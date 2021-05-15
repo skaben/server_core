@@ -14,7 +14,7 @@ def is_alert_reset(datahold: dict):
 def is_message_denied(datahold: dict):
     """Increase alert level by keywords"""
     msg = datahold.get('message').split(' ')
-    if set(['denied', 'rejected']).issubset(msg):
+    if set(['denied', 'rejected', 'failed']).issubset(msg):
         with AlertService() as service:
             service.change_alert_level()
 

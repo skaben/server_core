@@ -1,10 +1,15 @@
-from typing import Optional
+from typing import Optional, List
+
+import time
 
 from device import serializers
 from device.models import Lock, Simple, Terminal
+from shape.models import SimpleConfig
 from django.conf import settings
 from transport.interfaces import publish_without_producer, send_log
 from transport.rabbitmq import exchanges
+from alert.models import get_current_alert_state
+
 
 DEVICES = {
     'lock': {
@@ -15,17 +20,45 @@ DEVICES = {
         'serializer': serializers.TerminalMQTTSerializer,
         'model': Terminal
     },
-    # 'rgb': {
-    #     'serializer': serializers.SimpleLightSerializer,
-    #     'model': models.SimpleLight
-    # }
 }
 
 DEVICES['term'] = DEVICES['terminal']
+SIMPLE = [dev for dev in settings.APPCFG.get('device_types') if dev not in DEVICES]
+
+
+def send_config_to_simple(simple_list: Optional[List[str]] = None):
+    """Отправляем конфиг простым устройствам в соответствии с текущим уровнем тревоги"""
+    if not simple_list:
+        simple_list = SIMPLE
+
+    for device in simple_list:
+        payload = {
+            'device_type': device,
+            'device_uid': 'all'
+        }
+        rk = '{device_type}.{device_uid}.cup'.format(**payload)
+        publish_without_producer(body=payload,
+                                 exchange=exchanges.get('ask'),
+                                 routing_key=rk)
+
+        # instance = SimpleConfig.objects.filter(dev_type=device, state__id=get_current_alert_state()).first()
+        # if not instance or not instance.config:
+        #     continue
+        # rk = f'{device}.all.cup'
+        # payload = {
+        #     'timestamp': int(time.time()),
+        #     'datahold': instance.config
+        # }
+        # try:
+        #     publish_without_producer(body=payload,
+        #                              exchange=exchanges.get('mqtt'),
+        #                              routing_key=rk)
+        # except Exception as e:
+        #     send_log(f'{e}', 'ERROR')
 
 
 def send_config_all(include_overrided: Optional[bool] = False):
-    """Send config to all devices"""
+    """Отправляем конфиг УМНЫМ устройствам"""
     for dev in settings.APPCFG.get('device_types'):
         if not DEVICES.get(dev):
             continue
@@ -42,7 +75,6 @@ def send_config_all(include_overrided: Optional[bool] = False):
                                          routing_key=rk)
             except Exception as e:
                 send_log(f'{e}', 'ERROR')
-
 
 
 def send_config_to(channel: str):
