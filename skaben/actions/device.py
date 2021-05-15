@@ -23,12 +23,13 @@ DEVICES = {
 }
 
 DEVICES['term'] = DEVICES['terminal']
+SIMPLE = [dev for dev in settings.APPCFG.get('device_types') if dev not in DEVICES]
 
 
 def send_config_to_simple(simple_list: Optional[List[str]] = None):
     """Отправляем конфиг простым устройствам в соответствии с текущим уровнем тревоги"""
     if not simple_list:
-        simple_list = [dev for dev in settings.APPCFG.get('device_types') if dev not in DEVICES]
+        simple_list = SIMPLE
 
     for device in simple_list:
         payload = {
