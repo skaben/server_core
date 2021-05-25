@@ -27,11 +27,25 @@ class LockSerializer(DeviceSerializer):
     topic = 'lock'
 
     acl = serializers.ReadOnlyField()
+    online = serializers.ReadOnlyField()
 
     class Meta:
         model = Lock
-        exclude = ('ip', 'override', 'info')
-        read_only_fields = ("id", 'uid', 'online', 'acl', "timestamp")
+        fields = '__all__'
+        read_only_fields = ("id", "uid", "timestamp", "alert", "acl", "online")
+
+
+class LockMQTTSerializer(DeviceSerializer):
+    """ Lock serializer for internal ops and MQTT """
+
+    topic = 'lock'
+
+    acl = serializers.ReadOnlyField()
+
+    class Meta:
+        model = Lock
+        exclude = ('id', 'online')
+        read_only_fields = ("id", "uid", "timestamp", "alert", "acl")
 
 
 class TerminalSerializer(DeviceSerializer):
@@ -39,13 +53,15 @@ class TerminalSerializer(DeviceSerializer):
 
     topic = 'terminal'
 
+    online = serializers.ReadOnlyField()
+
     modes_normal = serializers.HyperlinkedIdentityField(view_name="api:workmode-detail", many=True)
     modes_extended = serializers.HyperlinkedIdentityField(view_name="api:workmode-detail", many=True)
 
     class Meta:
         model = Terminal
-        exclude = ("id", "info", "override", "ip", 'uid')
-        read_only_fields = ('id', 'online', 'timestamp', 'modes_normal', 'modes_extended', 'alert')
+        fields = '__all__'
+        read_only_fields = ('id', 'uid', 'timestamp', 'modes_normal', 'modes_extended', 'alert')
 
 
 class TerminalMQTTSerializer(DeviceSerializer):

@@ -60,7 +60,6 @@ class AlertStateViewSet(mixins.ListModelMixin,
             return Response(status=status.HTTP_404_NOT_FOUND)
 
 
-
 class AlertCounterViewSet(mixins.ListModelMixin,
                           mixins.RetrieveModelMixin,
                           mixins.CreateModelMixin,
@@ -70,3 +69,9 @@ class AlertCounterViewSet(mixins.ListModelMixin,
     """
     queryset = AlertCounter.objects.all()
     serializer_class = serializers.AlertCounterSerializer
+
+    @action(detail=False)
+    def get_latest(self, *args, **kwargs):
+        latest = AlertCounter.objects.latest('id')
+        serializer = self.get_serializer(latest)
+        return Response(serializer.data)

@@ -58,7 +58,7 @@ def send(request):
 
 @api_view(http_method_names=['GET'])
 def healthcheck(request):
-    return Response({'workers': WORKERS, 'recurrent': RECURRENT})
+    return Response({'workers': f'{WORKERS}', 'recurrent': f'{RECURRENT}'})
 
 
 class MQTTMessageViewSet(viewsets.ModelViewSet, DynamicAuthMixin):

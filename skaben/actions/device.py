@@ -6,7 +6,7 @@ from device import serializers
 from device.models import Lock, Simple, Terminal
 from shape.models import SimpleConfig
 from django.conf import settings
-from transport.interfaces import publish_without_producer, send_log
+from transport.interfaces import publish_without_producer, send_log, send_ws_update
 from transport.rabbitmq import exchanges
 from alert.models import get_current_alert_state
 
@@ -55,6 +55,9 @@ def send_config_to_simple(simple_list: Optional[List[str]] = None):
         #                              routing_key=rk)
         # except Exception as e:
         #     send_log(f'{e}', 'ERROR')
+    send_ws_update({
+        'type': 'simple'
+    })
 
 
 def send_config_all(include_overrided: Optional[bool] = False):
@@ -75,6 +78,10 @@ def send_config_all(include_overrided: Optional[bool] = False):
                                          routing_key=rk)
             except Exception as e:
                 send_log(f'{e}', 'ERROR')
+
+    send_ws_update({
+        'type': 'smart'
+    })
 
 
 def send_config_to(channel: str):
@@ -98,6 +105,9 @@ def send_config_to(channel: str):
                                          routing_key=rk)
             except Exception as e:
                 send_log(f'{e}', 'ERROR')
+    send_ws_update({
+        'type': 'smart'
+    })
 
 
 def send_state_update(channel: str, packet: dict):

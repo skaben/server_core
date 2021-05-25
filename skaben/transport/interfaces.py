@@ -49,6 +49,19 @@ def send_log(message, level="INFO", producer=None):
         raise Exception(f"{traceback.format_exc()}")
 
 
+def send_ws_update(message):
+    """sending update front state via websocket"""
+    try:
+        kwargs = {
+            "body": message,
+            "exchange": exchanges.get("websocket"),
+            "routing_key": f"ws"
+        }
+        publish_without_producer(**kwargs)
+    except Exception:
+        raise Exception(f"{traceback.format_exc()}")
+
+
 def send_websocket(message, level="info", access="root", producer=None):
     try:
         kwargs = {
