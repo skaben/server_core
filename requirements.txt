@@ -8,6 +8,7 @@ django-filter>=2.2.0
 djangorestframework>=3.10.3
 djangorestframework-jwt>=1.11.0
 django_extensions
+gunicorn
 Pillow
 PyJWT>=1.7.1
 PyYAML>=5.1.2
