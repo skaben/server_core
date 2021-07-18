@@ -75,8 +75,7 @@ def get_current_alert_state() -> int:
 def get_last_counter() -> int:
     counter = 0
     try:
-        instance = AlertCounter.objects.order_by('-timestamp')[0]
-        counter = instance.value
+        counter = AlertCounter.objects.latest('id').value
     except Exception:
         pass
     return counter

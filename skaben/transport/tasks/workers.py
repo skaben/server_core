@@ -8,7 +8,7 @@ from typing import Optional, Union
 from django.conf import settings
 
 from actions.device import DEVICES, send_config_to_simple
-from actions.main import event_manager
+from actions.main import EventManager
 from alert.models import get_current_alert_state, get_last_counter
 from core.helpers import fix_database_conn, get_task_id, timestamp_expired
 from eventlog.serializers import EventLogSerializer
@@ -75,6 +75,10 @@ class BaseWorker(ConsumerProducerMixin):
                     parsed.update(self.parse_smart(data))
                 else:
                     parsed.update(datahold=data)
+                    # oh my god...
+                    if not parsed.get('timestamp'):
+                        parsed['timestamp'] = data.get('datahold', {}).get('timestamp', 1)
+
                 return parsed
             else:
                 # just return already parsed message
@@ -115,7 +119,7 @@ class BaseWorker(ConsumerProducerMixin):
         if isinstance(data, dict):
             parsed = dict(
                 timestamp=int(data.get('timestamp', 0)),
-                task_id=data.get('task_id'),
+                task_id=data.get('task_id', 0),
                 datahold=self.parse_json(data.get('datahold', {})),
             )
         return parsed
@@ -192,7 +196,7 @@ class LogWorker(BaseWorker):
                 access=access
             )
 
-            self.send_to_endpoints(data)
+            # self.send_to_endpoints(data)
             self.save_message(data)
             message.ack()
         except Exception as e:
@@ -237,7 +241,8 @@ class SaveWorker(BaseWorker):
 
             device = self.smart.get(_type)
             if not device:
-                return self.report_error(f"received SUP from unknown device type: {_type}")
+                return
+                # return self.report_error(f"received SUP from unknown device type: {_type}")
 
             # get device instance from DB
             try:
@@ -270,7 +275,10 @@ class PingPongWorker(BaseWorker):
     def handle_message(self, body: Union[str, dict], message: Message):
         try:
             parsed = super().handle_message(body, message)
-            if timestamp_expired(parsed['timestamp']):
+            timestamp = parsed.get('timestamp', 1)
+            if parsed.get('device_type') in SIMPLE:
+                self.push_device_config(parsed)
+            elif timestamp and timestamp_expired(timestamp):
                 self.push_device_config(parsed)
             else:
                 self.update_timestamp_only(parsed)
@@ -347,10 +355,18 @@ class SendConfigWorker(BaseWorker):
             datahold = instance.config
 
         if device_type == 'scl':
+            borders = [0, 500, 1000]
+            last_counter = get_last_counter()
+            if last_counter > borders[-1]:
+                last_counter = 1000
+            elif last_counter < borders[0]:
+                last_counter = 1
+
+            device_uid = 'all'
             datahold = {
-                'borders': [0, 500, 1000],
-                'level': get_last_counter(),
-                 'state': 'green'
+                'borders': borders,
+                'level': last_counter,
+                'state': 'green'
             }
 
         packet = CUP(
@@ -407,7 +423,8 @@ class StateUpdateWorker(BaseWorker):
                 self.report(f"{ident} :: {parsed.get('datahold', {})}")
 
             try:
-                event_manager.apply(parsed)
+                with EventManager() as manager:
+                    manager.apply(parsed)
             except Exception:
                 raise Exception(f"scenario cannot be applied: {traceback.format_exc()}")
 

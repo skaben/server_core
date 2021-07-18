@@ -6,6 +6,8 @@ from .models import EventLog
 class EventLogSerializer(serializers.ModelSerializer):
     """ Serializer for event log objects """
 
+    human_time = serializers.ReadOnlyField()
+
     class Meta:
         model = EventLog
         fields = '__all__'

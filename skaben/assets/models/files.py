@@ -20,7 +20,7 @@ class SkabenFile(models.Model):
 
     @property
     def uri(self):
-        return f"{settings.DEFAULT_DOMAIN}{self.file.path}"
+        return f"{settings.API_URL}{self.file.path}"
 
     def save(self, *args, **kwargs):
         self.hash = simple_hash(f'{round(time.time())}{self.uuid}')
@@ -72,7 +72,7 @@ class TextFile(models.Model):
 
     @property
     def uri(self):
-        return f"{settings.DEFAULT_DOMAIN}{self.file.path}"
+        return f"{settings.API_URL}{self.file.path}"
 
     def save(self, *args, **kwargs):
         self.hash = simple_hash(f'{round(time.time())}{self.uuid}')

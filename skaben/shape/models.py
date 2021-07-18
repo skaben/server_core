@@ -68,7 +68,7 @@ class WorkMode(models.Model):
     @property
     def url(self):
         # well, DRF needed request object for generate URL, but workers don't know about request at all
-        return '/'.join((settings.API_URL, '/workmode', f"{self.id}"))
+        return '/'.join((settings.API_URL, '/api/workmode', f"{self.id}"))
 
     @property
     def has_files(self):
@@ -112,7 +112,7 @@ class Permission(models.Model):
     state_id = models.ManyToManyField('alert.AlertState')
 
     def __str__(self):
-        return f'[ {self.lock.info.upper()} ] {self.card.position} ' \
+        return f'[ {self.lock.info.upper()} ] /{self.card.code}/ {self.card.position} ' \
                f'{self.card.surname} '
 
 
