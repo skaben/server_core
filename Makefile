@@ -24,10 +24,10 @@ exec: ##  Выполнение команды в указанном сервис
 	@docker-compose exec $$CMD
 
 migrate: ##  Применить миграции
-	@docker-compose exec core python manage.py migrate
+	@docker-compose exec skaben python manage.py migrate
 
 migrations: ##  Создать новую миграцию
-	@docker-compose exec core python manage.py makemigrations
+	@docker-compose exec skaben python manage.py makemigrations
 
 stop:  ##  Остановка всех сервисов
 	@docker-compose down

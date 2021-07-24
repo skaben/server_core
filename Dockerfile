@@ -5,7 +5,7 @@ ENV PATH="/venv/bin:$PATH"
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    build-essential libpq-dev python3-dev python3-psycopg2 && \
+    build-essential libpq-dev python3-dev python3-psycopg2 curl && \
     rm -rf /var/lib/apt/lists/* 
 
 FROM base as builder
