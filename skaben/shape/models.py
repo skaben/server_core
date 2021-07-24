@@ -1,9 +1,15 @@
+import uuid as _uuid
+
 from django.conf import settings
 from django.db import models
 
 
 def get_default_dict():
     return {}
+
+
+def get_uuid():
+    return _uuid.uuid4()
 
 
 class MenuItem(models.Model):
@@ -56,9 +62,10 @@ class WorkMode(models.Model):
     TEXT = "text"
 
     class Meta:
-        verbose_name = 'Настройки: (Терминал) режим работы меню'
-        verbose_name_plural = 'Настройки: (Терминал) режим работы меню'
+        verbose_name = 'Режим работы меню терминала'
+        verbose_name_plural = 'Режим работы меню терминала'
 
+    uuid = models.UUIDField(primary_key=True, default=get_uuid, editable=False)
     name = models.CharField(max_length=48, default="terminal mode")
     state = models.ManyToManyField('alert.AlertState', blank=True)
     header = models.CharField(max_length=48, default="terminal vt40k")
