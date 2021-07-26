@@ -33,8 +33,8 @@ class MenuItem(models.Model):
     )
 
     class Meta:
-        verbose_name = 'Настройки: (Терминал) элемент меню'
-        verbose_name_plural = 'Настройки: (Терминал) элементы меню'
+        verbose_name = 'Элемент меню терминала'
+        verbose_name_plural = 'Элементы меню терминала'
 
     name = models.CharField(max_length=48, default="menu action")
     timer = models.IntegerField(default=-1)
@@ -62,8 +62,8 @@ class WorkMode(models.Model):
     TEXT = "text"
 
     class Meta:
-        verbose_name = 'Режим работы меню терминала'
-        verbose_name_plural = 'Режим работы меню терминала'
+        verbose_name = 'Режим (полное меню) терминала'
+        verbose_name_plural = 'Режим (полное меню) терминала'
 
     uuid = models.UUIDField(primary_key=True, default=get_uuid, editable=False)
     name = models.CharField(max_length=48, default="terminal mode")
@@ -94,8 +94,8 @@ class AccessCode(models.Model):
     """In-game access code or card id"""
 
     class Meta:
-        verbose_name = 'Настройки: (Замок) код - данные карты'
-        verbose_name_plural = 'Настройки: (Замок) код - данные карты'
+        verbose_name = 'Код доступа (ключ-карта)'
+        verbose_name_plural = 'Коды доступа (ключ-карты)'
 
     code = models.CharField(max_length=8)
     name = models.CharField(max_length=64)
@@ -111,8 +111,8 @@ class Permission(models.Model):
 
     class Meta:
         unique_together = ('card', 'lock')
-        verbose_name = 'Настройки: (Замок) код - права допуска'
-        verbose_name_plural = 'Настройки: (Замок) код - права допуска'
+        verbose_name = 'Доступ ключ-карты (права)'
+        verbose_name_plural = 'Доступы ключ-карт (права)'
 
     card = models.ForeignKey('shape.AccessCode', on_delete=models.CASCADE)
     lock = models.ForeignKey('device.Lock', on_delete=models.CASCADE)

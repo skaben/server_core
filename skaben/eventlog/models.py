@@ -9,8 +9,8 @@ class EventLog(models.Model):
         Event log record
     """
     class Meta:
-        verbose_name = 'База: Хроника событий'
-        verbose_name_plural = 'База: Хроника событий'
+        verbose_name = 'Игровое событие'
+        verbose_name_plural = 'Игровые события'
 
     timestamp = models.IntegerField(default=int(time.time()))
     level = models.CharField(default="info", max_length=32)

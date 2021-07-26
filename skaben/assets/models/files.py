@@ -33,8 +33,7 @@ class SkabenFile(models.Model):
 class AudioFile(SkabenFile):
 
     class Meta:
-        verbose_name = 'файл: аудио'
-        verbose_name_plural = "файлы: аудио"
+        verbose_name = 'Аудио'
 
     file = models.FileField(storage=storages.audio_storage)
 
@@ -42,8 +41,7 @@ class AudioFile(SkabenFile):
 class VideoFile(SkabenFile):
 
     class Meta:
-        verbose_name = 'файл: видео'
-        verbose_name_plural = "файлы: видео"
+        verbose_name = 'Видео'
 
     file = models.FileField(storage=storages.video_storage)
 
@@ -51,8 +49,7 @@ class VideoFile(SkabenFile):
 class ImageFile(SkabenFile):
 
     class Meta:
-        verbose_name = 'файл: изображения'
-        verbose_name_plural = "файлы: изображений"
+        verbose_name = 'Изображение'
 
     file = models.ImageField(storage=storages.image_storage)
 
@@ -61,7 +58,6 @@ class TextFile(models.Model):
 
     class Meta:
         verbose_name = 'Текстовый файл'
-        verbose_name_plural = 'файлы: тексты'
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=128, default="game doc")

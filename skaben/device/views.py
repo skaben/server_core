@@ -2,9 +2,7 @@ from actions.device import send_config_all, send_config_to_simple
 from core.views import DynamicAuthMixin
 from device import serializers
 from rest_framework import status, viewsets
-from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import api_view
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .models import Lock, Terminal
@@ -26,6 +24,12 @@ class LockViewSet(viewsets.ModelViewSet, DynamicAuthMixin):
     """ Manage locks in database """
     queryset = Lock.objects.all()
     serializer_class = serializers.LockSerializer
+
+
+class TerminalInternalViewSet(viewsets.ModelViewSet, DynamicAuthMixin):
+    """ Manage terminals in database """
+    queryset = Terminal.objects.all()
+    serializer_class = serializers.TerminalInternalSerializer
 
 
 class TerminalViewSet(viewsets.ModelViewSet, DynamicAuthMixin):

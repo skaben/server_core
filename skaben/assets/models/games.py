@@ -21,8 +21,7 @@ class HackGame(models.Model):
     )
 
     class Meta:
-        verbose_name = 'Настройки: (Терминал) мини-игры Fallout Hack'
-        verbose_name_plural = 'Настройки: (Терминал) мини-игра Fallout Hack'
+        verbose_name = 'Настройки мини-игры Fallout Hack'
 
     attempts = models.IntegerField(default=3)
     difficulty = models.IntegerField(choices=difficulty_choices,
@@ -33,8 +32,7 @@ class HackGame(models.Model):
 
 class AnotherGame(models.Model):
     class Meta:
-        verbose_name = 'Настройки: (Терминал) мини-игры'
-        verbose_name_plural = 'Настройки: (Терминал) мини-игр'
+        verbose_name = 'Настройки мини-игры'
 
     attempts = models.IntegerField(default=3)
     wordcount = models.IntegerField(default=15)

@@ -8,7 +8,7 @@ from shape.models import MenuItem, WorkMode, SimpleConfig
 
 class DeviceMixin:
     """Device online/offline status checker"""
-    ts = 0
+    timestamp = 0
 
     @property
     def online(self):
@@ -39,8 +39,8 @@ class Lock(ComplexDevice):
     """
 
     class Meta:
-        verbose_name = 'Клиент (устройство) Замок'
-        verbose_name_plural = 'Клиент (устройство) Замки'
+        verbose_name = 'Лазерная дверь'
+        verbose_name_plural = 'Лазерные двери'
 
     sound = models.BooleanField(default=False)
     closed = models.BooleanField(default=True)

@@ -17,7 +17,7 @@ DEVICES = {
         'model': Lock
     },
     'terminal': {
-        'serializer': serializers.TerminalMQTTSerializer,
+        'serializer': serializers.TerminalSerializer,
         'model': Terminal
     },
 }
