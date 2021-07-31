@@ -6,7 +6,7 @@ app_name = 'device'
 
 router = SimpleRouter()
 router.register('lock', views.LockViewSet)
-router.register('terminal', views.TerminalViewSet)
+router.register('terminal', views.TerminalInternalViewSet)
 #router.register('simple', views.SimpleLightViewSet)
 
 urlpatterns = [

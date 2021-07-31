@@ -1,9 +1,15 @@
+import uuid as _uuid
+
 from django.conf import settings
 from django.db import models
 
 
 def get_default_dict():
     return {}
+
+
+def get_uuid():
+    return _uuid.uuid4()
 
 
 class MenuItem(models.Model):
@@ -27,8 +33,8 @@ class MenuItem(models.Model):
     )
 
     class Meta:
-        verbose_name = 'Настройки: (Терминал) элемент меню'
-        verbose_name_plural = 'Настройки: (Терминал) элементы меню'
+        verbose_name = 'Элемент меню терминала'
+        verbose_name_plural = 'Элементы меню терминала'
 
     name = models.CharField(max_length=48, default="menu action")
     timer = models.IntegerField(default=-1)
@@ -56,9 +62,10 @@ class WorkMode(models.Model):
     TEXT = "text"
 
     class Meta:
-        verbose_name = 'Настройки: (Терминал) режим работы меню'
-        verbose_name_plural = 'Настройки: (Терминал) режим работы меню'
+        verbose_name = 'Режим (полное меню) терминала'
+        verbose_name_plural = 'Режим (полное меню) терминала'
 
+    uuid = models.UUIDField(primary_key=True, default=get_uuid, editable=False)
     name = models.CharField(max_length=48, default="terminal mode")
     state = models.ManyToManyField('alert.AlertState', blank=True)
     header = models.CharField(max_length=48, default="terminal vt40k")
@@ -68,7 +75,7 @@ class WorkMode(models.Model):
     @property
     def url(self):
         # well, DRF needed request object for generate URL, but workers don't know about request at all
-        return '/'.join((settings.API_URL, '/workmode', f"{self.id}"))
+        return '/'.join((settings.API_URL, '/api/workmode', f"{self.id}"))
 
     @property
     def has_files(self):
@@ -87,8 +94,8 @@ class AccessCode(models.Model):
     """In-game access code or card id"""
 
     class Meta:
-        verbose_name = 'Настройки: (Замок) код - данные карты'
-        verbose_name_plural = 'Настройки: (Замок) код - данные карты'
+        verbose_name = 'Код доступа (ключ-карта)'
+        verbose_name_plural = 'Коды доступа (ключ-карты)'
 
     code = models.CharField(max_length=8)
     name = models.CharField(max_length=64)
@@ -104,15 +111,15 @@ class Permission(models.Model):
 
     class Meta:
         unique_together = ('card', 'lock')
-        verbose_name = 'Настройки: (Замок) код - права допуска'
-        verbose_name_plural = 'Настройки: (Замок) код - права допуска'
+        verbose_name = 'Доступ ключ-карты (права)'
+        verbose_name_plural = 'Доступы ключ-карт (права)'
 
     card = models.ForeignKey('shape.AccessCode', on_delete=models.CASCADE)
     lock = models.ForeignKey('device.Lock', on_delete=models.CASCADE)
     state_id = models.ManyToManyField('alert.AlertState')
 
     def __str__(self):
-        return f'[ {self.lock.info.upper()} ] {self.card.position} ' \
+        return f'[ {self.lock.info.upper()} ] /{self.card.code}/ {self.card.position} ' \
                f'{self.card.surname} '
 
 

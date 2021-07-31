@@ -4,8 +4,9 @@ services:
 
   skaben:
     build: .
+    image: skaben/latest
     healthcheck:
-      test: curl -f http://localhost:8000 || exit 1
+      test: curl -f http://skaben:8000 || exit 1
       interval: 1m
       timeout: 10s
       retries: 3
@@ -13,25 +14,15 @@ services:
     volumes:
       - ./skaben:/skaben
       - static_volume:/skaben/static
-      - ./docker_build/wait-for-it.sh:/wait-for-it.sh
       - files_volume:/media
-    command: >
-      sh -c "
-             /wait-for-it.sh rabbitmq:5672 &&
-             python manage.py wait_for_db &&
-             python manage.py collectstatic --no-input --clear &&
-             python manage.py createcachetable &&
-             yes | python manage.py makemigrations &&
-             yes yes | python manage.py migrate &&
-             python manage.py runserver 0.0.0.0:8000 --noreload
-      "
+    entrypoint: /entrypoint-dev.sh
     ports:
       - "8000:8000"
     depends_on:
       - db
       - rabbitmq
     networks:
-      - core_network
+      - skaben_network
 
   rabbitmq:
     build: './docker_build/rabbitmq'
@@ -46,7 +37,7 @@ services:
       - "1883:1883"
       - "8883:8883"
     networks:
-      - core_network
+      - skaben_network
 
   db:
     image: postgres:latest
@@ -55,13 +46,12 @@ services:
       - db_volume:/var/lib/postgresql/data
       - ./tmp:/home/root/tmp
     networks:
-      - core_network
+      - skaben_network
     env_file: ".env"
 
   nginx:
     build: './docker_build/nginx'
     restart: unless-stopped
-    #command: "/wait-for-it.sh skaben:8000 --timeout=2"
     ports:
       - 80:80
       - 443:443
@@ -73,7 +63,7 @@ services:
     depends_on:
       - skaben
     networks:
-      - core_network
+      - skaben_network
 
 #  prometheus:
 #    build: './docker_build/prom'
@@ -84,7 +74,7 @@ services:
 #    depends_on:
 #      - rabbitmq
 #    networks:
-#      - core_network
+#      - skaben_network
 #    user: "65534:65534"
 #
 #  cadvisor:
@@ -98,7 +88,7 @@ services:
 #      - /sys:/sys:ro
 #      - /var/lib/docker/:/var/lib/docker:ro
 #    networks:
-#      - core_network
+#      - skaben_network
 #
 #  grafana:
 #    image: grafana/grafana:latest
@@ -110,7 +100,7 @@ services:
 #    volumes:
 #      - grafana_volume:/var/lib/grafana
 #    networks:
-#      - core_network
+#      - skaben_network
 #
 
 volumes:
@@ -120,7 +110,7 @@ volumes:
   grafana_volume: {}
 
 networks:
-  core_network:
+  skaben_network:
     driver: bridge
     ipam:
       config:

@@ -3,12 +3,12 @@ import time
 from alert.models import AlertState, get_current_alert_state
 from django.conf import settings
 from django.db import models
-from shape.models import MenuItem, WorkMode
+from shape.models import MenuItem, WorkMode, SimpleConfig
 
 
 class DeviceMixin:
     """Device online/offline status checker"""
-    ts = 0
+    timestamp = 0
 
     @property
     def online(self):
@@ -39,8 +39,8 @@ class Lock(ComplexDevice):
     """
 
     class Meta:
-        verbose_name = 'Клиент (устройство) Замок'
-        verbose_name_plural = 'Клиент (устройство) Замки'
+        verbose_name = 'Лазерная дверь'
+        verbose_name_plural = 'Лазерные двери'
 
     sound = models.BooleanField(default=False)
     closed = models.BooleanField(default=True)
@@ -65,8 +65,8 @@ class Terminal(ComplexDevice):
     """Smart terminal"""
 
     class Meta:
-        verbose_name = 'Клиент (устройство) Терминал'
-        verbose_name_plural = 'Клиент (устройство) Терминалы'
+        verbose_name = 'Терминал'
+        verbose_name_plural = 'Терминалы'
 
     powered = models.BooleanField(default=False)
     blocked = models.BooleanField(default=False)
@@ -74,24 +74,10 @@ class Terminal(ComplexDevice):
     modes_normal = models.ManyToManyField(WorkMode, related_name="mode_normal", blank=True, default=None)
     modes_extended = models.ManyToManyField(WorkMode, related_name="mode_extended", blank=True, default=None)
 
-    @property
-    def mode_list(self):
-        def get_mode_url(mode_queryset):
-            return [mode.url for mode in mode_queryset.all()]
-
-        return {
-            "normal": get_mode_url(self.modes_normal),
-            "extended": get_mode_url(self.modes_extended)
-        }
-
-    @property
-    def file_list(self):
-        """get full unique file list for all modes"""
-        result = {}
+    def modes(self):
         for qs in [self.modes_normal, self.modes_extended]:
             for mode in qs.all():
-                result.update(**mode.has_files)
-        return result
+                yield mode
 
     def __str__(self):
         return f"KONSOLE {self.ip} {self.info}"

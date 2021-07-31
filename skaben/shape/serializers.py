@@ -61,4 +61,4 @@ class WorkModeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = WorkMode
-        exclude = ("id", "name",)
+        exclude = ("name", "uuid")

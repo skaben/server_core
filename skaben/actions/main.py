@@ -1,20 +1,19 @@
 from actions.alert import AlertService
 from core.helpers import fix_database_conn
-from transport.interfaces import publish_without_producer
 
 from .models import UserInput
 
 
 def is_alert_reset(datahold: dict):
     if datahold.get("alert") == "reset":
-        with AlertService() as manager:
-            manager.set_state_by_name("green")
+        with AlertService() as service:
+            service.change_alert_level(1)
 
 
 def is_message_denied(datahold: dict):
     """Increase alert level by keywords"""
-    msg = datahold.get('message').split(' ')
-    if set(['denied', 'rejected', 'failed']).issubset(msg):
+    msg = datahold.get('message', '')
+    if 'denied' in msg or 'rejected' in msg or 'failed' in msg:
         with AlertService() as service:
             service.change_alert_level()
 
@@ -46,18 +45,20 @@ class EventManager:
         except Exception as e:
             raise Exception(f"scenario cannot be applied to packet data: {data} \n reason: {e}")
 
-    # def apply_callback(self, callback: str):
-    #     pass
+    @fix_database_conn
+    def pipeline(self, data: dict):
+        try:
+            if data.get('alert'):
+                is_alert_reset(data)
+            else:
+                is_message_denied(data)
+        except Exception as e:
+            raise Exception(f"error when applying scenario {e}")
 
-    # @fix_database_conn
-    # def pipeline(self, data: dict):
-    #     try:
-    #         if data.get('alert'):
-    #             is_alert_reset(data)
-    #         else:
-    #             is_message_denied(data)
-    #     except Exception as e:
-    #         raise Exception(f"error when applying scenario {e}")
+    def __enter__(self):
+        return self
 
+    def __exit__(self, *exc):
+        return
 
-event_manager = EventManager()
+# event_manager = EventManager()

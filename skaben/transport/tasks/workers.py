@@ -8,7 +8,7 @@ from typing import Optional, Union
 from django.conf import settings
 
 from actions.device import DEVICES, send_config_to_simple
-from actions.main import event_manager
+from actions.main import EventManager
 from alert.models import get_current_alert_state, get_last_counter
 from core.helpers import fix_database_conn, get_task_id, timestamp_expired
 from eventlog.serializers import EventLogSerializer
@@ -75,6 +75,10 @@ class BaseWorker(ConsumerProducerMixin):
                     parsed.update(self.parse_smart(data))
                 else:
                     parsed.update(datahold=data)
+                    # oh my god...
+                    if not parsed.get('timestamp'):
+                        parsed['timestamp'] = data.get('datahold', {}).get('timestamp', 1)
+
                 return parsed
             else:
                 # just return already parsed message
@@ -115,7 +119,7 @@ class BaseWorker(ConsumerProducerMixin):
         if isinstance(data, dict):
             parsed = dict(
                 timestamp=int(data.get('timestamp', 0)),
-                task_id=data.get('task_id'),
+                task_id=data.get('task_id', 0),
                 datahold=self.parse_json(data.get('datahold', {})),
             )
         return parsed
@@ -192,7 +196,7 @@ class LogWorker(BaseWorker):
                 access=access
             )
 
-            self.send_to_endpoints(data)
+            # self.send_to_endpoints(data)
             self.save_message(data)
             message.ack()
         except Exception as e:
@@ -237,7 +241,8 @@ class SaveWorker(BaseWorker):
 
             device = self.smart.get(_type)
             if not device:
-                return self.report_error(f"received SUP from unknown device type: {_type}")
+                return
+                # return self.report_error(f"received SUP from unknown device type: {_type}")
 
             # get device instance from DB
             try:
@@ -262,7 +267,8 @@ class SaveWorker(BaseWorker):
 
 
 class PingPongWorker(BaseWorker):
-    """update timestamp or send back config if timestamp outdated
+    """Отвечает на ПОНГ, перенаправляет все в CUP очередь к SendConfigWorker,
+       вскоре может быть выпилен насовсем.
 
        NOTE: all keep-alive timeouts are set in django.settings.APPCFG
     """
@@ -270,10 +276,7 @@ class PingPongWorker(BaseWorker):
     def handle_message(self, body: Union[str, dict], message: Message):
         try:
             parsed = super().handle_message(body, message)
-            if timestamp_expired(parsed['timestamp']):
-                self.push_device_config(parsed)
-            else:
-                self.update_timestamp_only(parsed)
+            self.push_device_config(parsed)
             message.ack()
         except Exception as e:
             self.report_error(f"{self} when handling message: {e}")
@@ -297,9 +300,13 @@ class SendConfigWorker(BaseWorker):
                 logging.info(f'parsing: {parsed}')
                 if device_type in SIMPLE:
                     return self.send_config_simple(device_type, device_uid)
-
+                # обновляем таймстемп в любом случае
                 self.update_timestamp_only(parsed)
-                self.send_config(device_type, device_uid)
+                # достаем из базы актуальный конфиг устройства
+                config = self.get_config(device_type, device_uid)
+                # проверяем разницу хэшей в пришедшем конфиге и серверном
+                if config.get('hash') != parsed.get('hash'):
+                    self.send_config(device_type, device_uid, config)
             except Exception as e:
                 raise Exception(f"{body} {message} {parsed} {e}")
         except Exception as e:
@@ -308,21 +315,17 @@ class SendConfigWorker(BaseWorker):
     def get_config(self, device_type: str, device_uid: str) -> dict:
         device = self.smart.get(device_type)
         if not device:
-            return self.report_error(f"device not in smart list, but CUP received: {device_type}")
+            self.report_error(f"device not in smart list, but CUP received: {device_type}")
+            return {}
 
         try:
             device_instance = device['model'].objects.get(uid=device_uid)
-            ser = device['serializer'](instance=device_instance)
-            return ser.data
+            serializer = device['serializer'](instance=device_instance)
+            return serializer.data
         except Exception as e:  # DoesNotExist - fixme: make normal exception
             self.report_error(f"[DB error] {device_type} {device_uid}: {e}")
 
-    def send_config(self, device_type: str, device_uid: str):
-        try:
-            config = self.get_config(device_type, device_uid)
-        except Exception:
-            raise
-
+    def send_config(self, device_type: str, device_uid: str, config: dict):
         packet = CUP(
             topic=device_type,
             uid=device_uid,
@@ -333,6 +336,23 @@ class SendConfigWorker(BaseWorker):
         self.publish(packet.payload,
                      exchange=self.exchanges.get('mqtt'),
                      routing_key=f"{device_type}.{device_uid}.cup")
+
+    @staticmethod
+    def get_scl_config():
+        borders = [0, 500, 1000]
+        last_counter = get_last_counter()
+        if last_counter > borders[-1]:
+            last_counter = 1000
+        elif last_counter < borders[0]:
+            last_counter = 1
+
+        device_uid = 'all'
+        datahold = {
+            'borders': borders,
+            'level': last_counter,
+            'state': 'green'
+        }
+        return device_uid, datahold
 
     def send_config_simple(self, device_type: str, device_uid: Optional[str] = None):
         """Отправляем конфиг простым устройствам в соответствии с текущим уровнем тревоги"""
@@ -347,11 +367,7 @@ class SendConfigWorker(BaseWorker):
             datahold = instance.config
 
         if device_type == 'scl':
-            datahold = {
-                'borders': [0, 500, 1000],
-                'level': get_last_counter(),
-                 'state': 'green'
-            }
+            device_uid, datahold = self.get_scl_config()
 
         packet = CUP(
             topic=device_type,
@@ -407,7 +423,8 @@ class StateUpdateWorker(BaseWorker):
                 self.report(f"{ident} :: {parsed.get('datahold', {})}")
 
             try:
-                event_manager.apply(parsed)
+                with EventManager() as manager:
+                    manager.apply(parsed)
             except Exception:
                 raise Exception(f"scenario cannot be applied: {traceback.format_exc()}")
 

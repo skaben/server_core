@@ -1,11 +1,11 @@
 from typing import Optional
 
-from actions.device import send_config_all, send_config_to_simple
+from .device import send_config_all, send_config_to_simple
+
 from alert.models import AlertCounter, AlertState
-from device.models import Lock
+
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
-from transport.interfaces import send_mqtt
 
 
 def get_current() -> AlertState:
@@ -57,16 +57,26 @@ class AlertService:
         except ObjectDoesNotExist:
             raise
 
-    @staticmethod
-    def change_alert_level(increase: Optional[bool] = True,
+    def change_alert_level(self,
+                           increase: Optional[bool] = True,
                            value: Optional[int] = None) -> AlertCounter:
+        try:
+            latest = AlertCounter.objects.latest('id').value
+        except:
+            latest = 0
+
         if not value:
             current = get_current()
-            value = current.modifier
+            value = latest + current.modifier
         if not increase:
-            value = -value
+            value = latest - current.modifier
+
         counter = AlertCounter(value=value)
-        return counter.save()
+        counter.save()
+
+        is_new_state = self.get_state_by_alert(value)
+        if is_new_state != current:
+            self.set_state_current(is_new_state)
 
     @staticmethod
     def reset_counter_to_threshold(instance):
