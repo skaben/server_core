@@ -25,12 +25,12 @@ SECRET_KEY = os.environ['SECRET_KEY']
 STATIC_URL = os.environ['STATIC_URL']
 STATIC_ROOT = "/static/"
 
-#ENVIRONMENT = os.environ.get("DJANGO_ENV")
-ENVIRONMENT = 'dev'
+ENVIRONMENT = os.environ.get("ENVIRON")
+#ENVIRONMENT = 'dev'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-ALLOWED_HOSTS = ['http://front', 'http://localhost']
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', [])
 
 DEFAULT_DOMAIN = os.environ.get('DEFAULT_DOMAIN', "http://127.0.0.1")
 MEDIA_URL = "media/"

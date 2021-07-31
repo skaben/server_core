@@ -23,3 +23,5 @@ RUN mkdir -p /skaben/static && \
     chmod +x /wait-for-it.sh
 
 WORKDIR /skaben
+
+CMD ["sh", "-c", "/entrypoint.sh"]

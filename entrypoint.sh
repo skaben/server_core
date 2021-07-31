@@ -3,6 +3,8 @@
 echo "Awaiting broker"
 /wait-for-it.sh rabbitmq:5672
 
+cd /skaben
+
 echo "Waiting for database"
 python manage.py wait_for_db
 python manage.py createcachetable
