@@ -30,7 +30,7 @@ ENVIRONMENT = 'dev'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['http://front', 'http://localhost']
 
 DEFAULT_DOMAIN = os.environ.get('DEFAULT_DOMAIN', "http://127.0.0.1")
 MEDIA_URL = "media/"

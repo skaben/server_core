@@ -10,13 +10,16 @@ RUN apt-get update && \
 
 FROM base as builder
 
-COPY ./requirements.txt ./docker_build/scripts/* /
+COPY ./requirements.txt scripts/wait-for-it.sh /
     
 RUN python -m venv /venv && \
     python -m pip install --upgrade pip && \
-    python -m pip install --no-cache-dir -r /requirements.txt && \
-    mkdir -p /skaben/static && \
-    chmod +x /entrypoint*.sh && \
+    python -m pip install --no-cache-dir -r /requirements.txt
+
+COPY entrypoint.sh /
+
+RUN mkdir -p /skaben/static && \
+    chmod +x /entrypoint.sh && \
     chmod +x /wait-for-it.sh
 
 WORKDIR /skaben
