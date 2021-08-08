@@ -31,7 +31,7 @@ REST_FRAMEWORK = {
 
 
 APPCFG = {
-    'timeout': 5,  # between pings
+    'timeout': 1,  # between pings
     'alive': 60,  #  set device offline after
     'text_storage': 'misc/texts', # texts directory
     'tz': 'Europe/Moscow', # timezone

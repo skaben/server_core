@@ -32,8 +32,6 @@ class AlertState(models.Model):
 
     name = models.CharField(max_length=32, blank=False, unique=True)  # alert level color name
     info = models.CharField(max_length=256)
-    bg_color = models.CharField(max_length=7, default='#000000')
-    fg_color = models.CharField(max_length=7, default='#ffffff')
     threshold = models.IntegerField(default=-1)
     current = models.BooleanField(default=False)
     order = models.IntegerField(blank=False, unique=True)

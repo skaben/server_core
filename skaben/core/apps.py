@@ -1,3 +1,4 @@
+import os
 import sys
 import time
 
@@ -9,9 +10,10 @@ class CoreConfig(AppConfig):
 
     def ready(self):
         if 'runserver' in sys.argv:
-            from transport.tasks.main import run_pinger, run_workers
-            print('starting workers')
-            run_workers()
-            print('starting pinger')
-            print('********** SKABEN SYSTEMS UP. SERVING THE OMNISSIAH **********')
-            run_pinger()
+            if os.environ.get('RUN_MAIN') == 'true':
+                from transport.tasks.main import run_pinger, run_workers
+                print('starting workers')
+                run_workers()
+                print('starting pinger')
+                print('********** SKABEN SYSTEMS UP. SERVING THE OMNISSIAH **********')
+                run_pinger()

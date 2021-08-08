@@ -47,6 +47,7 @@ class MenuItem(models.Model):
     video = models.ForeignKey("assets.VideoFile", on_delete=models.CASCADE, blank=True, null=True)
     text = models.ForeignKey("assets.TextFile", on_delete=models.CASCADE, blank=True, null=True)
     image = models.ForeignKey("assets.ImageFile", on_delete=models.CASCADE, blank=True, null=True)
+    actions = models.ManyToManyField("actions.Action", blank=True)
 
     def __str__(self):
         timer = f"{self.timer}s" if self.timer > 0 else "not set"

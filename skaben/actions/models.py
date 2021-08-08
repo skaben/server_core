@@ -41,7 +41,6 @@ class UserInput(models.Model):
                             unique=True,
                             max_length=48)
     require = models.CharField(default="input", max_length=48)
-    actions = models.ManyToManyField(Action)
 
     def __str__(self):
-        return f"on input `{self.require}` put internal `{self.actions}`"
+        return f"Input `{self.name}` required `{self.require}`"

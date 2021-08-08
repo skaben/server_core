@@ -22,4 +22,6 @@ flake8
 skabenproto
 kombu
 django-pgviews
-sphinx
+isort
+requests
+

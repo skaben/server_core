@@ -4,11 +4,9 @@ import time
 
 from device import serializers
 from device.models import Lock, Simple, Terminal
-from shape.models import SimpleConfig
 from django.conf import settings
 from transport.interfaces import publish_without_producer, send_log, send_ws_update
 from transport.rabbitmq import exchanges
-from alert.models import get_current_alert_state
 
 
 DEVICES = {

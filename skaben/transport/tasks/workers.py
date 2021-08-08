@@ -17,8 +17,11 @@ from kombu.message import Message
 from kombu.mixins import ConsumerProducerMixin
 from skabenproto import CUP
 from shape.models import SimpleConfig
-from transport.interfaces import (publish_with_producer, send_log,
-                                  send_websocket)
+from transport.interfaces import (
+    publish_with_producer,
+    send_log,
+    send_websocket
+)
 
 
 SIMPLE = [dev for dev in settings.APPCFG.get('device_types') if dev not in DEVICES]
@@ -75,10 +78,9 @@ class BaseWorker(ConsumerProducerMixin):
                     parsed.update(self.parse_smart(data))
                 else:
                     parsed.update(datahold=data)
-                    # oh my god...
                     if not parsed.get('timestamp'):
                         parsed['timestamp'] = data.get('datahold', {}).get('timestamp', 1)
-
+                send_log(f'handling {parsed}')
                 return parsed
             else:
                 # just return already parsed message
@@ -117,10 +119,12 @@ class BaseWorker(ConsumerProducerMixin):
         """get additional data-fields from smart device"""
         parsed = {'datahold': f'{data}'}
         if isinstance(data, dict):
+            datahold = self.parse_json(data.get('datahold', {}))
             parsed = dict(
                 timestamp=int(data.get('timestamp', 0)),
                 task_id=data.get('task_id', 0),
-                datahold=self.parse_json(data.get('datahold', {})),
+                datahold=datahold,
+                hash=data.get('hash', '')
             )
         return parsed
 
@@ -128,7 +132,8 @@ class BaseWorker(ConsumerProducerMixin):
         timestamp = int(time.time()) if not timestamp else timestamp
         parsed['timestamp'] = timestamp
         parsed['datahold'] = {'timestamp': timestamp}
-        parsed['command'] = 'SUP'
+        parsed['command'] = 'sup'
+        parsed['hash'] = parsed.get('hash', '')
         self.save_device_config(parsed)
 
     def push_device_config(self, parsed: dict):
@@ -242,7 +247,6 @@ class SaveWorker(BaseWorker):
             device = self.smart.get(_type)
             if not device:
                 return
-                # return self.report_error(f"received SUP from unknown device type: {_type}")
 
             # get device instance from DB
             try:
@@ -276,8 +280,9 @@ class PingPongWorker(BaseWorker):
     def handle_message(self, body: Union[str, dict], message: Message):
         try:
             parsed = super().handle_message(body, message)
-            self.push_device_config(parsed)
             message.ack()
+            send_log(f'after pong: {parsed}')
+            self.push_device_config(parsed)
         except Exception as e:
             self.report_error(f"{self} when handling message: {e}")
 
@@ -297,16 +302,17 @@ class SendConfigWorker(BaseWorker):
             message.ack()
 
             try:
-                logging.info(f'parsing: {parsed}')
                 if device_type in SIMPLE:
                     return self.send_config_simple(device_type, device_uid)
                 # обновляем таймстемп в любом случае
-                self.update_timestamp_only(parsed)
                 # достаем из базы актуальный конфиг устройства
                 config = self.get_config(device_type, device_uid)
                 # проверяем разницу хэшей в пришедшем конфиге и серверном
-                if config.get('hash') != parsed.get('hash'):
+                if str(config.get('hash')) != str(parsed.get('hash', '')):
+                    send_log(f'no hash in {parsed}')
                     self.send_config(device_type, device_uid, config)
+                else:
+                    self.update_timestamp_only(parsed)
             except Exception as e:
                 raise Exception(f"{body} {message} {parsed} {e}")
         except Exception as e:
@@ -326,6 +332,7 @@ class SendConfigWorker(BaseWorker):
             self.report_error(f"[DB error] {device_type} {device_uid}: {e}")
 
     def send_config(self, device_type: str, device_uid: str, config: dict):
+        send_log(f"sending config for {device_type} {device_uid} :: {config}")
         packet = CUP(
             topic=device_type,
             uid=device_uid,

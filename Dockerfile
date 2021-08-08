@@ -24,4 +24,6 @@ RUN mkdir -p /skaben/static && \
 
 WORKDIR /skaben
 
+EXPOSE 8000
+
 CMD ["sh", "-c", "/entrypoint.sh"]
