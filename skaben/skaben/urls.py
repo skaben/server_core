@@ -29,10 +29,10 @@ for router in routers:
     core_router.registry.extend(router.registry)
 
 urlpatterns = [
-    path('auth/token/', CreateTokenView.as_view(), name='token'),
-    path('auth/login/', login_view, name="login"),
     path('admin/', admin.site.urls),
     path('api/', include((core_router.urls, "core"), namespace="api")),
-    path('transport/', include('transport.urls')),
-    path('device/', include('device.urls'))
+    path('api/auth/token/', CreateTokenView.as_view(), name='token'),
+    path('api/auth/login/', login_view, name="login"),
+    path('api/transport/', include('transport.urls')),
+    path('api/device/', include('device.urls'))
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

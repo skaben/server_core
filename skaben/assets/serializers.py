@@ -8,7 +8,6 @@ from .models import (AudioFile, HackGame, ImageFile, SkabenFile, TextFile,
 
 
 class FileSerializer(serializers.ModelSerializer):
-
     file = serializers.SerializerMethodField('get_file_url')
 
     class Meta:

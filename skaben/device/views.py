@@ -1,4 +1,5 @@
 from actions.device import send_config_all, send_config_to_simple
+from transport.interfaces import save_device_payload
 from core.views import DynamicAuthMixin
 from device import serializers
 from rest_framework import status, viewsets
@@ -18,6 +19,11 @@ def update_devices(request):
     except Exception as e:
         return Response({'exception': f'{e}'},
                         status=status.HTTP_403_FORBIDDEN)
+
+
+@api_view(http_method_names=["POST", "PUT", "PATCH"])
+def save_device(data):
+    save_device_payload(data)
 
 
 class LockViewSet(viewsets.ModelViewSet, DynamicAuthMixin):

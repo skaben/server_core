@@ -20,8 +20,7 @@ DEVICES = {
     },
 }
 
-DEVICES['term'] = DEVICES['terminal']
-SIMPLE = [dev for dev in settings.APPCFG.get('device_types') if dev not in DEVICES]
+SIMPLE = [dev for dev in settings.APPCFG.get('device_types') if dev not in ['lock', 'terminal']]
 
 
 def send_config_to_simple(simple_list: Optional[List[str]] = None):
@@ -29,33 +28,13 @@ def send_config_to_simple(simple_list: Optional[List[str]] = None):
     if not simple_list:
         simple_list = SIMPLE
 
+    # для каждого типа устройства генерится запрос во внутреннюю очередь
     for device in simple_list:
-        payload = {
-            'device_type': device,
-            'device_uid': 'all'
-        }
-        rk = '{device_type}.{device_uid}.cup'.format(**payload)
-        publish_without_producer(body=payload,
+        rk = f'{device}.all.cup'
+        dummy_body = {'device_type': device, 'device_uid': 'all'}
+        publish_without_producer(body=dummy_body,
                                  exchange=exchanges.get('ask'),
                                  routing_key=rk)
-
-        # instance = SimpleConfig.objects.filter(dev_type=device, state__id=get_current_alert_state()).first()
-        # if not instance or not instance.config:
-        #     continue
-        # rk = f'{device}.all.cup'
-        # payload = {
-        #     'timestamp': int(time.time()),
-        #     'datahold': instance.config
-        # }
-        # try:
-        #     publish_without_producer(body=payload,
-        #                              exchange=exchanges.get('mqtt'),
-        #                              routing_key=rk)
-        # except Exception as e:
-        #     send_log(f'{e}', 'ERROR')
-    send_ws_update({
-        'type': 'simple'
-    })
 
 
 def send_config_all(include_overrided: Optional[bool] = False):

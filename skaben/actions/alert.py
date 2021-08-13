@@ -41,6 +41,9 @@ class AlertService:
             next_threshold = getattr(next, 'threshold', self._max_val)
             self.state_ranges.update({index: [item.threshold, next_threshold]})
 
+    def get_state_by_name(self, name: str):
+        return AlertState.objects.filter(name=name).first()
+
     def get_state_by_alert(self, alert_value: int):
         try:
             alert_value = int(alert_value)

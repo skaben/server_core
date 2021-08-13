@@ -98,3 +98,14 @@ def send_message_over_mqtt(topic, uid, command, payload=None):
     if payload:
         data["datahold"] = payload
     send_mqtt(f"{topic}.{uid}.{command}", data)
+
+
+def save_device_payload(payload):
+    timestamp = int(time.time())
+    payload.update({"timestamp": timestamp})
+    kwargs = {
+        "body": payload,
+        "exchange": exchanges.get('internal'),
+        "routing_key": 'save'
+    }
+    publish_without_producer(**kwargs)
