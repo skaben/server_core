@@ -1,6 +1,3 @@
-from collections import OrderedDict
-
-from actions.serializers import UserInputSerializer
 from rest_framework import serializers
 
 from .models import (AudioFile, HackGame, ImageFile, SkabenFile, TextFile,

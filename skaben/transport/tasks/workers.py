@@ -5,8 +5,6 @@ import time
 import traceback
 from typing import Optional, Union
 
-from django.conf import settings
-
 from actions.device import (
     DEVICES,
     SIMPLE,
@@ -14,7 +12,7 @@ from actions.device import (
 )
 from transport.interfaces import send_log
 from actions.main import EventManager
-from alert.models import get_current_alert_state, get_last_counter
+from alert.models import get_current_alert_state, get_last_counter, get_borders
 from core.helpers import fix_database_conn, get_task_id, timestamp_expired
 from eventlog.serializers import EventLogSerializer
 from kombu import Connection, Exchange
@@ -343,12 +341,12 @@ class SendConfigWorker(BaseWorker):
 
     @staticmethod
     def get_scl_config():
-        borders = [0, 500, 1000]
+        borders = get_borders()
         last_counter = get_last_counter()
         if last_counter > borders[-1]:
-            last_counter = 1000
+            last_counter = borders[-1]
         elif last_counter < borders[0]:
-            last_counter = 1
+            last_counter = borders[0]
 
         device_uid = 'all'
         datahold = {

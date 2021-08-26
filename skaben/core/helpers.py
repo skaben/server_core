@@ -1,3 +1,4 @@
+import uuid as _uuid
 import base64
 import hashlib
 import time
@@ -7,6 +8,10 @@ from random import randint
 import pytz
 from django import db
 from django.conf import settings
+
+
+def get_uuid():
+    return _uuid.uuid4()
 
 
 def simple_hash(_string: str, shorten=6) -> str:

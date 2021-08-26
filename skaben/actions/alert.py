@@ -2,43 +2,31 @@ from typing import Optional
 
 from .device import send_config_all, send_config_to_simple
 
-from alert.models import AlertCounter, AlertState
+from alert.models import (
+    AlertCounter,
+    AlertState,
+    get_max_alert_value,
+    get_ingame_states,
+    get_current
+)
 
-from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 
-
-def get_current() -> AlertState:
-    return AlertState.objects.filter(current=True).first()
-
-
-def new_alert_threshold_lg_current(level_name):
-    current = get_current()
-    try:
-        new = AlertState.objects.filter(name=level_name).first()
-        if new.threshold > current.threshold:
-            return True
-    except Exception as e:
-        raise Exception(f"Error when comparing alert levels: alert level with name {level_name}\nreason: {e}")
 
 
 class AlertService:
     """ Global Alert State service """
 
     def __init__(self):
-        alert = settings.APPCFG['alert']
-        self._min_val = alert.get('ingame')
-        self._max_val = alert.get('max')
         self.state_ranges = dict()
-
-        ingame = [state for state in AlertState.objects.all().order_by("threshold")
-                  if state.threshold in range(self._min_val, self._max_val)]
-
-        self.states = dict(enumerate(ingame))
+        self._min_val = 1
+        self._max_val = get_max_alert_value()
+        self.states = dict(enumerate(get_ingame_states()))
+        max_scale_value = self._max_val + int(round(self._max_val * 0.1))
 
         for index, item in self.states.items():
             next = self.states.get(index + 1)
-            next_threshold = getattr(next, 'threshold', self._max_val)
+            next_threshold = getattr(next, 'threshold', max_scale_value)
             self.state_ranges.update({index: [item.threshold, next_threshold]})
 
     def get_state_by_name(self, name: str):
@@ -83,8 +71,10 @@ class AlertService:
 
     @staticmethod
     def reset_counter_to_threshold(instance):
-        data = {'value': instance.threshold,
-                'comment': f'changed to {instance.name} by API call'}
+        data = {
+            'value': instance.threshold,
+            'comment': f'changed to {instance.name} by API call'
+        }
         return data
 
     @staticmethod

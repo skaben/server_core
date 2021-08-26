@@ -1,10 +1,26 @@
-from actions.alert import AlertService, get_current
+from actions.alert import AlertService
+from core.models import ControlCommand
+from alert.models import get_current
 from alert.serializers import AlertStateSerializer
 from core.helpers import fix_database_conn
 from transport.rabbitmq import exchanges
 from transport.interfaces import send_log, publish_without_producer
 
-from .models import UserInput
+
+def send_control_command(name: str):
+    command = ControlCommand.objects.filter(name=name).first()
+    if not command:
+        return
+
+    if command.channel and command.payload:
+        kwargs = {
+            "body": command.payload,
+            "exchange": command.exchange,
+            "routing_key": command.rk
+        }
+        publish_without_producer(
+            **kwargs
+        )
 
 
 def check_power_state(datahold: dict):
@@ -17,7 +33,7 @@ def check_power_state(datahold: dict):
     with AlertService() as service:
         state = service.get_state_by_name(dispatch.get(power_state))
         if not state:
-            raise Exception(f'no state {state}')
+            raise Exception(f'no state {power_state}')
         update_data = {'current': True}
         serializer = AlertStateSerializer(instance=state, data=update_data)
         if serializer.is_valid():
@@ -41,7 +57,6 @@ def is_message_denied(datahold: dict):
 
 
 def open_hold():
-    send_log('OPENING HOLD!!!')
     command = {
         "datahold": {"STR": "1/1000/S", "RGB": "FF00FF/1000/0/S"}
     }

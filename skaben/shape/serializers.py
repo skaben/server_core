@@ -1,11 +1,18 @@
-from actions.serializers import UserInputSerializer
 from assets.serializers import (AudioFileSerializer, HackGameSerializer,
                                 ImageFileSerializer, TextFileSerializer,
                                 VideoFileSerializer)
 from rest_framework import serializers
 from collections import OrderedDict
 
-from .models import AccessCode, MenuItem, Permission, WorkMode
+from .models import AccessCode, MenuItem, Permission, WorkMode, UserInput
+
+
+class UserInputSerializer(serializers.ModelSerializer):
+    """ Serializer for menu item objects """
+
+    class Meta:
+        model = UserInput
+        exclude = ("id",)
 
 
 class AccessCodeSerializer(serializers.ModelSerializer):

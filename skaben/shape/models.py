@@ -1,5 +1,4 @@
-import uuid as _uuid
-
+from core.helpers import get_uuid
 from django.conf import settings
 from django.db import models
 
@@ -8,11 +7,61 @@ def get_default_dict():
     return {}
 
 
-def get_uuid():
-    return _uuid.uuid4()
+class UserAction(models.Model):
+
+    class Meta:
+        abstract = True
+
+    uuid = models.UUIDField(
+        primary_key=True,
+        editable=False,
+        default=get_uuid
+    )
+
+    action = models.CharField(
+        default='action',
+        blank=False,
+        unique=True,
+        max_length=64,
+        verbose_name='Уникальное имя операции'
+    )
+
+    display = models.CharField(
+        blank=False,
+        max_length=128,
+        verbose_name='Отображаемое имя пункта меню'
+    )
 
 
-class MenuItem(models.Model):
+class UserInput(UserAction):
+
+    expected = models.CharField(
+        default="",
+        max_length=128,
+        blank=True,
+        verbose_name='Ожидаемое значение ввода',
+        help_text="Оставьте все поля пустыми чтобы сделать простую кнопку"
+    )
+
+    message = models.TextField(
+        default="required input",
+        verbose_name='Сообщение для пользователя на экране ввода'
+    )
+
+    delay = models.IntegerField(
+        default=0,
+        verbose_name='Задержка интерфейса пользователя'
+    )
+
+    class Meta:
+        verbose_name = 'Пользовательский интерфейс ввода'
+        verbose_name_plural = 'Пользовательские интерфейсы ввода'
+
+    def __str__(self):
+        return f"Input `{self.action}` required `{self.require}`"
+
+
+class MenuItem(UserAction):
 
     # TODO: refactor choices include naming
 
@@ -36,18 +85,16 @@ class MenuItem(models.Model):
         verbose_name = 'Элемент меню терминала'
         verbose_name_plural = 'Элементы меню терминала'
 
-    name = models.CharField(max_length=48, default="menu action")
     timer = models.IntegerField(default=-1)
     option = models.CharField(choices=TYPE_CHOICES,
                               default=USER,
                               max_length=32)
     game = models.ForeignKey("assets.HackGame", on_delete=models.CASCADE, blank=True, null=True)
-    user = models.ForeignKey("actions.UserInput", on_delete=models.CASCADE, blank=True, null=True)
+    user = models.ForeignKey(UserInput, on_delete=models.CASCADE, blank=True, null=True)
     audio = models.ForeignKey("assets.AudioFile", on_delete=models.CASCADE, blank=True, null=True)
     video = models.ForeignKey("assets.VideoFile", on_delete=models.CASCADE, blank=True, null=True)
     text = models.ForeignKey("assets.TextFile", on_delete=models.CASCADE, blank=True, null=True)
     image = models.ForeignKey("assets.ImageFile", on_delete=models.CASCADE, blank=True, null=True)
-    actions = models.ManyToManyField("actions.Action", blank=True)
 
     def __str__(self):
         timer = f"{self.timer}s" if self.timer > 0 else "not set"
@@ -130,8 +177,8 @@ class SimpleConfig(models.Model):
     """
 
     class Meta:
-        verbose_name = 'Конфиг пассивного устройства'
-        verbose_name_plural = 'Конфиги пассивных устройств'
+        verbose_name = 'Поведение пассивного устройства'
+        verbose_name_plural = 'Поведение пассивных устройств'
 
     # fixme: get_default_dict
     config = models.JSONField(default=get_default_dict)

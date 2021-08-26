@@ -5,7 +5,6 @@ from rest_framework.routers import SimpleRouter
 app_name = 'assets'
 
 router = SimpleRouter()
-router.register('userinput', views.UserInputViewSet)
 router.register('textfile', views.TextFileViewSet)
 router.register('imagefile', views.ImageFileViewSet)
 router.register('audiofile', views.AudioFileViewSet)

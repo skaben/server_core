@@ -42,7 +42,7 @@ APPCFG = {
     },
     'alert': {
         "min": -5,
-        "ingame": 0,
+        "ingame": 1,
         "max": 1000
     },
     'timeouts': {
