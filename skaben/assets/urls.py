@@ -10,6 +10,7 @@ router.register('imagefile', views.ImageFileViewSet)
 router.register('audiofile', views.AudioFileViewSet)
 router.register('videofile', views.VideoFileViewSet)
 router.register('hackgame', views.HackGameViewSet)
+router.register('userinput', views.UserInputViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),

@@ -9,17 +9,17 @@ from transport.interfaces import send_log, send_websocket
 from .models import EventLog
 
 
-class EventLogViewSet(viewsets.ModelViewSet, DynamicAuthMixin):
+class EventViewSet(viewsets.ModelViewSet, DynamicAuthMixin):
     """ Events in database """
     queryset = EventLog.objects.all()
-    serializer_class = serializers.EventLogSerializer
+    serializer_class = serializers.EventSerializer
 
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['level', 'access']
-
-    def save(self):
-        try:
-            send_websocket(self.message, self.level, self.access)
-        except Exception as e:
-            send_log(f"when sending event via websocket: {e}", "error")
-        super().save()
+    filterset_fields = ['level', 'source', 'stream']
+    #
+    # def save(self):
+    #     # try:
+    #     #     send_websocket(self.message, self.level, self.)
+    #     # except Exception as e:
+    #     #     send_log(f"when sending event via websocket: {e}", "error")
+    #     super().save()

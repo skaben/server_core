@@ -4,6 +4,7 @@ import multiprocessing as mp
 import time
 import traceback
 from typing import Optional, Union
+from django.core.exceptions import ObjectDoesNotExist
 
 from actions.device import (
     DEVICES,
@@ -14,12 +15,12 @@ from transport.interfaces import send_log
 from actions.main import EventManager
 from alert.models import get_current_alert_state, get_last_counter, get_borders
 from core.helpers import fix_database_conn, get_task_id, timestamp_expired
-from eventlog.serializers import EventLogSerializer
+from eventlog.serializers import EventSerializer
 from kombu import Connection, Exchange
 from kombu.message import Message
 from kombu.mixins import ConsumerProducerMixin
 from skabenproto import CUP
-from shape.models import SimpleConfig
+from shape.models import SimpleConfig, AccessCode
 from transport.interfaces import (
     publish_with_producer,
     send_websocket
@@ -187,16 +188,14 @@ class LogWorker(BaseWorker):
     def handle_message(self, body: Union[str, dict], message: Message):
         try:
             parsed = super().handle_message(body, message)
-            access = "root"
             level = message.delivery_info.get('routing_key', "info")
-            payload = parsed.get("message")
-            if parsed.get("access"):
-                access = parsed.pop("access")
 
+            # TODO: адресные логи, с source!
             data = dict(
-                message=payload,
+                message=parsed.get('message'),
                 level=level,
-                access=access
+                source=parsed.get('device_uid', 'log'),
+                stream=parsed.get('device_type', 'log')
             )
 
             # self.send_to_endpoints(data)
@@ -213,7 +212,7 @@ class LogWorker(BaseWorker):
     @staticmethod
     def save_message(data: dict):
         """save message as log record"""
-        serializer = EventLogSerializer(data=data)
+        serializer = EventSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
 
@@ -423,8 +422,17 @@ class StateUpdateWorker(BaseWorker):
                 if parsed.get('device_type') not in SIMPLE:
                     self.save_device_config(parsed)
             else:
-                ident = '{device_type}_{device_uid} {command}'.format(**parsed)
-                self.report(f"{ident} :: {parsed.get('datahold', {})}")
+                data = {
+                    "level": "info",
+                    "stream": parsed['device_type'],
+                    "source": parsed['device_uid'],
+                    "message": parsed['datahold']
+                }
+                if data["source"] == 'lock' and data['message'].get('access'):
+                    data["message"] = self.parse_access_log(data["message"], data["source"])
+                serializer = EventSerializer(data=data)
+                if serializer.is_valid():
+                    serializer.save()
 
             try:
                 with EventManager() as manager:
@@ -434,3 +442,21 @@ class StateUpdateWorker(BaseWorker):
 
         except Exception as e:
             self.report_error(f"{self} when handling message: {e}")
+
+    @staticmethod
+    def parse_access_log(message: dict, source: str) -> dict:
+        """Трансформирует код в данные обладателя или создает новую пустую запись карты если такого пользователя нет"""
+        try:
+            instance = AccessCode.objects.filter(code=message.get("code")).first()
+            result = "{code} :: {position} {name} {surname}".format(**instance.__dict__)
+        except ObjectDoesNotExist:
+            instance = AccessCode(
+                code=message.get("code"),
+                name="auto-generated",
+                surname="auto-generated",
+                position=""
+            )
+            instance.save()
+            result = f"{instance.code} was AUTO-GENERATED from {source} at first time!"
+        message.update(code=result)
+        return message

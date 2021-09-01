@@ -7,61 +7,7 @@ def get_default_dict():
     return {}
 
 
-class UserAction(models.Model):
-
-    class Meta:
-        abstract = True
-
-    uuid = models.UUIDField(
-        primary_key=True,
-        editable=False,
-        default=get_uuid
-    )
-
-    action = models.CharField(
-        default='action',
-        blank=False,
-        unique=True,
-        max_length=64,
-        verbose_name='Уникальное имя операции'
-    )
-
-    display = models.CharField(
-        blank=False,
-        max_length=128,
-        verbose_name='Отображаемое имя пункта меню'
-    )
-
-
-class UserInput(UserAction):
-
-    expected = models.CharField(
-        default="",
-        max_length=128,
-        blank=True,
-        verbose_name='Ожидаемое значение ввода',
-        help_text="Оставьте все поля пустыми чтобы сделать простую кнопку"
-    )
-
-    message = models.TextField(
-        default="required input",
-        verbose_name='Сообщение для пользователя на экране ввода'
-    )
-
-    delay = models.IntegerField(
-        default=0,
-        verbose_name='Задержка интерфейса пользователя'
-    )
-
-    class Meta:
-        verbose_name = 'Пользовательский интерфейс ввода'
-        verbose_name_plural = 'Пользовательские интерфейсы ввода'
-
-    def __str__(self):
-        return f"Input `{self.action}` required `{self.require}`"
-
-
-class MenuItem(UserAction):
+class MenuItem(models.Model):
 
     # TODO: refactor choices include naming
 
@@ -85,12 +31,29 @@ class MenuItem(UserAction):
         verbose_name = 'Элемент меню терминала'
         verbose_name_plural = 'Элементы меню терминала'
 
-    timer = models.IntegerField(default=-1)
+    uuid = models.UUIDField(
+        primary_key=True,
+        editable=False,
+        default=get_uuid
+    )
+
+    timer = models.IntegerField(
+        default=-1,
+        verbose_name='время до операции'
+    )
+
+    display = models.CharField(
+        default='открыть пункт меню',
+        blank=False,
+        max_length=128,
+        verbose_name='название пункта в меню'
+    )
+
     option = models.CharField(choices=TYPE_CHOICES,
                               default=USER,
                               max_length=32)
     game = models.ForeignKey("assets.HackGame", on_delete=models.CASCADE, blank=True, null=True)
-    user = models.ForeignKey(UserInput, on_delete=models.CASCADE, blank=True, null=True)
+    user = models.ForeignKey("assets.UserInput", on_delete=models.CASCADE, blank=True, null=True)
     audio = models.ForeignKey("assets.AudioFile", on_delete=models.CASCADE, blank=True, null=True)
     video = models.ForeignKey("assets.VideoFile", on_delete=models.CASCADE, blank=True, null=True)
     text = models.ForeignKey("assets.TextFile", on_delete=models.CASCADE, blank=True, null=True)
@@ -98,7 +61,7 @@ class MenuItem(UserAction):
 
     def __str__(self):
         timer = f"{self.timer}s" if self.timer > 0 else "not set"
-        return f"Menu Item `{self.name}` ({self.option}) with timer: {timer}"
+        return f"Menu Item `{self.display}` ({self.option}) with timer: {timer}"
 
 
 class WorkMode(models.Model):

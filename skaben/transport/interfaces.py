@@ -26,17 +26,10 @@ def send_log(message, level="INFO", producer=None):
         if not isinstance(message, dict):
             message = {"message": message}
 
-        # uppercase is a good association with logging level, but routing keys is lower
-        accepted = [x.lower() for x in ["DEBUG", "INFO", "WARNING", "ERROR"]]
-        level = level.lower()
-
-        if level not in accepted:
-            return send_log(f"{level} not in accepted log level list: {accepted}", "error")
-
         kwargs = {
             "body": message,
             "exchange": exchanges.get('log'),
-            "routing_key": level
+            "routing_key": level.lower()
         }
 
         if not producer:
