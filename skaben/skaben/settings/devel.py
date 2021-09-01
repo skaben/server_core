@@ -42,21 +42,21 @@ APPCFG = {
     },
     'alert': {
         "min": -5,
-        "ingame": 0,
+        "ingame": 1,
         "max": 1000
     },
     'timeouts': {
         'device_keepalive': 15,
         'broker_keepalive': 10,
-        'ping': 1
+        'ping': 10
     },
     'device_types': [
         'terminal',
-        'audio',
         'lock',
         'rgb',
         'pwr',
-        'scl'
+        'scl',
+        'hold'
     ],
     'smart_devices': [
         'lock',

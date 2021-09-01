@@ -1,11 +1,13 @@
-from actions.device import send_config_all
 from core.views import DynamicAuthMixin
 from rest_framework import status, viewsets
 
 from .models import AccessCode, MenuItem, Permission, WorkMode
-from .serializers import (AccessCodeSerializer, MenuItemSerializer,
-                          PermissionSerializer, WorkModeSerializer)
-
+from .serializers import (
+    AccessCodeSerializer,
+    MenuItemSerializer,
+    PermissionSerializer,
+    WorkModeSerializer,
+)
 
 class AccessCodeViewSet(viewsets.ModelViewSet, DynamicAuthMixin):
     """ Events in database """

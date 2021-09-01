@@ -77,3 +77,32 @@ def get_last_counter() -> int:
     except Exception:
         pass
     return counter
+
+
+def get_current() -> AlertState:
+    return AlertState.objects.filter(current=True).first()
+
+
+def get_max_alert_value() -> int:
+    states = [state.threshold for state in AlertState.objects.all().order_by("threshold")]
+    return max(states) if states else 1
+
+
+def get_borders() -> list:
+    borders = [1, 500, 1000]
+    return borders
+
+
+def get_ingame_states() -> list:
+    _range = (1, get_max_alert_value())
+    return [state for state in AlertState.objects.all().order_by("threshold") if state.threshold in range(*_range)]
+
+
+def new_alert_threshold_lg_current(level_name):
+    current = get_current()
+    try:
+        new = AlertState.objects.filter(name=level_name).first()
+        if new.threshold > current.threshold:
+            return True
+    except Exception as e:
+        raise Exception(f"Error when comparing alert levels: alert level with name {level_name}\nreason: {e}")

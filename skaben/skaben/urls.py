@@ -1,4 +1,3 @@
-from actions.urls import router as actions_router
 from alert.urls import router as alert_router
 from assets.urls import router as assets_router
 from core.views import CreateTokenView, login_view
@@ -20,7 +19,6 @@ routers = [
     assets_router,
     eventlog_router,
     device_router,
-    assets_router,
     shape_router,
     transport_router,
 ]
@@ -29,10 +27,10 @@ for router in routers:
     core_router.registry.extend(router.registry)
 
 urlpatterns = [
-    path('auth/token/', CreateTokenView.as_view(), name='token'),
-    path('auth/login/', login_view, name="login"),
     path('admin/', admin.site.urls),
     path('api/', include((core_router.urls, "core"), namespace="api")),
-    path('transport/', include('transport.urls')),
-    path('device/', include('device.urls'))
+    path('api/auth/token/', CreateTokenView.as_view(), name='token'),
+    path('api/auth/login/', login_view, name="login"),
+    path('api/transport/', include('transport.urls')),
+    path('api/device/', include('device.urls'))
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

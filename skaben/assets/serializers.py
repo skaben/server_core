@@ -1,14 +1,18 @@
-from collections import OrderedDict
-
-from actions.serializers import UserInputSerializer
 from rest_framework import serializers
 
 from .models import (AudioFile, HackGame, ImageFile, SkabenFile, TextFile,
-                     VideoFile)
+                     VideoFile, UserInput)
+
+
+class UserInputSerializer(serializers.ModelSerializer):
+    """ Serializer for menu item objects """
+
+    class Meta:
+        model = UserInput
+        exclude = ("uuid",)
 
 
 class FileSerializer(serializers.ModelSerializer):
-
     file = serializers.SerializerMethodField('get_file_url')
 
     class Meta:

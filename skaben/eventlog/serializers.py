@@ -3,8 +3,8 @@ from rest_framework import serializers
 from .models import EventLog
 
 
-class EventLogSerializer(serializers.ModelSerializer):
-    """ Serializer for event log objects """
+class EventSerializer(serializers.ModelSerializer):
+    """ Serializer for event objects """
 
     human_time = serializers.ReadOnlyField()
 
@@ -12,8 +12,3 @@ class EventLogSerializer(serializers.ModelSerializer):
         model = EventLog
         fields = '__all__'
         read_only_fields = ('id',)
-
-    def validate_message(self, data):
-        if isinstance(data, dict):
-            data = f"{data}"
-        return data

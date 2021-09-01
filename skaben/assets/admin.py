@@ -2,7 +2,7 @@ from django.contrib import admin
 
 from skaben.admin import base_site
 
-from .models import AudioFile, HackGame, ImageFile, TextFile, VideoFile
+from .models import AudioFile, HackGame, ImageFile, TextFile, VideoFile, UserInput
 
 
 class FileAdmin(admin.ModelAdmin):
@@ -17,6 +17,6 @@ class TextFileAdmin(admin.ModelAdmin):
 admin.site.register(AudioFile, FileAdmin, site=base_site)
 admin.site.register(VideoFile, FileAdmin, site=base_site)
 admin.site.register(ImageFile, FileAdmin, site=base_site)
-
+admin.site.register(UserInput, site=base_site)
 admin.site.register(HackGame, site=base_site)
 admin.site.register(TextFile, TextFileAdmin, site=base_site)

@@ -1,6 +1,6 @@
 import time
 
-from core.helpers import get_time
+from core.helpers import get_time, get_uuid
 from django.db import models
 
 
@@ -12,14 +12,22 @@ class EventLog(models.Model):
         verbose_name = 'Игровое событие'
         verbose_name_plural = 'Игровые события'
 
+    uuid = models.UUIDField(
+        primary_key=True,
+        editable=False,
+        default=get_uuid
+    )
+
     timestamp = models.IntegerField(default=int(time.time()))
     level = models.CharField(default="info", max_length=32)
-    access = models.CharField(default="root", max_length=32)
-    message = models.TextField()
+    stream = models.CharField(default="root", max_length=256)
+    source = models.CharField(default="source", max_length=256)
+    message = models.JSONField()
 
     @property
     def human_time(self):
         return get_time(self.timestamp).split(' ')[1]
 
     def __str__(self):
-        return f'{get_time(self.timestamp)}:{self.level}:{self.access} > {self.message}'
+        message = "; ".join([f"{k}: {v}" for k, v in self.message.items()])
+        return f'{get_time(self.timestamp)}:{self.level}:{self.stream} {self.source} > {message}'

@@ -1,7 +1,6 @@
-from actions.serializers import UserInputSerializer
 from assets.serializers import (AudioFileSerializer, HackGameSerializer,
                                 ImageFileSerializer, TextFileSerializer,
-                                VideoFileSerializer)
+                                VideoFileSerializer, UserInputSerializer)
 from rest_framework import serializers
 from collections import OrderedDict
 
@@ -41,7 +40,7 @@ class MenuItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = MenuItem
-        exclude = ("id", "option")
+        exclude = ("uuid", "option")
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)

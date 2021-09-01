@@ -4,27 +4,27 @@ import multiprocessing as mp
 import time
 import traceback
 from typing import Optional, Union
+from django.core.exceptions import ObjectDoesNotExist
 
-from django.conf import settings
-
-from actions.device import DEVICES, send_config_to_simple
+from actions.device import (
+    DEVICES,
+    SIMPLE,
+    send_config_to_simple
+)
+from transport.interfaces import send_log
 from actions.main import EventManager
-from alert.models import get_current_alert_state, get_last_counter
+from alert.models import get_current_alert_state, get_last_counter, get_borders
 from core.helpers import fix_database_conn, get_task_id, timestamp_expired
-from eventlog.serializers import EventLogSerializer
+from eventlog.serializers import EventSerializer
 from kombu import Connection, Exchange
 from kombu.message import Message
 from kombu.mixins import ConsumerProducerMixin
 from skabenproto import CUP
-from shape.models import SimpleConfig
+from shape.models import SimpleConfig, AccessCode
 from transport.interfaces import (
     publish_with_producer,
-    send_log,
     send_websocket
 )
-
-
-SIMPLE = [dev for dev in settings.APPCFG.get('device_types') if dev not in DEVICES]
 
 
 class WorkerRunner(mp.Process):
@@ -77,10 +77,9 @@ class BaseWorker(ConsumerProducerMixin):
                 if parsed.get("device_type") in ['lock', 'terminal']:
                     parsed.update(self.parse_smart(data))
                 else:
-                    parsed.update(datahold=data)
+                    parsed.update(**data)
                     if not parsed.get('timestamp'):
                         parsed['timestamp'] = data.get('datahold', {}).get('timestamp', 1)
-                send_log(f'handling {parsed}')
                 return parsed
             else:
                 # just return already parsed message
@@ -154,7 +153,7 @@ class BaseWorker(ConsumerProducerMixin):
         if not isinstance(message, dict):
             message = {'message': message}
         message.update(timestamp=int(time.time()))
-        send_log(message, level, self.producer)
+        send_log(message, level)
 
     def report_error(self, message: str):
         """report unwanted behavior"""
@@ -189,16 +188,14 @@ class LogWorker(BaseWorker):
     def handle_message(self, body: Union[str, dict], message: Message):
         try:
             parsed = super().handle_message(body, message)
-            access = "root"
             level = message.delivery_info.get('routing_key', "info")
-            payload = parsed.get("message")
-            if parsed.get("access"):
-                access = parsed.pop("access")
 
+            # TODO: адресные логи, с source!
             data = dict(
-                message=payload,
+                message=parsed.get('message'),
                 level=level,
-                access=access
+                source=parsed.get('device_uid', 'log'),
+                stream=parsed.get('device_type', 'log')
             )
 
             # self.send_to_endpoints(data)
@@ -215,7 +212,7 @@ class LogWorker(BaseWorker):
     @staticmethod
     def save_message(data: dict):
         """save message as log record"""
-        serializer = EventLogSerializer(data=data)
+        serializer = EventSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
 
@@ -281,7 +278,6 @@ class PingPongWorker(BaseWorker):
         try:
             parsed = super().handle_message(body, message)
             message.ack()
-            send_log(f'after pong: {parsed}')
             self.push_device_config(parsed)
         except Exception as e:
             self.report_error(f"{self} when handling message: {e}")
@@ -291,7 +287,6 @@ class SendConfigWorker(BaseWorker):
     """send config update to clients (CUP)"""
 
     smart = DEVICES
-    simple = []
 
     @fix_database_conn
     def handle_message(self, body: Union[str, dict], message: Message):
@@ -304,14 +299,14 @@ class SendConfigWorker(BaseWorker):
             try:
                 if device_type in SIMPLE:
                     return self.send_config_simple(device_type, device_uid)
-                # обновляем таймстемп в любом случае
                 # достаем из базы актуальный конфиг устройства
                 config = self.get_config(device_type, device_uid)
+                # todo: замки без механизма хэша, старая версия, нужно обновить
                 # проверяем разницу хэшей в пришедшем конфиге и серверном
                 if str(config.get('hash')) != str(parsed.get('hash', '')):
-                    send_log(f'no hash in {parsed}')
                     self.send_config(device_type, device_uid, config)
                 else:
+                    # обновляем таймстемп в любом случае
                     self.update_timestamp_only(parsed)
             except Exception as e:
                 raise Exception(f"{body} {message} {parsed} {e}")
@@ -332,7 +327,6 @@ class SendConfigWorker(BaseWorker):
             self.report_error(f"[DB error] {device_type} {device_uid}: {e}")
 
     def send_config(self, device_type: str, device_uid: str, config: dict):
-        send_log(f"sending config for {device_type} {device_uid} :: {config}")
         packet = CUP(
             topic=device_type,
             uid=device_uid,
@@ -346,12 +340,12 @@ class SendConfigWorker(BaseWorker):
 
     @staticmethod
     def get_scl_config():
-        borders = [0, 500, 1000]
+        borders = get_borders()
         last_counter = get_last_counter()
         if last_counter > borders[-1]:
-            last_counter = 1000
+            last_counter = borders[-1]
         elif last_counter < borders[0]:
-            last_counter = 1
+            last_counter = borders[0]
 
         device_uid = 'all'
         datahold = {
@@ -366,11 +360,13 @@ class SendConfigWorker(BaseWorker):
         datahold = {}
 
         if device_type != 'scl':
-            instance = SimpleConfig.objects.filter(dev_type=device_type, state__id=get_current_alert_state()).first()
-            if not device_uid:
+            state_id = get_current_alert_state()
+            instance = SimpleConfig.objects.filter(dev_type=device_type, state__id=state_id).first()
+            if not device_uid or device_type in ('pwr', 'hold'):
                 device_uid = 'all'
             if not instance or not instance.config:
                 return
+
             datahold = instance.config
 
         if device_type == 'scl':
@@ -422,12 +418,21 @@ class StateUpdateWorker(BaseWorker):
         try:
             parsed = super().handle_message(body, message)
             message.ack()
-
             if parsed.get("command", "").lower() == "sup":
-                self.save_device_config(parsed)
+                if parsed.get('device_type') not in SIMPLE:
+                    self.save_device_config(parsed)
             else:
-                ident = '{device_type}_{device_uid} {command}'.format(**parsed)
-                self.report(f"{ident} :: {parsed.get('datahold', {})}")
+                data = {
+                    "level": "info",
+                    "stream": parsed['device_type'],
+                    "source": parsed['device_uid'],
+                    "message": parsed['datahold']
+                }
+                if data["source"] == 'lock' and data['message'].get('access'):
+                    data["message"] = self.parse_access_log(data["message"], data["source"])
+                serializer = EventSerializer(data=data)
+                if serializer.is_valid():
+                    serializer.save()
 
             try:
                 with EventManager() as manager:
@@ -437,3 +442,21 @@ class StateUpdateWorker(BaseWorker):
 
         except Exception as e:
             self.report_error(f"{self} when handling message: {e}")
+
+    @staticmethod
+    def parse_access_log(message: dict, source: str) -> dict:
+        """Трансформирует код в данные обладателя или создает новую пустую запись карты если такого пользователя нет"""
+        try:
+            instance = AccessCode.objects.filter(code=message.get("code")).first()
+            result = "{code} :: {position} {name} {surname}".format(**instance.__dict__)
+        except ObjectDoesNotExist:
+            instance = AccessCode(
+                code=message.get("code"),
+                name="auto-generated",
+                surname="auto-generated",
+                position=""
+            )
+            instance.save()
+            result = f"{instance.code} was AUTO-GENERATED from {source} at first time!"
+        message.update(code=result)
+        return message

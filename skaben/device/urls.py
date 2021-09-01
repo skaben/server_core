@@ -11,5 +11,6 @@ router.register('terminal', views.TerminalInternalViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('update/', views.update_devices)
+    path('update/', views.update_devices),
+    path('save/', views.save_device)
 ]

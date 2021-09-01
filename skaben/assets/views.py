@@ -1,15 +1,12 @@
-from actions.models import UserInput
 from assets import serializers
 from core.views import DynamicAuthMixin
 from rest_framework import viewsets
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import IsAuthenticated
 
-from .models import AudioFile, HackGame, ImageFile, TextFile, VideoFile
+from .models import AudioFile, HackGame, ImageFile, TextFile, VideoFile, UserInput
 
 
 class UserInputViewSet(viewsets.ModelViewSet, DynamicAuthMixin):
-    """ Manage locks in database """
+    """ Manage user input actions in database """
     queryset = UserInput.objects.all()
     serializer_class = serializers.UserInputSerializer
 

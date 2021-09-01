@@ -43,9 +43,12 @@ class LockSerializer(DeviceSerializer):
 
     topic = 'lock'
 
-    acl = serializers.ReadOnlyField()
     online = serializers.ReadOnlyField()
+    acl = serializers.SerializerMethodField()
     hash = serializers.SerializerMethodField()
+
+    def get_acl(self, obj):
+        return obj.acl
 
     def get_hash(self, obj):
         data = {

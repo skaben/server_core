@@ -1,15 +1,10 @@
-import uuid as _uuid
-
+from core.helpers import get_uuid
 from django.conf import settings
 from django.db import models
 
 
 def get_default_dict():
     return {}
-
-
-def get_uuid():
-    return _uuid.uuid4()
 
 
 class MenuItem(models.Model):
@@ -36,22 +31,37 @@ class MenuItem(models.Model):
         verbose_name = 'Элемент меню терминала'
         verbose_name_plural = 'Элементы меню терминала'
 
-    name = models.CharField(max_length=48, default="menu action")
-    timer = models.IntegerField(default=-1)
+    uuid = models.UUIDField(
+        primary_key=True,
+        editable=False,
+        default=get_uuid
+    )
+
+    timer = models.IntegerField(
+        default=-1,
+        verbose_name='время до операции'
+    )
+
+    display = models.CharField(
+        default='открыть пункт меню',
+        blank=False,
+        max_length=128,
+        verbose_name='название пункта в меню'
+    )
+
     option = models.CharField(choices=TYPE_CHOICES,
                               default=USER,
                               max_length=32)
     game = models.ForeignKey("assets.HackGame", on_delete=models.CASCADE, blank=True, null=True)
-    user = models.ForeignKey("actions.UserInput", on_delete=models.CASCADE, blank=True, null=True)
+    user = models.ForeignKey("assets.UserInput", on_delete=models.CASCADE, blank=True, null=True)
     audio = models.ForeignKey("assets.AudioFile", on_delete=models.CASCADE, blank=True, null=True)
     video = models.ForeignKey("assets.VideoFile", on_delete=models.CASCADE, blank=True, null=True)
     text = models.ForeignKey("assets.TextFile", on_delete=models.CASCADE, blank=True, null=True)
     image = models.ForeignKey("assets.ImageFile", on_delete=models.CASCADE, blank=True, null=True)
-    actions = models.ManyToManyField("actions.Action", blank=True)
 
     def __str__(self):
         timer = f"{self.timer}s" if self.timer > 0 else "not set"
-        return f"Menu Item `{self.name}` ({self.option}) with timer: {timer}"
+        return f"Menu Item `{self.display}` ({self.option}) with timer: {timer}"
 
 
 class WorkMode(models.Model):
@@ -130,8 +140,8 @@ class SimpleConfig(models.Model):
     """
 
     class Meta:
-        verbose_name = 'Конфиг пассивного устройства'
-        verbose_name_plural = 'Конфиги пассивных устройств'
+        verbose_name = 'Поведение пассивного устройства'
+        verbose_name_plural = 'Поведение пассивных устройств'
 
     # fixme: get_default_dict
     config = models.JSONField(default=get_default_dict)

@@ -5,7 +5,7 @@ from rest_framework.routers import SimpleRouter
 app_name = 'eventlog'
 
 router = SimpleRouter()
-router.register('eventlog', views.EventLogViewSet)
+router.register('eventlog', views.EventViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
