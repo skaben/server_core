@@ -52,6 +52,7 @@ class LockSerializer(DeviceSerializer):
 
     def get_hash(self, obj):
         data = {
+            'alert': obj.alert,
             'closed': obj.closed,
             'blocked': obj.blocked,
             'sound': obj.sound,
@@ -93,6 +94,7 @@ class TerminalSerializer(TerminalInternalSerializer):
 
     def get_hash(self, obj):
         data = {
+            'alert': obj.alert,
             'hacked': obj.hacked,
             'blocked': obj.blocked,
             'powered': obj.powered,

@@ -192,7 +192,7 @@ class LogWorker(BaseWorker):
 
             # TODO: адресные логи, с source!
             data = dict(
-                message=parsed.get('message'),
+                message={"log": parsed.get('message')},
                 level=level,
                 source=parsed.get('device_uid', 'log'),
                 stream=parsed.get('device_type', 'log')
@@ -428,7 +428,7 @@ class StateUpdateWorker(BaseWorker):
                     "source": parsed['device_uid'],
                     "message": parsed['datahold']
                 }
-                if data["source"] == 'lock' and data['message'].get('access'):
+                if data["source"] == 'lock' and data.get('type') == 'access':
                     data["message"] = self.parse_access_log(data["message"], data["source"])
                 serializer = EventSerializer(data=data)
                 if serializer.is_valid():
@@ -446,15 +446,16 @@ class StateUpdateWorker(BaseWorker):
     @staticmethod
     def parse_access_log(message: dict, source: str) -> dict:
         """Трансформирует код в данные обладателя или создает новую пустую запись карты если такого пользователя нет"""
+        access_code = message.get("content")
         try:
-            instance = AccessCode.objects.filter(code=message.get("code")).first()
+            instance = AccessCode.objects.filter(code=access_code).first()
             result = "{code} :: {position} {name} {surname}".format(**instance.__dict__)
         except ObjectDoesNotExist:
             instance = AccessCode(
-                code=message.get("code"),
+                code=access_code,
                 name="auto-generated",
-                surname="auto-generated",
-                position=""
+                surname=f"new {access_code}",
+                position=f"from {source}"
             )
             instance.save()
             result = f"{instance.code} was AUTO-GENERATED from {source} at first time!"

@@ -111,4 +111,3 @@ class Simple(models.Model, DeviceMixin):
 
     def __str__(self):
         return f'device {self.dev_type} {self.uid} config: {self.config}'
-

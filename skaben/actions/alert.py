@@ -1,6 +1,7 @@
 from typing import Optional
 
-from .device import send_config_all, send_config_to_simple
+from .device import send_config_to_simple
+from device.models import Terminal, Lock
 
 from alert.models import (
     AlertCounter,
@@ -11,7 +12,6 @@ from alert.models import (
 )
 
 from django.core.exceptions import ObjectDoesNotExist
-
 
 
 class AlertService:
@@ -83,7 +83,7 @@ class AlertService:
             if not instance.current:
                 instance.current = True
                 instance.save()
-                send_config_all()
+                # send_config_all()  # DEPRECATED после внедрения механизма хэша для умных
                 send_config_to_simple()
         except ObjectDoesNotExist:
             pass

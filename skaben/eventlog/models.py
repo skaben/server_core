@@ -4,6 +4,10 @@ from core.helpers import get_time, get_uuid
 from django.db import models
 
 
+def get_current_timestamp():
+    return int(time.time())
+
+
 class EventLog(models.Model):
     """
         Event log record
@@ -18,7 +22,7 @@ class EventLog(models.Model):
         default=get_uuid
     )
 
-    timestamp = models.IntegerField(default=int(time.time()))
+    timestamp = models.IntegerField(default=get_current_timestamp)
     level = models.CharField(default="info", max_length=32)
     stream = models.CharField(default="root", max_length=256)
     source = models.CharField(default="source", max_length=256)
