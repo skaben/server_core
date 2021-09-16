@@ -16,6 +16,7 @@ from actions.main import EventManager
 from alert.models import get_current_alert_state, get_last_counter, get_borders
 from core.helpers import fix_database_conn, get_task_id, timestamp_expired
 from eventlog.serializers import EventSerializer
+from device.models import Lock
 from kombu import Connection, Exchange
 from kombu.message import Message
 from kombu.mixins import ConsumerProducerMixin
@@ -259,9 +260,9 @@ class SaveWorker(BaseWorker):
 
             if serializer.is_valid():
                 serializer.save()
-                filtered = {k: v for k, v in data.items() if k != "timestamp"}
-                if filtered:
-                    self.report(f"{_type} {_uid} updated - {filtered}")
+                #filtered = {k: v for k, v in data.items() if k != "timestamp"}
+                #if filtered:
+                #    self.report(f"{_type} {_uid} updated - {filtered}")
 
         except Exception as e:
             self.report_error(f"{self} when handling message: {e}")
@@ -428,8 +429,11 @@ class StateUpdateWorker(BaseWorker):
                     "source": parsed['device_uid'],
                     "message": parsed['datahold']
                 }
-                if data["source"] == 'lock' and data.get('type') == 'access':
-                    data["message"] = self.parse_access_log(data["message"], data["source"])
+                if parsed['device_type'] == 'lock' and data["message"].get('type') == 'access':
+                    data["message"] = self.parse_access_log(
+                        parsed['datahold'],
+                        parsed['device_uid']
+                    )
                 serializer = EventSerializer(data=data)
                 if serializer.is_valid():
                     serializer.save()
@@ -444,20 +448,29 @@ class StateUpdateWorker(BaseWorker):
             self.report_error(f"{self} when handling message: {e}")
 
     @staticmethod
-    def parse_access_log(message: dict, source: str) -> dict:
+    def parse_access_log(message: dict, source: str):
         """Трансформирует код в данные обладателя или создает новую пустую запись карты если такого пользователя нет"""
         access_code = message.get("content")
         try:
-            instance = AccessCode.objects.filter(code=access_code).first()
-            result = "{code} :: {position} {name} {surname}".format(**instance.__dict__)
+            person = AccessCode.objects.filter(code=access_code).first()
+            if not person:
+                raise ObjectDoesNotExist
+            lock = Lock.objects.filter(uid=source).first()
+            success = "доступ разрешен" if message.get('success') else "доступ запрещен"
+            result = f"{lock.info} : {success} : " + "{position} {name} {surname}".format(**person.__dict__)
+            return {
+                "type": "access_log",
+                "content": result
+            }
         except ObjectDoesNotExist:
             instance = AccessCode(
                 code=access_code,
-                name="auto-generated",
-                surname=f"new {access_code}",
-                position=f"from {source}"
+                name=f"UNKNOWN",
+                surname=f"UNKNOWN",
+                position=f"{access_code} from {source}"
             )
             instance.save()
-            result = f"{instance.code} was AUTO-GENERATED from {source} at first time!"
-        message.update(code=result)
-        return message
+            return {
+                "type": "log",
+                "content": f"{instance.code} was AUTO-GENERATED from {source} at first time!"
+            }

@@ -3,48 +3,42 @@ from actions.scenario.base import BaseScenario
 from actions.models import EnergyState
 from alert.models import get_current
 from core.models import get_system_settings
-from actions.alert import AlertService
-from actions.device import update_terminals, update_locks
+from actions.alert import AlertServiceExtended
 from eventlog.serializers import EventSerializer
 
+"""
+1. все незашифрованные тексты + литании управления - в данж под хак (6, таймаут 3 минуты)
+2. все зашифрованные тексты - в технолингве - в терминал в шкафу - DONE
+note: и там и там - спросить Макса про ротацию текстов по ходу игры...
+DONE
+---
 
-LOCK_MAIN_UUID = '12425412b519'
-LOCK_BACK_UUID = '12425412b511'
+отдельно консоль и отдельно логи.
 
+отдельно медблок.
+работает только если есть энергия на него.
 
-class AlertServiceExtended(AlertService):
+прошивка замков:
 
-    def set_state_current(self, instance):
-        backup = get_current()
-        try:
-            alert_state = super().set_state_current(instance)
-            critical_states = [
-                'emp',
-                'error'
-            ]
-            if alert_state.name in critical_states:
-                if alert_state.name == "emp":
-                    update_terminals({"powered": False})
-                    update_locks({"closed": False, "blocked": True})
-                if alert_state.name == "error":
-                    update_terminals({"blocked": True})
-                    update_locks({"closed": True, "blocked": True})
-                    update_locks({"blocked": False}, uid=LOCK_BACK_UUID)
-            else:
-                update_terminals({"blocked": False, "powered": True})
-                update_locks({"closed": True, "blocked": False})
-                update_locks({"blocked": True}, uid=LOCK_BACK_UUID)
-        except Exception:
-            # rollback
-            super().set_state_current(backup)
-            raise
+входной замок на КПП - пускает вообще всех кроме D
+выходной замок (аварийный) - не пускает никого (blocked не в аварии)
+замок к Вайфу - пускает всех только А
+
+пустотные поля (подулье) - пускают А и B.
+TODO: отключены если не распределена энергия туда
+
+TODO: сделать две люстры на ПодУлей, которые слушают hive
+
+TODO: запилить статусы для щитка
+"""
+
 
 
 class Scenario(BaseScenario):
 
     DISPATCH_POWER_TABLE = {
         'AUX': 'reset',
-        'PWR': 'static'
+        'PWR': 'reset'
     }
 
     def __init__(self):
@@ -63,7 +57,8 @@ class Scenario(BaseScenario):
             'EXITUSTEMPUSMOBILI': self.cycle_end,
             'EXITUSMODUSEXTREMITAS': self.cycle_restore,
             'EXTREMITASMODUSADIGO': self.cycle_break,
-            'RUPTURAOMNISPOTENTIA': self.emp_blast
+            'RUPTURAOMNISPOTENTIA': self.emp_blast,
+            'OMNISSIAH': self.omnissiah
         }
 
     def pipeline(self, data: dict):
@@ -90,10 +85,11 @@ class Scenario(BaseScenario):
             "level": "info",
             "stream": self.device_type,
             "source": self.device_uid,
-            "timestamp": int(time.time()) + 1,
+            "timestamp": int(time.time()) + 3,
             "message": {
                 "type": "console",
-                "content": message.upper()
+                "content": message.upper(),
+                "response": True
             }
         }
         serializer = EventSerializer(data=event_data)
@@ -146,13 +142,12 @@ class Scenario(BaseScenario):
             raise
 
     def cycle_break(self):
-        ok_message = 'Внимание! Система перешла в аварийный режим! Внимание!'
+        # сообщение пишется при смене статуса
         fail_message = 'Внимание! Система не может быть переведена в аварийный режим!'
         try:
             if self.current.name not in ["error", "reset", "emp"]:
                 with AlertServiceExtended() as service:
                     service.set_state_by_name("error")
-                self.write_event(ok_message)
             else:
                 self.write_event(fail_message)
         except Exception:
@@ -160,15 +155,20 @@ class Scenario(BaseScenario):
             raise
 
     def emp_blast(self):
-        ok_message = 'Внимание! Перегрузка внешнего контура! Активирован протокол защиты от EMP-удара.'
-        if self.current.name != "emp":
-            with AlertServiceExtended() as service:
-                service.set_state_by_name("emp")
-            self.write_event(ok_message)
+        # сообщение пишется при смене статуса
+        fail_message = 'Отказано в доступе. Известите МГ.'
+        try:
+            if self.current.name != "emp":
+                with AlertServiceExtended() as service:
+                    service.set_state_by_name("emp")
+        except Exception:
+            self.write_event(fail_message)
+            raise
 
-    @staticmethod
-    def energy_has_slots():
+    def energy_has_slots(self):
         """проверяем доступность слотов в текущем цикле"""
+        if self.current.name != 'stable':
+            return
         energy_state = EnergyState.objects.latest('id')
         slots_used = len(energy_state.load)
         if slots_used < energy_state.slots:
@@ -176,8 +176,13 @@ class Scenario(BaseScenario):
 
     def route_energy(self, slot_name, message):
         energy_state = self.energy_has_slots()
+
         slots_full_message = 'Ошибка распределения. Достигнуто максимальное значение назначенных энергетических контуров в данном цикле.'
         slot_exists_message = f'Ошибка распределения. Для контура {slot_name} энергия уже распределена.'
+        not_avail_level = 'В этом состоянии системы распределение невозможно, запустите цикл'
+
+        if not energy_state:
+            return self.write_event(not_avail_level)
         if not energy_state:
             return self.write_event(slots_full_message)
         elif energy_state.load.get(slot_name):
@@ -192,30 +197,42 @@ class Scenario(BaseScenario):
 
     def energy_to_medic(self):
         slot_name = "MEDICA"
-        message = 'Распределена энергия для лазарета, запуск авто-дока произведен'
+        message = 'Распределена энергия для контура лазарета, запуск авто-дока произведен'
         return self.route_energy(slot_name, message)
 
     def energy_to_dungeon(self):
         slot_name = "LUMINOS"
-        message = 'Распределена энергия для закрытых уровней Улья, освещение включено'
+        message = 'Распределена энергия для контура закрытых уровней Улья, освещение включено'
         return self.route_energy(slot_name, message)
 
     def energy_to_gates(self):
         slot_name = "OSTIUM"
-        message = 'Распределена энергия для питания ворот. Внимание! Ворота теперь могут быть открыты'
+        message = 'Распределена энергия для контура питания ворот. Внимание! Ворота теперь могут быть открыты'
         return self.route_energy(slot_name, message)
 
     def energy_to_production(self):
         slot_name = "FABRICA"
-        message = 'Распределена энергия на нужды сборочных конвейеров'
+        message = 'Распределена энергия для контура сборочных конвейеров'
         return self.route_energy(slot_name, message)
 
     def energy_to_radio(self):
         slot_name = "CONNEXUS"
-        message = 'Распределена энергия на нужды радио-связи'
+        message = 'Распределена энергия для контура дальней радиосвязи'
         return self.route_energy(slot_name, message)
 
     def energy_to_navs(self):
         slot_name = "NAVIS"
-        message = 'Распределена энергия для освещения посадочной площадки'
+        message = 'Распределена энергия для контура освещения посадочной площадки'
         return self.route_energy(slot_name, message)
+
+    def omnissiah(self):
+        message = (
+            'From the moment I understood the weakness of my flesh, it disgusted me. '
+            'I craved the strength and certainty of steel. I aspired to the purity of the Blessed Machine. '
+            'Your kind cling to your flesh, as if it will not decay and fail you. '
+            'One day the crude biomass that you call a temple will wither, and you will beg my kind to save you. '
+            'But I am already saved, for the Machine is immortal...'
+        )
+        self.write_event(message)
+        time.sleep(.5)
+        self.write_event('...even in death I serve the Omnissiah.')

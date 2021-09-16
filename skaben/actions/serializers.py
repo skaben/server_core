@@ -8,4 +8,4 @@ class EnergyStateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = EnergyState
-        fields = '__all__'
+        fields = ('load', 'slots',)

@@ -14,7 +14,7 @@ class EventViewSet(viewsets.ModelViewSet, DynamicAuthMixin):
     queryset = EventLog.objects.all()
     serializer_class = serializers.EventSerializer
 
-    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter]
     search_fields = ['level', 'source', 'stream', 'message__type']
     ordering_fields = ['timestamp']
     ordering = ('timestamp')
