@@ -1,1 +1,1 @@
-from actions.scenario.warhammer import Scenario as EventManager
+from actions.scenario.default import Scenario as EventManager  # noqa

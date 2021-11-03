@@ -33,7 +33,6 @@ TODO: запилить статусы для щитка
 """
 
 
-
 class Scenario(BaseScenario):
 
     DISPATCH_POWER_TABLE = {

@@ -11,7 +11,6 @@ from alert.models import (
     get_ingame_states,
     get_current
 )
-from .models import EnergyState
 
 from django.core.exceptions import ObjectDoesNotExist
 
