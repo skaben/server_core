@@ -1,7 +1,7 @@
 from core.views import DynamicAuthMixin
 from django_filters.rest_framework import DjangoFilterBackend
 from eventlog import serializers
-from rest_framework import viewsets
+from rest_framework import viewsets, filters
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from transport.interfaces import send_log, send_websocket
@@ -14,8 +14,10 @@ class EventViewSet(viewsets.ModelViewSet, DynamicAuthMixin):
     queryset = EventLog.objects.all()
     serializer_class = serializers.EventSerializer
 
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['level', 'source', 'stream']
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter]
+    search_fields = ['level', 'source', 'stream', 'message__type']
+    ordering_fields = ['timestamp']
+    ordering = ('timestamp')
     #
     # def save(self):
     #     # try:

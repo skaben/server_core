@@ -89,3 +89,23 @@ def send_config_to(channel: str):
 
 def send_state_update(channel: str, packet: dict):
     pass
+
+
+def update_terminals(payload: dict, uid: Optional[str] = None, include_overrided: bool = False):
+    if not include_overrided:
+        qs = Terminal.objects.filter(override=False).all()
+    else:
+        qs = Terminal.objects.all()
+    if uid:
+        qs = qs.filter(uid=uid)
+    qs.update(**payload)
+
+
+def update_locks(payload: dict, uid: Optional[str] = None, include_overrided: bool = False):
+    if not include_overrided:
+        qs = Lock.objects.filter(override=False).all()
+    else:
+        qs = Lock.objects.all()
+    if uid:
+        qs = qs.filter(uid=uid)
+    qs.update(**payload)

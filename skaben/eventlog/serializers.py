@@ -10,5 +10,4 @@ class EventSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = EventLog
-        fields = '__all__'
-        read_only_fields = ('id',)
+        exclude = ('uuid',)

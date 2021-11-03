@@ -67,7 +67,7 @@ class AlertState(models.Model):
 
 def get_current_alert_state() -> int:
     state = AlertState.objects.filter(current=True).first()
-    return state.id if state else 0
+    return state.order if state else 0
 
 
 def get_last_counter() -> int:

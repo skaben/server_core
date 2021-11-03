@@ -72,6 +72,16 @@ class WorkMode(models.Model):
     IMAGE = "image"
     TEXT = "text"
 
+    DUNGEON = "dungeon"
+    KONSOLE = "console"
+    LOG = "log"
+
+    SHAPE_CHOICES = (
+        (DUNGEON, "dungeon"),
+        (KONSOLE, "console"),
+        (LOG, "log"),
+    )
+
     class Meta:
         verbose_name = 'Режим (полное меню) терминала'
         verbose_name_plural = 'Режим (полное меню) терминала'
@@ -82,6 +92,7 @@ class WorkMode(models.Model):
     header = models.CharField(max_length=48, default="terminal vt40k")
     footer = models.CharField(max_length=48, default="unauthorized access is strictly prohibited")
     menu_set = models.ManyToManyField('shape.MenuItem')
+    shape = models.CharField(choices=SHAPE_CHOICES, default=DUNGEON, max_length=48)
 
     @property
     def url(self):
@@ -114,7 +125,7 @@ class AccessCode(models.Model):
     position = models.CharField(max_length=128)
 
     def __str__(self):
-        return f'<{self.code}> {self.position} {self.surname}'
+        return f'<{self.code}> {self.position} {self.name} {self.surname}'
 
 
 class Permission(models.Model):
@@ -131,7 +142,7 @@ class Permission(models.Model):
 
     def __str__(self):
         return f'[ {self.lock.info.upper()} ] /{self.card.code}/ {self.card.position} ' \
-               f'{self.card.surname} '
+               f'{self.card.name} {self.card.surname} '
 
 
 class SimpleConfig(models.Model):

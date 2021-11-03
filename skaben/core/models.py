@@ -59,6 +59,17 @@ class SystemSettings(models.Model):
         help_text='Интервал через который устройство будет считаться оффлайн',
         default=60
     )
+    energy_slots = models.IntegerField(
+        verbose_name='количество ед. распределения энергии',
+        default=3
+    )
+
+
+def get_system_settings() -> SystemSettings:
+    settings = SystemSettings.objects.latest('id')
+    if not settings:
+        raise ValueError('System settings not configured in DB')
+    return settings
 
 
 EXCHANGE_CHOICES = [(exchange, exchange) for exchange in exchanges.keys()
