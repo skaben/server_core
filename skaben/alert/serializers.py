@@ -1,4 +1,4 @@
-from actions.alert import AlertServiceExtended
+from actions.alert import AlertService
 from rest_framework import serializers
 
 from .models import AlertCounter, AlertState
@@ -17,7 +17,7 @@ class AlertStateSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         """ set state current """
-        with AlertServiceExtended() as service:
+        with AlertService() as service:
             if not self.context.get('by_counter'):
                 # alert changed by name, counter should be reset to lower threshold
                 data = service.reset_counter_to_threshold(instance)
@@ -42,7 +42,7 @@ class AlertCounterSerializer(serializers.ModelSerializer):
 
         if not self.context.get('by_state'):
             try:
-                with AlertServiceExtended() as service:
+                with AlertService() as service:
                     new_state = service.get_state_by_alert(alert_value)
                     # checking if base state is playable and can be switched
                     if new_state:
