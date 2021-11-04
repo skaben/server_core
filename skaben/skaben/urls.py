@@ -10,6 +10,7 @@ from eventlog.urls import router as eventlog_router
 from rest_framework.routers import DefaultRouter
 from shape.urls import router as shape_router
 from transport.urls import router as transport_router
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 # setting up nested router
 core_router = DefaultRouter()
@@ -34,3 +35,5 @@ urlpatterns = [
     path('api/transport/', include('transport.urls')),
     path('api/device/', include('device.urls'))
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+urlpatterns += staticfiles_urlpatterns()

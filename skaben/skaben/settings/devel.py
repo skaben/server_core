@@ -13,6 +13,7 @@ CORS_ORIGIN_WHITELIST = [
     'http://skaben:8080',
     ]
 
+LOGGING['loggers'] = {}
 LOGGING['loggers'].update({
         'skaben': {
             'handlers': ['console'],
