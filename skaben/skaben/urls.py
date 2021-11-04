@@ -1,5 +1,4 @@
 from alert.urls import router as alert_router
-from actions.urls import router as actions_router
 from assets.urls import router as assets_router
 from core.views import CreateTokenView, login_view
 from device.urls import router as device_router
@@ -22,7 +21,6 @@ routers = [
     device_router,
     shape_router,
     transport_router,
-    actions_router
 ]
 
 for router in routers:
