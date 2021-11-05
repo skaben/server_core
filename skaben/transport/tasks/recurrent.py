@@ -1,3 +1,4 @@
+import logging
 import multiprocessing as mp
 import time
 import traceback
@@ -17,6 +18,7 @@ class Pinger(mp.Process):
         self.running = True
         while self.running:
             try:
+                logging.info(f'pinging {self.topics}...')
                 for topic in self.topics:
                     send_message_over_mqtt(topic, 'all', 'ping')
                     time.sleep(self.timeout)

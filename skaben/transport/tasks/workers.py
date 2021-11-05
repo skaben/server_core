@@ -9,7 +9,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from actions.device import (
     DEVICES,
     SIMPLE,
-    send_config_to_simple
 )
 from transport.interfaces import send_log
 from actions.main import EventManager
@@ -26,6 +25,8 @@ from transport.interfaces import (
     publish_with_producer,
     send_websocket
 )
+
+logger = logging.getLogger('django')
 
 
 class WorkerRunner(mp.Process):
@@ -203,7 +204,7 @@ class LogWorker(BaseWorker):
             self.save_message(data)
             message.ack()
         except Exception as e:
-            logging.exception(f"{self} when handling message: {e}")
+            logger.exception(f"{self} when handling message: {e}")
 
     @staticmethod
     def send_to_endpoints(data):
@@ -236,6 +237,7 @@ class SaveWorker(BaseWorker):
         """
         try:
             parsed = super().handle_message(body, message)
+            logger.debug(f'handling {body} {message}')
             message.ack()
             _type = parsed['device_type']
             _uid = parsed['device_uid']
@@ -302,7 +304,6 @@ class SendConfigWorker(BaseWorker):
                     return self.send_config_simple(device_type, device_uid)
                 # достаем из базы актуальный конфиг устройства
                 config = self.get_config(device_type, device_uid)
-                # todo: замки без механизма хэша, старая версия, нужно обновить
                 # проверяем разницу хэшей в пришедшем конфиге и серверном
                 if str(config.get('hash')) != str(parsed.get('hash', '')):
                     self.send_config(device_type, device_uid, config)
@@ -328,6 +329,7 @@ class SendConfigWorker(BaseWorker):
             self.report_error(f"[DB error] {device_type} {device_uid}: {e}")
 
     def send_config(self, device_type: str, device_uid: str, config: dict):
+        logger.debug(f'sending config for {device_type} {device_uid}')
         packet = CUP(
             topic=device_type,
             uid=device_uid,
@@ -463,6 +465,12 @@ class StateUpdateWorker(BaseWorker):
                 "content": result
             }
         except ObjectDoesNotExist:
+            card_length = 6
+            if card_length + 1 > len(str(access_code)) < card_length:
+                return {
+                    "type": "log",
+                    "content": f"Код не является картой и его нет в базе - {access_code}"
+                }
             instance = AccessCode(
                 code=access_code,
                 name=f"UNKNOWN",

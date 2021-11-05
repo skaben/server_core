@@ -13,16 +13,6 @@ CORS_ORIGIN_WHITELIST = [
     'http://skaben:8080',
     ]
 
-LOGGING['loggers'] = {}
-LOGGING['loggers'].update({
-        'skaben': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-            'formatter': 'simple',
-            'propagate': False
-        }
-})
-
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [],
