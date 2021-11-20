@@ -4,5 +4,31 @@ from skaben.admin import base_site
 
 from .models import AlertCounter, AlertState
 
-admin.site.register(AlertCounter, site=base_site)
-admin.site.register(AlertState, site=base_site)
+
+class AlertStateCustomAdmin(admin.ModelAdmin):
+
+    list_display = ('current', 'name', 'info', 'order', 'threshold', 'modifier')
+
+    list_filter = [
+        'current',
+    ]
+
+    fieldsets = (
+        ('Параметры уровня тревоги', {
+            'classes': ('none',),
+            'fields': (
+                ('name', 'current'),
+                ('info', 'order'),
+                'modifier',
+                'threshold',
+            )
+        }),
+    )
+
+class AlertCounterCustomAdmin(admin.ModelAdmin):
+
+    readonly_fields = ('timestamp',)
+
+
+admin.site.register(AlertCounter, AlertCounterCustomAdmin, site=base_site)
+admin.site.register(AlertState, AlertStateCustomAdmin, site=base_site)

@@ -84,7 +84,6 @@ class AlertService:
             if not instance.current:
                 instance.current = True
                 instance.save()
-                # send_config_all()  # DEPRECATED после внедрения механизма хэша для умных
                 send_config_to_simple()
         except ObjectDoesNotExist:
             pass
