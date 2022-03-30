@@ -1,7 +1,12 @@
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils.timezone import now
+
+
+def get_current_timestamp() -> int:
+    timestamp = now() - datetime(1970, 1, 1, tzinfo=timezone.utc) / timedelta(seconds=1)
+    return timestamp
 
 
 class AlertCounter(models.Model):
@@ -22,7 +27,7 @@ class AlertCounter(models.Model):
         max_length=256
     )
     timestamp = models.DateTimeField(
-        default=now
+        default=get_current_timestamp
     )
 
     def __str__(self):
