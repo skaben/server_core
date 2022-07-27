@@ -24,16 +24,18 @@ SECRET_KEY = get_random_secret_key()
 
 # SECURITY WARNING: keep the secret key used in production secret!
 ENVIRONMENT = os.environ.get("ENVIRONMENT", "dev")
-STATIC_URL = os.environ.get('STATIC_URL', '')
+
+STATIC_URL = "static/"
 STATIC_ROOT = "/static/"
+
+MEDIA_URL = "media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "/media/")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', [])
 
 DEFAULT_DOMAIN = os.environ.get('DEFAULT_DOMAIN', "http://127.0.0.1")
-MEDIA_URL = "media/"
-MEDIA_ROOT = os.path.join(BASE_DIR, "/media/")
 
 # Application definition
 
@@ -260,3 +262,4 @@ if os.environ.get('ENVIRONMENT') == 'dev':
         'DEFAULT_PERMISSION_CLASSES': [],
         'UNAUTHENTICATED_USER': None,
     }
+    MEDIA_URL='media/'
