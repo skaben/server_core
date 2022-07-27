@@ -1,29 +1,36 @@
 FROM python:3.7-slim as base
  
-ENV PYTHONUBUFFERED=1
-ENV PATH="/venv/bin:$PATH"
+ENV PYTHONUBUFFERED=1 \
+    VIRTUAL_ENV=/venv
+
+RUN python3 -m venv $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     build-essential libpq-dev python3-dev python3-psycopg2 curl && \
-    rm -rf /var/lib/apt/lists/* 
+    rm -rf /var/lib/apt/lists/*
+RUN pip install --upgrade pip
+
 
 FROM base as builder
 
-COPY ./requirements.txt scripts/wait-for-it.sh /
+ENV PROJECT_ROOT=/opt/app/skaben
+WORKDIR ${PROJECT_ROOT}
+ENV PYTHONPATH="${PYTHONPATH}:${PROJECT_ROOT}"
+COPY ./requirements.txt scripts/wait-for-it.sh /opt/app/
     
 RUN python -m venv /venv && \
     python -m pip install --upgrade pip && \
-    python -m pip install --no-cache-dir -r /requirements.txt
+    python -m pip install --no-cache-dir -r /opt/app/requirements.txt
 
-COPY entrypoint.sh /
+COPY entrypoint.sh /opt/app
 
-RUN mkdir -p /skaben/static && \
-    chmod +x /entrypoint.sh && \
-    chmod +x /wait-for-it.sh
+RUN mkdir -p ${PROJECT_ROOT}/static && \
+    chmod +x /opt/app/entrypoint.sh && \
+    chmod +x /opt/app/wait-for-it.sh
 
-WORKDIR /skaben
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "/entrypoint.sh"]
+CMD ["sh", "-c", "/opt/app/entrypoint.sh"]

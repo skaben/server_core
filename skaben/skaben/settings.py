@@ -11,22 +11,21 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 """
 
 import os
+from django.core.management.utils import get_random_secret_key
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 #BASE_URL = os.environ.get('BASE_URL', "http://127.0.0.1")
 
+SECRET_KEY = get_random_secret_key()
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ['SECRET_KEY']
-STATIC_URL = os.environ['STATIC_URL']
+ENVIRONMENT = os.environ.get("ENVIRONMENT", "dev")
+STATIC_URL = os.environ.get('STATIC_URL', '')
 STATIC_ROOT = "/static/"
-
-ENVIRONMENT = os.environ.get("ENVIRON")
-#ENVIRONMENT = 'dev'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -63,7 +62,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'skaben.middleware.auth_middleware.AuthRequiredMiddleware',
+    # 'skaben.middleware.auth_middleware.AuthRequiredMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -93,11 +92,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'skaben.wsgi.application'
-# ASGI_APPLICATION = 'core.routing.application'
-# CHANNEL_LAYERS = {}
-
-# Database
-# https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
 DATABASES = {
     #'default': {
@@ -150,8 +144,8 @@ USE_TZ = True
 
 # RABBITMQ
 
-RABBITMQ_USER = os.environ.get('RABBITMQ_USER')
-RABBITMQ_PASS = os.environ.get('RABBITMQ_PASS')
+RABBITMQ_USER = os.environ.get('RABBITMQ_USERNAME')
+RABBITMQ_PASS = os.environ.get('RABBITMQ_PASSWORD')
 
 AMQP_URL = f"pyamqp://{RABBITMQ_USER}:{RABBITMQ_PASS}@rabbitmq:5672"
 API_URL = os.environ.get('DJANGO_API_URL', 'http://127.0.0.1/api')
@@ -209,5 +203,60 @@ LOGGING = {
     }
 }
 
-if ENVIRONMENT == 'dev':
-    from .devel import *
+APPCFG = {
+    'timeout': 1,  # between pings
+    'alive': 60,  # set device offline after
+    'text_storage': 'misc/texts',  # texts directory
+    'tz': 'Europe/Moscow',  # timezone
+    'debug': True,
+    'mqtt': {
+        'host': 'rabbitmq',
+        'port': 1883
+    },
+    'alert': {
+        "min": -5,
+        "ingame": 1,
+        "max": 1000
+    },
+    'timeouts': {
+        'device_keepalive': 15,
+        'broker_keepalive': 10,
+        'ping': 10
+    },
+    'device_types': [
+        'terminal',
+        'lock',
+        'rgb',
+        'pwr',
+        'scl',
+        'hold'
+    ],
+    'smart_devices': [
+        'lock',
+        'terminal'
+    ],
+    'additional_channels': [
+        'aux_1',
+        'gas'
+    ],
+}
+
+
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_CREDENTIALS = False
+CORS_ORIGIN_WHITELIST = [
+    'http://127.0.0.1:8080',
+    'http://127.0.0.1:15674',
+    'http://192.168.0.254',
+    'http://192.168.0.254:8080',
+    'http://skaben',
+    'http://skaben:8080',
+]
+
+if os.environ.get('ENVIRONMENT') == 'dev':
+    ALLOWED_HOSTS = ['*']
+    REST_FRAMEWORK = {
+        'DEFAULT_AUTHENTICATION_CLASSES': [],
+        'DEFAULT_PERMISSION_CLASSES': [],
+        'UNAUTHENTICATED_USER': None,
+    }
