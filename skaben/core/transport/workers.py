@@ -6,14 +6,9 @@ import traceback
 from typing import Optional, Union
 from django.core.exceptions import ObjectDoesNotExist
 
-from actions.device import (
-    DEVICES,
-    SIMPLE,
-)
-from transport.interfaces import send_log
 from actions.main import EventManager
 from alert.models import get_current_alert_state, get_last_counter, get_borders
-from core.helpers import fix_database_conn, get_task_id, timestamp_expired
+from core.helpers import fix_database_conn, get_task_id
 from eventlog.serializers import EventSerializer
 from device.models import Lock
 from kombu import Connection, Exchange
@@ -21,10 +16,6 @@ from kombu.message import Message
 from kombu.mixins import ConsumerProducerMixin
 from skabenproto import CUP
 from shape.models import SimpleConfig, AccessCode
-from transport.interfaces import (
-    publish_with_producer,
-    send_websocket
-)
 
 logger = logging.getLogger('django')
 

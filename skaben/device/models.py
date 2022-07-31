@@ -13,7 +13,7 @@ class DeviceMixin:
     @property
     def online(self):
         current = int(time.time())
-        alive = settings.APPCFG.get('alive', 60)
+        alive = 60  # todo: get from system settings
         return self.timestamp > current - alive
 
     @property

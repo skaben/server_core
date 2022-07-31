@@ -2,10 +2,6 @@ from core.views import DynamicAuthMixin
 from django_filters.rest_framework import DjangoFilterBackend
 from eventlog import serializers
 from rest_framework import viewsets, filters
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import IsAuthenticated
-from transport.interfaces import send_log, send_websocket
-
 from .models import EventLog
 
 

@@ -1,10 +1,10 @@
 from typing import Optional
-from transport.rabbitmq import exchanges
+# from transport.rabbitmq import exchanges
 from alert.models import get_current
-from transport.interfaces import send_log, publish_without_producer
+# from transport.interfaces import send_log, publish_without_producer
 
 from core.helpers import fix_database_conn
-from core.models import ControlCommand
+# from core.models import ControlCommand
 from actions.alert import AlertService
 from alert.serializers import AlertStateSerializer
 
@@ -60,30 +60,32 @@ class BaseScenario:
 
     @staticmethod
     def send_command_mqtt(topic: str, payload: dict):
-        kwargs = {
-            'body': payload,
-            'exchange': exchanges.get('mqtt'),
-            'routing_key': topic
-        }
-        publish_without_producer(
-            **kwargs
-        )
+        raise NotImplementedError
+        # kwargs = {
+        #     'body': payload,
+        #     'exchange': exchanges.get('mqtt'),
+        #     'routing_key': topic
+        # }
+        # publish_without_producer(
+        #     **kwargs
+        # )
 
     @staticmethod
     def send_control_command(name: str):
-        command = ControlCommand.objects.filter(name=name).first()
-        if not command:
-            return
-
-        if command.channel and command.payload:
-            kwargs = {
-                "body": command.payload,
-                "exchange": command.exchange,
-                "routing_key": command.rk
-            }
-            publish_without_producer(
-                **kwargs
-            )
+        raise NotImplementedError
+        # command = ControlCommand.objects.filter(name=name).first()
+        # if not command:
+        #     return
+        #
+        # if command.channel and command.payload:
+        #     kwargs = {
+        #         "body": command.payload,
+        #         "exchange": command.exchange,
+        #         "routing_key": command.rk
+        #     }
+        #     publish_without_producer(
+        #         **kwargs
+        #     )
 
     def __enter__(self):
         return self

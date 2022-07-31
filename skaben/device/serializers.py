@@ -1,17 +1,15 @@
-import json
-from hashlib import md5
-
 from rest_framework import serializers
-from transport.interfaces import send_message_over_mqtt
+from core.transport.interface import get_interface
+from core.helpers import get_server_time, Hashable
+from skabenproto import CUP
 
 from .models import Lock, Terminal
 from shape.serializers import WorkModeSerializer
 
 
-class DeviceSerializer(serializers.ModelSerializer):
+class DeviceSerializer(serializers.ModelSerializer, Hashable):
 
     topic = ''
-
     alert = serializers.ReadOnlyField()
 
     class Meta:
@@ -20,22 +18,25 @@ class DeviceSerializer(serializers.ModelSerializer):
     def save(self):
         if self.context and self.context.get('no_send'):
             return super().save()
-        self.send_config()
+        # self.send_config(self)
         super().save()
-
-    @staticmethod
-    def get_hash_from(data: dict) -> str:
-        dump = json.dumps(data).encode('utf-8')
-        return md5(dump).hexdigest()
-
-    def send_config(self):
-        """Отправляем конфиг клиенту.
-
-           Эта логика находится здесь потому,
-           что отправлять конфиг нужно не на каждом сохранении модели в админке,
-           а на сохранении модели через API
-        """
-        return send_message_over_mqtt(self.topic, self.instance.uid, 'CUP', self.validated_data)
+    #
+    # def send_config(self):
+    #     """Отправляем конфиг клиенту.
+    #
+    #        Эта логика находится здесь потому,
+    #        что отправлять конфиг нужно не на каждом сохранении модели в админке,
+    #        а на сохранении модели через API
+    #     """
+    #     packet = CUP(
+    #         topic=self.topic,
+    #         uid=self.instance.uid,
+    #         datahold=self.validated_data,
+    #         config_hash=self.get_hash_from(self.validated_data),
+    #         timestamp=get_server_time()
+    #     )
+    #     with get_interface() as mq:
+    #         return mq.send_mqtt_skaben(packet)
 
 
 class LockSerializer(DeviceSerializer):
@@ -50,15 +51,15 @@ class LockSerializer(DeviceSerializer):
     def get_acl(self, obj):
         return obj.acl
 
-    def get_hash(self, obj):
-        data = {
-            'alert': obj.alert,
-            'closed': obj.closed,
-            'blocked': obj.blocked,
-            'sound': obj.sound,
-            'acl': obj.acl
-        }
-        return self.get_hash_from(data)
+    def get_hash(self):
+        watch_list = [
+            'alert',
+            'closed',
+            'blocked',
+            'sound',
+            'acl'
+        ]
+        return self.get_hash(self, watch_list)
 
     class Meta:
         model = Lock

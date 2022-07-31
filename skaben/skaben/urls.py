@@ -9,7 +9,6 @@ from django.urls import include, path
 from eventlog.urls import router as eventlog_router
 from rest_framework.routers import DefaultRouter
 from shape.urls import router as shape_router
-from transport.urls import router as transport_router
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 # setting up nested router
@@ -21,7 +20,6 @@ routers = [
     eventlog_router,
     device_router,
     shape_router,
-    transport_router,
 ]
 
 for router in routers:
@@ -32,7 +30,6 @@ urlpatterns = [
     path('api/', include((core_router.urls, "core"), namespace="api")),
     path('api/auth/token/', CreateTokenView.as_view(), name='token'),
     path('api/auth/login/', login_view, name="login"),
-    path('api/transport/', include('transport.urls')),
     path('api/device/', include('device.urls'))
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

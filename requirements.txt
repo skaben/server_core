@@ -2,7 +2,7 @@
 --extra-index-url https://pypi.org/simple/
 
 attrs>=19.1.0
-Django==3.1.14
+Django>=4.0
 django-cors-headers>=3.1.0
 django-filter>=2.2.0
 djangorestframework>=3.10.3
@@ -21,7 +21,6 @@ deepdiff>=4.0.0
 flake8
 skabenproto
 kombu
-django-pgviews
 isort
 requests
 

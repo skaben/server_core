@@ -2,7 +2,7 @@ from django.contrib import admin
 
 from skaben.admin import base_site
 
-from .models import DeviceChannel, ControlCommand, SystemSettings
+from .models import DeviceTopic, ControlReaction, SystemSettings
 from eventlog.models import EventLog
 
 
@@ -24,7 +24,7 @@ class ControlCommandAdmin(admin.ModelAdmin):
     )
 
 
-admin.site.register(DeviceChannel, site=base_site)
-admin.site.register(ControlCommand, ControlCommandAdmin, site=base_site)
+admin.site.register(DeviceTopic, site=base_site)
+admin.site.register(ControlReaction, ControlCommandAdmin, site=base_site)
 admin.site.register(SystemSettings, site=base_site)
 admin.site.register(EventLog, site=base_site)
