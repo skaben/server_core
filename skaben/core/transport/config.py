@@ -1,45 +1,38 @@
 import kombu
 import logging
-
+from enum import Enum
 from functools import lru_cache
 from kombu import Connection, Exchange, Queue
 from django.conf import settings
 
 kombu.disable_insecure_serializers(allowed=['json'])
+ASK_QUEUE = 'ask'  # incoming mqtt filtering queue
 
 
-INTERNAL_QUEUES = [
-            'log',
-            'errors',
-            'save'
-        ]
+class SkabenQueue(Enum):
 
-DEVICE_QUEUES = [
-            'cup',
-            'sup',
-            'info',
-            'ack',
-            'nack',
-            'pong'
-        ]
+    NEW = 'events_new'
+    LOG_INFO = 'log_info'
+    LOG_ERROR = 'log_error'
+    STATE_UPDATE = 'state_update'
+    CLIENT_UPDATE = 'client_update'
 
 
 class MQFactory:
 
     @staticmethod
     def create_queue(queue_name: str, exchange: Exchange, is_topic: bool = True, **kwargs) -> Queue:
-        routing_key = f'#.{queue_name}' if is_topic else queue_name
+        routing_key = queue_name if not is_topic else f'{queue_name}.#'
         return Queue(
             queue_name,
-            durable=False,
             exchange=exchange,
             routing_key=routing_key,
             **kwargs
         )
 
     @staticmethod
-    def create_exchange(channel, name: str, type: str = "topic"):
-        exchange = Exchange(name, type=type)
+    def create_exchange(channel, name: str, routing_type: str):
+        exchange = Exchange(name, routing_type)
         bound_exchange = exchange(channel)
         bound_exchange.declare()
         return bound_exchange
@@ -51,73 +44,61 @@ class MQConfig:
     queues: dict
 
     def __init__(self):
-        self.exchanges = {}
-        self.queues = {}
         if not settings.AMQP_URI:
-            logging.error('AMQP settings is missing, exchanges will not be initialized')
-            return
+            raise AttributeError('CRIT: settings.AMQP_URI is missing, exchanges will not be initialized')
+
+        self.queues = {}
+        self.exchanges = {}
         self.conn = Connection(settings.AMQP_URI)
         self.pool = self.conn.ChannelPool()
+        self._init_mqtt_exchange()
+        filtering_queue = {ASK_QUEUE: MQFactory.create_queue(ASK_QUEUE, self.mqtt_exchange, durable=True)}
+        transport_queues = {
+            e.value: MQFactory.create_queue(e.value, self.internal_exchange, durable=False)  # noqa
+            for e in SkabenQueue
+        }
+        queues_full = transport_queues | filtering_queue
+        self.bind_queues(queues_full)
+        self.queues = queues_full
 
-    def init_mqtt_exchange(self) -> dict:
+    @property
+    def internal_exchange(self) -> Exchange:
+        return self.exchanges.get('internal', self._init_internal_exchange())
+
+    @property
+    def mqtt_exchange(self) -> Exchange:
+        return self.exchanges.get('mqtt', self._init_mqtt_exchange())
+
+    def bind_queues(self, queues):
+        with self.pool.acquire(timeout=settings.AMQP_TIMEOUT) as channel:
+            for queue in queues.values():
+                bound_queue = queue(channel)
+                bound_queue.declare()
+
+    def _init_mqtt_exchange(self) -> Exchange:
         """Initialize MQTT exchange infrastructure"""
         logging.info('initializing mqtt exchange')
         with self.pool.acquire(timeout=settings.AMQP_TIMEOUT) as channel:
             # main mqtt exchange, used for messaging out.
-            # note that all replies from clients starts with 'ask.' routing key goes to ask exchange
-            self.exchanges.update(mqtt=MQFactory.create_exchange(channel, 'mqtt'))
-        return self.exchanges
+            # note that all replies from clients starts with 'ask.' routing key goes to internal exchange
+            exchange = MQFactory.create_exchange(channel, 'mqtt', 'topic')
+            self.exchanges.update(mqtt=exchange)
+            return exchange
 
-    def init_ask_exchange(self) -> dict:
-        logging.info('initializing mqtt replies (ask) exchange')
-        if not self.exchanges.get('mqtt'):
-            self.init_mqtt_exchange()
-
-        with self.pool.acquire(timeout=settings.AMQP_TIMEOUT) as channel:
-            ask_exchange = MQFactory.create_exchange(channel, 'ask')
-            ask_exchange.bind_to(exchange=self.exchanges['mqtt'],
-                                 routing_key='ask.#',
-                                 channel=channel)
-            self.exchanges.update(ask=ask_exchange)
-        return self.exchanges
-
-    def init_internal_exchange(self):
-        """Initializing internal direct exchange"""
+    def _init_internal_exchange(self) -> Exchange:
+        """Initializing internal exchange"""
         logging.info('initializing internal exchange')
         with self.pool.acquire(timeout=settings.AMQP_TIMEOUT) as channel:
-            exchange = MQFactory.create_exchange(channel, 'internal', 'direct')
+            exchange = MQFactory.create_exchange(channel, 'internal', 'topic')
             self.exchanges.update(internal=exchange)
-        return self.exchanges
-
-    def init_transport_queues(self) -> dict:
-        exchange = self.exchanges.get('ask')
-        if not exchange:
-            self.init_ask_exchange()
-
-        q_names = DEVICE_QUEUES
-        queues = {name: MQFactory.create_queue(name, exchange) for name in q_names}
-        self.queues.update(**queues)
-        return self.queues
-
-    def init_internal_queues(self) -> dict:
-        exchange = self.exchanges.get('internal')
-        if not exchange:
-            self.init_internal_exchange()
-
-        q_names = INTERNAL_QUEUES
-        queues = {name: MQFactory.create_queue(name, exchange, is_topic=False) for name in q_names}
-        self.queues.update(**queues)
-        return self.queues
+            return exchange
 
     def __str__(self):
-        return f"<MQConfig connected to {settings.AMQP_URI}>"
+        return f"<MQConfig exchanges: " \
+               f"{','.join(list(self.exchanges.keys()))} | " \
+               f"queues: {','.join(list(self.queues.keys()))}>"
 
 
 @lru_cache()
-def get_mq_config():
-    config = MQConfig()
-    config.init_mqtt_exchange()
-    if not settings.AMQP_LIMITED:
-        config.init_transport_queues()
-        config.init_internal_queues()
-    return config
+def get_mq_config() -> MQConfig:
+    return MQConfig()

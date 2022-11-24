@@ -1,11 +1,10 @@
 import logging
 import traceback
 import skabenproto
-
 from core.transport.config import MQConfig, get_mq_config
 
 
-class MQInterface(object):
+class MQPublisher(object):
 
     def __init__(self, config: MQConfig):
         self.config = config
@@ -44,10 +43,10 @@ class MQInterface(object):
                     retry=True
                 )
         except Exception as e:
-            logging.error(f'exception occured when sending packet to {routing_key}: {e}')
+            logging.error(f'[sync] exception occurred when sending packet to {routing_key}: {e}')
 
     def __str__(self):
-        return f'<MQInterface ["config": {self.config}]>'
+        return f'<MQPublisher ["config": {self.config}]>'
 
     def __enter__(self):
         return self
@@ -57,4 +56,4 @@ class MQInterface(object):
 
 
 def get_interface():
-    return MQInterface(get_mq_config())
+    return MQPublisher(get_mq_config())
