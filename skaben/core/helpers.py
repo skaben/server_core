@@ -80,5 +80,5 @@ def fix_database_conn(func):
 class Hashable(object):
 
     @staticmethod
-    def get_hash(obj: object, attrs: list[str]) -> str:
+    def _hash(obj: object, attrs: list[str]) -> str:
         return get_hash_from({attr: getattr(obj, attr) for attr in attrs})

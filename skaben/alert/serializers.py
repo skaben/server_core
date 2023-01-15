@@ -1,4 +1,4 @@
-from actions.alert import AlertService
+from alert.service import AlertService
 from rest_framework import serializers
 
 from .models import AlertCounter, AlertState
@@ -15,17 +15,17 @@ class AlertStateSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ('id', 'name', 'info', 'order', 'increment')
 
-    def update(self, instance, validated_data):
+    def update(self, instance: AlertState, validated_data: dict) -> AlertState:
         """ set state current """
         with AlertService() as service:
             if not self.context.get('by_counter'):
                 # alert changed by name, counter should be reset to lower threshold
-                data = service.reset_counter_to_threshold(instance)
-                serializer = AlertCounterSerializer(data=data,
-                                                    context={"by_state": True})
+                data = service.reset_counter(instance.threshold)
+                serializer = AlertCounterSerializer(data=data, context={"by_state": True})
                 if serializer.is_valid():
                     serializer.save()
-            instance = service.set_state_current(instance)
+            else:
+                service.set_state_current(instance)
             return instance
 
 
@@ -36,7 +36,7 @@ class AlertCounterSerializer(serializers.ModelSerializer):
         model = AlertCounter
         fields = '__all__'
 
-    def create(self, validated_data):
+    def create(self, validated_data: dict) -> AlertCounter:
         alert_value = validated_data.get('value')
         comment = validated_data.get('comment', 'value changed by API')
 

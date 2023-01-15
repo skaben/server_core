@@ -1,9 +1,9 @@
 import time
 
-from alert.models import AlertState, get_current_alert_state
+from alert.models import AlertState
 from django.conf import settings
 from django.db import models
-from shape.models import MenuItem, WorkMode, SimpleConfig
+from content.models import WorkMode, SimpleConfig
 
 
 class DeviceMixin:
@@ -13,12 +13,12 @@ class DeviceMixin:
     @property
     def online(self):
         current = int(time.time())
-        alive = 60  # todo: get from system settings
+        alive = settings.DEVICE_KEEPALIVE_TIMEOUT
         return self.timestamp > current - alive
 
     @property
     def alert(self):
-        return str(get_current_alert_state())
+        return str(AlertState.get_current.order or '')
 
 
 class ComplexDevice(models.Model, DeviceMixin):
@@ -26,7 +26,7 @@ class ComplexDevice(models.Model, DeviceMixin):
     class Meta:
         abstract = True
 
-    uid = models.CharField(max_length=16, unique=True)
+    mac_addr = models.CharField(max_length=16, unique=True)
     info = models.CharField(max_length=128, default='smart complex device')
     ip = models.GenericIPAddressField(null=True, blank=True)
     timestamp = models.IntegerField(default=int(time.time()))
@@ -48,7 +48,7 @@ class Lock(ComplexDevice):
     timer = models.IntegerField(default=10)
 
     @property
-    def acl(self):
+    def acl(self) -> dict:
         # unload list of Card codes for lock end-device
         acl = {}
         for perm in self.permission_set.filter(lock_id=self.id):
@@ -100,7 +100,7 @@ class Simple(models.Model, DeviceMixin):
 
     @property
     def config(self):
-        state = get_current_alert_state()
+        state = AlertState.get_current
         simple_config = SimpleConfig.objects.filter(
             dev_type=self.dev_type,
             state__id__lte=state

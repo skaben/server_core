@@ -1,5 +1,5 @@
 import time
-from actions.scenario.base import BaseScenario
+from core.reactions._old_scenario.base import BaseScenario
 from actions.models import EnergyState
 from alert.models import get_current
 from core.models import get_system_settings
@@ -74,7 +74,7 @@ class Scenario(BaseScenario):
             if self.datahold.get('type') == 'input':
                 if self.current.name == "config":
                     return self.write_event('СИСТЕМА В РЕЖИМЕ КОНФИГУРАЦИИ, ИЗМЕНИТЕ СТАТУС')
-                command = self.COMMANDS.get(self.datahold.get('content', 'empty'))
+                command = self.COMMANDS.get(self.datahold.get('peripherals', 'empty'))
                 if command:
                     return command()
 
@@ -87,7 +87,7 @@ class Scenario(BaseScenario):
             "timestamp": int(time.time()) + 3,
             "message": {
                 "type": "console",
-                "content": message.upper(),
+                "peripherals": message.upper(),
                 "response": True
             }
         }

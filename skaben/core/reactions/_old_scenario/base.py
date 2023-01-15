@@ -11,7 +11,7 @@ from alert.serializers import AlertStateSerializer
 
 class BaseScenario:
 
-    """ Default scenario """
+    """ Default _old_scenario """
 
     DISPATCH_POWER_TABLE = {
         'AUX': '',

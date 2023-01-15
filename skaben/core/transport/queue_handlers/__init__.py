@@ -1,5 +1,5 @@
 from .base import *
-from .internal import *
+from .internal_new import *
 from .client_update import *
 from .state_update import *
-from .translator import *
+from .translator_ask import *

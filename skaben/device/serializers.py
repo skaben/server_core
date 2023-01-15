@@ -1,10 +1,10 @@
 from rest_framework import serializers
-from core.transport.interface import get_interface
-from core.helpers import get_server_time, Hashable
+# from core.transport.interface import get_interface
+from core.helpers import get_server_time, Hashable, get_hash_from
 from skabenproto import CUP
 
 from .models import Lock, Terminal
-from shape.serializers import WorkModeSerializer
+from content.serializers import WorkModeSerializer
 
 
 class DeviceSerializer(serializers.ModelSerializer, Hashable):
@@ -39,34 +39,6 @@ class DeviceSerializer(serializers.ModelSerializer, Hashable):
     #         return mq.send_mqtt_skaben(packet)
 
 
-class LockSerializer(DeviceSerializer):
-    """ Lock serializer for internal ops and MQTT """
-
-    topic = 'lock'
-
-    online = serializers.ReadOnlyField()
-    acl = serializers.SerializerMethodField()
-    hash = serializers.SerializerMethodField()
-
-    def get_acl(self, obj):
-        return obj.acl
-
-    def get_hash(self):
-        watch_list = [
-            'alert',
-            'closed',
-            'blocked',
-            'sound',
-            'acl'
-        ]
-        return self.get_hash(self, watch_list)
-
-    class Meta:
-        model = Lock
-        fields = '__all__'
-        read_only_fields = ("id", "uid", "timestamp", "alert", "acl", "online")
-
-
 class TerminalInternalSerializer(DeviceSerializer):
     """ Terminal serializer """
 
@@ -87,23 +59,21 @@ class TerminalSerializer(TerminalInternalSerializer):
     mode_switch = serializers.SerializerMethodField()
     file_list = serializers.SerializerMethodField()
     hash = serializers.SerializerMethodField()
-    online = None
 
     class Meta:
         model = Terminal
         exclude = ('id', 'ip', 'uid', 'modes_normal', 'modes_extended', 'info', 'override')
 
     def get_hash(self, obj):
-        data = {
+        return get_hash_from({
             'alert': obj.alert,
             'hacked': obj.hacked,
             'blocked': obj.blocked,
             'powered': obj.powered,
             'mode_list': self.get_mode_list(obj),
-        }
-        return self.get_hash_from(data)
+        })
 
-    def get_mode_switch(self, obj):
+    def get_mode_switch(self, obj) -> dict:
         result = {}
         for mode in obj.modes():
             serialized = WorkModeSerializer(mode, context=self.context)

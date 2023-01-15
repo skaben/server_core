@@ -1,1 +1,0 @@
-from actions.scenario.default import Scenario as EventManager  # noqa

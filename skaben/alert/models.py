@@ -89,7 +89,15 @@ class AlertState(models.Model):
         states = AlertState.objects.all().order_by('order')
         return states.last().id == self.id
 
-    is_ingame.fget.short_description = 'Внутриигровой статус'
+    @property
+    def get_current(self):
+        if self.current:
+            return self
+        return AlertState.objects.all().filter(current=True).first()
+
+    @staticmethod
+    def get_by_name(name: str):
+        return AlertState.objects.filter(name=name).first()
 
     def clean(self):
         has_current = AlertState.objects.all().exclude(pk=self.id).filter(current=True)
@@ -104,52 +112,12 @@ class AlertState(models.Model):
         super().save(*args, **kwargs)
         self.__original_state = self.current
 
+    is_final.fget.short_description = 'Финальный игровой статус'
+    is_ingame.fget.short_description = 'Игровой статус'
+
     def __str__(self):
         s = f'[{self.order}] State: {self.name} ({self.info})'
         if self.current:
             return '===ACTIVE===' + s + '===ACTIVE==='
         else:
             return s
-
-
-def get_current_alert_state() -> int:
-    state = AlertState.objects.filter(current=True).first()
-    return state.order if state else 0
-
-
-def get_last_counter() -> int:
-    counter = 0
-    try:
-        counter = AlertCounter.objects.latest('id').value
-    except Exception:
-        pass
-    return counter
-
-
-def get_current() -> AlertState:
-    return AlertState.objects.filter(current=True).first()
-
-
-def get_max_alert_value() -> int:
-    states = [state.threshold for state in AlertState.objects.all().order_by("threshold")]
-    return max(states) if states else 1
-
-
-def get_borders() -> list:
-    borders = [1, 500, 1000]
-    return borders
-
-
-def get_ingame_states() -> list:
-    _range = (1, get_max_alert_value())
-    return [state for state in AlertState.objects.all().order_by("threshold") if state.threshold in range(*_range)]
-
-
-def new_alert_threshold_lg_current(level_name):
-    current = get_current()
-    try:
-        new = AlertState.objects.filter(name=level_name).first()
-        if new.threshold > current.threshold:
-            return True
-    except Exception as e:
-        raise Exception(f"Error when comparing alert levels: alert level with name {level_name}\nreason: {e}")

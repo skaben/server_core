@@ -1,4 +1,4 @@
-from actions.scenario.base import BaseScenario
+from core.reactions._old_scenario.base import BaseScenario
 
 
 class Scenario(BaseScenario):

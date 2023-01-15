@@ -67,7 +67,7 @@ INSTALLED_APPS = [
     'core',
     'device',
     'eventlog',
-    'shape',
+    'content',
     'skaben'
 ]
 
@@ -174,7 +174,7 @@ LOGGING = {
             'format': '%(levelname)s %(message)s'
         },
     },
-    'handlers': {
+    'queue_handlers': {
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
@@ -183,7 +183,7 @@ LOGGING = {
     },
     'loggers': {
         'django': {
-            'handlers': ['console'],
+            'queue_handlers': ['console'],
             'level': 'INFO',
             'propagate': True
         },
@@ -202,6 +202,12 @@ EXCHANGE_CHOICES = [
 ]
 MAX_CHANNEL_NAME_LEN = 64
 
+# INGAME SETTINGS
+
+ACCESS_CARD_CODE_LEN = 6
+DEVICE_KEEPALIVE_TIMEOUT = 60
+
+# DEBUG
 
 if DEBUG:
     print('!! WARNING: RUNNING SKABEN IN DEBUG MODE !! API AUTHENTICATION DISABLED !!')

@@ -4,7 +4,7 @@ from rest_framework.routers import SimpleRouter
 from .views import (AccessCodeViewSet, MenuItemViewSet, PermissionViewSet,
                     WorkModeViewSet)
 
-app_name = 'shape'
+app_name = 'peripherals'
 
 router = SimpleRouter()
 router.register('accesscode', AccessCodeViewSet)

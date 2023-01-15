@@ -8,7 +8,7 @@ from django.contrib import admin
 from django.urls import include, path
 from eventlog.urls import router as eventlog_router
 from rest_framework.routers import DefaultRouter
-from shape.urls import router as shape_router
+from content.urls import router as shape_router
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 # setting up nested router

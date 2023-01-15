@@ -1,7 +1,7 @@
 from kombu import Message
 from core.helpers import from_json
 from core.transport.config import SkabenQueue, ASK_QUEUE
-from core.transport.handlers import BaseHandler
+from core.transport.queue_handlers import BaseHandler
 
 __all__ = ['TranslatorHandler']
 

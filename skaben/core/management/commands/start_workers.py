@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from core.transport.handlers import (
+from core.transport.queue_handlers import (
     BaseHandler,
     TranslatorHandler,
     InternalHandler,
@@ -8,6 +8,7 @@ from core.transport.handlers import (
 )
 from core.transport.config import get_mq_config, SkabenQueue
 from threading import Thread
+from multiprocessing import Process
 
 config = get_mq_config()
 
@@ -30,8 +31,8 @@ class Command(BaseCommand):
             StateUpdateHandler,
             ClientUpdateHandler,
         ]:
-            worker = self.bind_handler(handler)
-            thread = Thread(target=worker.run, name=f'{handler.incoming_mark}_thread')
-            thread.start()
-            self.stdout.write(self.style.SUCCESS(f'[+] worker thread started: {worker}'))
+            bound = self.bind_handler(handler)
+            worker = Process(target=bound.run, name=f'{bound.incoming_mark}_thread')
+            worker.start()
+            self.stdout.write(self.style.SUCCESS(f'[+] worker started: {worker}'))
 

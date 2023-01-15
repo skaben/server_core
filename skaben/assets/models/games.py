@@ -28,13 +28,3 @@ class HackGame(models.Model):
                                      default=normal)
     wordcount = models.IntegerField(default=15)
     chance = models.IntegerField(default=15)
-
-
-class AnotherGame(models.Model):
-    class Meta:
-        verbose_name = 'Настройки мини-игры'
-
-    attempts = models.IntegerField(default=3)
-    wordcount = models.IntegerField(default=15)
-    chance = models.IntegerField(default=10)
-
