@@ -10,7 +10,7 @@ from peripheral_devices.models import (
 
 
 class DeviceAdmin(admin.ModelAdmin):
-    readonly_fields = ('timestamp', 'alert')
+    readonly_fields = ('timestamp', 'alert_state')
 
 
 admin.site.register(SimpleDevice, DeviceAdmin, site=base_site)
