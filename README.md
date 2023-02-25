@@ -4,17 +4,8 @@
 
 - база конфигураций клиентских устройств
 - обработчик игровых событий
-- управление глобальным состоянием игровой среды
-- мониторинг
+- управление состоянием игровой среды
 
 ##### как запускать 
-`docker-compose up --force-recreate --abort-on-container-exit
-`
 
-##### компоненты
-
-- django (+ django-rest-framework)
-- celery
-- rabbitmq
-- postgres
-- nginx
+Все процедуры запуска перенесены в главный репозиторий https://github.com/skaben/skaben
