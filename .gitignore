@@ -6,7 +6,7 @@ logs/
 static/
 *.swp
 tmp/
-skaben/*/migrations/0*.py
+server_apps/*/migrations/0*.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

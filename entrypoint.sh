@@ -14,7 +14,7 @@ if [ ${ENVIRONMENT} != 'dev' ]; then
     echo "Apply database migrations"
     python manage.py migrate
     echo "Run production server"
-    gunicorn -b 0.0.0.0:8000 skaben.wsgi
+    gunicorn -b 0.0.0.0:8000 server.wsgi
 else
     echo "Run dev server"
     python manage.py runserver 0.0.0.0:8000
