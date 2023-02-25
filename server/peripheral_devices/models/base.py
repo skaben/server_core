@@ -25,12 +25,13 @@ class SkabenDevice(models.Model):
     override = models.BooleanField(default=False)
 
     @property
-    def online(self):
+    def online(self) -> bool:
         return self.timestamp + settings.DEVICE_KEEPALIVE_TIMEOUT < get_server_timestamp()
 
     @property
-    def alert_current(self):
-        return str(AlertState.get_current.order or '')
+    def alert_state(self) -> str:
+        state = AlertState.get_current
+        return str(getattr(state, 'order', ''))
 
     @property
     def topic(self):

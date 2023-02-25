@@ -14,7 +14,7 @@ class PassiveConfig(models.Model):
         verbose_name = 'Поведение пассивного устройства'
         verbose_name_plural = 'Поведение пассивных устройств'
 
-    config = models.JSONField(default=lambda: {})
+    config = models.JSONField(default=dict)
     dev_type = models.CharField(max_length=16)
     state = models.ForeignKey('alert.AlertState',
                               on_delete=models.PROTECT,
