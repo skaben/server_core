@@ -1,6 +1,6 @@
 import pytest
 from core.models import MenuItem, Terminal
-from device.serializers import TerminalSerializer
+from peripheral_devices.serializers import TerminalSerializer
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework import status

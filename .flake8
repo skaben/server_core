@@ -1,6 +1,11 @@
 [flake8]
-max-line-length = 120
+max-line-length = 127
+ignore = E265, E126, E266
 exclude =
-    *tests*
-    __init__.py
-    */migrations/*
+  *tests*
+  migrations
+  __pycache__
+  manage.py
+  settings
+  test_settings.py
+

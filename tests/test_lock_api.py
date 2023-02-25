@@ -1,6 +1,6 @@
 import pytest
 from core.models import Lock
-from device.serializers import LockSerializer
+from peripheral_devices.serializers import LockSerializer
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework import status

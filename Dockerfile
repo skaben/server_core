@@ -14,8 +14,8 @@ RUN pip install --upgrade pip
 
 FROM base as builder
 
-ENV PROJECT_ROOT=/opt/app/skaben
-WORKDIR ${PROJECT_ROOT}
+ENV PROJECT_ROOT=/opt/app/server
+WORKDIR /opt/app
 ENV PYTHONPATH="${PYTHONPATH}:${PROJECT_ROOT}"
 COPY ./requirements.txt scripts/wait-for-it.sh /opt/app/
     
