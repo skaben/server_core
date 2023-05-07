@@ -8,13 +8,11 @@ from random import sample
 from string import ascii_lowercase
 
 import pytz
-from django import db
 from django.conf import settings
-from django.utils import timezone
 
 
 def get_server_timestamp() -> int:
-    return int(datetime(*timezone.now()).strftime('%s'))
+    return int(datetime.now().time().strftime('%s'))
 
 
 def get_uuid():

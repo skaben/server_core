@@ -19,6 +19,7 @@ class SkabenUser(models.Model):
         verbose_name_plural = 'Игровые пользователи'
 
     name = models.CharField(
+        unique=True,
         verbose_name='Имя',
         max_length=MAX_USER_LENGTH,
     )
@@ -36,6 +37,7 @@ class AccessCode(models.Model):
         verbose_name_plural = 'Коды доступа (ключ-карты)'
 
     code = models.CharField(
+        unique=True,
         verbose_name='Код доступа',
         help_text='Произвольный цифровой код или код карты',
         max_length=MAX_CODE_LENGTH,

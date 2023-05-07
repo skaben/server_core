@@ -1,6 +1,7 @@
 import kombu
 import logging
 from enum import Enum
+from typing import List
 from functools import lru_cache
 from kombu import Connection, Exchange, Queue
 from django.conf import settings
@@ -9,9 +10,18 @@ kombu.disable_insecure_serializers(allowed=['json'])
 ASK_QUEUE = 'ask'  # incoming mqtt filtering queue
 
 
+class SkabenPackets(Enum):
+    ASK = 'ask'
+    CLIENT = 'cup'
+    SAVE = 'sup'
+    INFO = 'info'
+    PING = 'ping'
+    PONG = 'pong'
+
+
 class SkabenQueue(Enum):
 
-    NEW = 'events_new'
+    NEW = 'events'
     LOG_INFO = 'log_info'
     LOG_ERROR = 'log_error'
     STATE_UPDATE = 'state_update'

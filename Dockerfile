@@ -1,5 +1,5 @@
-FROM python:3.10 as base
- 
+FROM python:3.10 as builder
+
 ENV PYTHONUBUFFERED=1 \
     VIRTUAL_ENV=/venv
 
@@ -12,14 +12,17 @@ RUN apt-get update && \
 RUN pip install --upgrade pip
 
 
-FROM base as builder
+FROM builder as base_build
 
 ENV PROJECT_ROOT=/opt/app/server
 WORKDIR /opt/app
 ENV PYTHONPATH="${PYTHONPATH}:${PROJECT_ROOT}"
 COPY ./requirements.txt scripts/wait-for-it.sh /opt/app/
-    
+
 RUN python -m pip install --no-cache-dir -r /opt/app/requirements.txt
+
+FROM base_build as api_build
+COPY scripts/wait-for-it.sh /opt/app/
 COPY entrypoint.sh /opt/app
 
 RUN mkdir -p ${PROJECT_ROOT}/static && \

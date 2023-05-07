@@ -49,7 +49,7 @@ class AlertState(models.Model):
         max_length=256
     )
     threshold = models.IntegerField(
-        verbose_name='порог срабатывания',
+        verbose_name='порог срабатывания ',
         help_text=('Нижнее значение счетчика счетчика тревоги для переключения в статус. '
                    'Чтобы отключить авто-переключение - выставьте отрицательное значение'),
         default=-1
@@ -59,12 +59,13 @@ class AlertState(models.Model):
         default=False
     )
     order = models.IntegerField(
-        verbose_name='цифровое обозначение статуса',
+        verbose_name='цифровой id статуса',
+        help_text='используется для идентификации и упорядочивания статуса без привязки к id в БД',
         blank=False,
         unique=True
     )
     modifier = models.IntegerField(
-        verbose_name='модификатор счетчика',
+        verbose_name='штраф за ошибку',
         help_text='на сколько изменяется счетчик при ошибке прохождения данжа',
         default=5,
         blank=False

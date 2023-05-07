@@ -1,31 +1,35 @@
 from functools import lru_cache
 from collections import namedtuple
 
-import peripheral_behavior.models.devices as models
-import peripheral_behavior.serializers.devices as schema
+from peripheral_devices import models
+from peripheral_devices import serializers as schema
+from django.conf import settings
+
+
+TOPIC = settings.SKABEN_DEVICE_TOPICS
+FULL_DEVICE_LIST = [
+    (*TOPIC.get('rgb'), None, None),
+    (*TOPIC.get('pwr'), None, None),
+    (*TOPIC.get('scl'), None, None),
+    (*TOPIC.get('box'), None, None),
+    (*TOPIC.get('lock'), models.LockDevice, schema.LockSerializer),
+    (*TOPIC.get('terminal'), models.TerminalDevice, schema.TerminalSerializer)
+]
 
 
 class DeviceConfig:
 
     devices: list
-    device = namedtuple('Device', [
-        'name',
-        'type',
+    _named = namedtuple('Device', [
         'topic',
+        'type',
         'model',
         'schema'
     ])
 
     def __init__(self):
         # type, name, topic, model, schema
-        self.devices = [
-            self.device('simple', 'power', 'pwr', models.SimpleDevice, None),
-            self.device('simple', 'light', 'rgb', models.SimpleDevice, None),
-            self.device('simple', 'scale', 'scl', models.SimpleDevice, None),
-            self.device('simple', 'box', 'box', models.SimpleDevice, None),
-            self.device('smart', 'lock', 'lock', models.LockDevice, schema.LockSerializer),
-            self.device('smart', 'terminal', 'terminal', models.TerminalDevice, schema.TerminalSerializer)
-        ]
+        self.devices = [self._named(*params) for params in FULL_DEVICE_LIST]
 
     def topics(self, _type: str | None) -> [str]:
         if not _type:

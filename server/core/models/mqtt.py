@@ -36,6 +36,12 @@ class DeviceTopic(models.Model):
         verbose_name="Тип устройства"
     )
 
+    active = models.BooleanField(
+        default=True,
+        verbose_name='Активный топик',
+        help_text='Выключение этого параметра останавливает обработку сообщений в этом канале',
+    )
+
     comment = models.TextField(
         blank=True,
         null=True,
@@ -43,7 +49,7 @@ class DeviceTopic(models.Model):
     )
 
     def __str__(self):
-        return f'{self.channel} MQTT устройство [{self.type}]'
+        return f'<{self.channel}> - [{self.type} type] {self.comment}'
 
 
 class ControlReaction(models.Model):
@@ -107,4 +113,5 @@ class ControlReaction(models.Model):
         return f'Command {self.name} -> {self.comment[:64]}'
 
     class Meta:
-        verbose_name = 'Управляющая команда'
+        verbose_name = 'MQTT: Реакция на команду'
+        verbose_name_plural = 'MQTT: Реакции на команду'

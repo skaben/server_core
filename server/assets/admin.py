@@ -12,9 +12,9 @@ class TextFileAdmin(admin.ModelAdmin):
     readonly_fields = ('uri',)
 
 
-admin.site.register(AudioFile, FileAdmin, site=base_site)
-admin.site.register(VideoFile, FileAdmin, site=base_site)
-admin.site.register(ImageFile, FileAdmin, site=base_site)
-admin.site.register(UserInput, site=base_site)
-admin.site.register(HackGame, site=base_site)
-admin.site.register(TextFile, TextFileAdmin, site=base_site)
+# admin.site.register(AudioFile, FileAdmin, site=base_site)
+# admin.site.register(VideoFile, FileAdmin, site=base_site)
+# admin.site.register(ImageFile, FileAdmin, site=base_site)
+# admin.site.register(UserInput, site=base_site)
+# admin.site.register(HackGame, site=base_site)
+# admin.site.register(TextFile, TextFileAdmin, site=base_site)

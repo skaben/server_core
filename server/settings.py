@@ -3,6 +3,8 @@ Django settings for SKABEN project
 """
 
 import os
+
+from collections import namedtuple
 from django.core.management.utils import get_random_secret_key
 
 # основные настройки проекта
@@ -67,6 +69,7 @@ INSTALLED_APPS = [
     'events',
     'peripheral_devices',
     'peripheral_behavior',
+    'admin_extended',
 ]
 
 MIDDLEWARE = [
@@ -84,9 +87,10 @@ MIDDLEWARE = [
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
+            'debug': DEBUG,
             'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
@@ -188,6 +192,13 @@ LOGGING = {
     }
 }
 
+# REDIS
+
+REDIS_HOST = os.environ.get('REDIS_HOST', 'localhost')
+REDIS_PORT = int(os.environ.get('REDIS_PORT', 6379))
+REDIS_DB = int(os.environ.get('REDIS_DB', 0))
+REDIS_PASSWORD = os.environ.get('REDIS_PASSWORD')
+
 # RABBITMQ
 
 RABBITMQ_USER = os.environ.get('RABBITMQ_USERNAME')
@@ -199,6 +210,21 @@ EXCHANGE_CHOICES = [
     ('internal', 'internal')
 ]
 MAX_CHANNEL_NAME_LEN = 64
+RESPONSE_TIMEOUT = {
+    'ask': 10,
+    'client_update': 30,
+}
+
+# DEVICE TYPES
+
+SKABEN_DEVICE_TOPICS = {
+    'rgb': ('rgb', 'simple'),
+    'scl': ('scl', 'simple'),
+    'pwr': ('pwr', 'simple'),
+    'box': ('box', 'simple'),
+    'lock': ('lock', 'smart'),
+    'terminal': ('terminal', 'smart'),
+}
 
 # INGAME SETTINGS
 

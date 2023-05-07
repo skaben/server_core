@@ -1,11 +1,11 @@
 from django.db import models
 
 __all__ = (
-    'SystemSettings',
+    'System',
 )
 
 
-class SystemSettings(models.Model):
+class System(models.Model):
 
     ping_timeout = models.IntegerField(
         verbose_name='Задержка посыла PING в канал',

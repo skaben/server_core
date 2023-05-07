@@ -79,11 +79,10 @@ class AlertService:
         return counter.value
 
     @staticmethod
-    def compare_threshold_by_name(level_name: str):
+    def compare_threshold_by_name(level_name: str) -> bool:
         """Сравнивает трешхолд выбранного уровня с трешхолдом текущего"""
         new = AlertState.get_by_name(level_name)
-        if new.threshold > AlertState.get_current.threshold:
-            return True
+        return new.threshold > AlertState.get_current.threshold
 
     @staticmethod
     def set_state_current(instance: AlertState) -> AlertState:

@@ -30,7 +30,7 @@ urlpatterns = [
     path('api/', include((core_router.urls, "core"), namespace="api")),
     path('api/auth/token/', CreateTokenView.as_view(), name='token'),
     path('api/auth/login/', login_view, name="login"),
-    path('api/device/', include('peripheral_devices.urls'))
+    path('api/device/', include('peripheral_devices.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 urlpatterns += staticfiles_urlpatterns()

@@ -18,6 +18,7 @@ mypy==0.730
 psycopg2-binary
 pytest-django>=3.5.1
 pytest-mock>=1.11
+redis
 deepdiff>=4.0.0
 flake8
 skabenproto
@@ -26,4 +27,3 @@ isort
 vulture
 black
 requests
-
