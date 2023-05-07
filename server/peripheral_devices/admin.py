@@ -6,6 +6,9 @@ from peripheral_devices.models import (
     LockDevice,
     TerminalDevice,
 )
+from peripheral_behavior.models import (
+    PassiveConfig,
+)
 
 
 class DeviceAdmin(admin.ModelAdmin):
@@ -14,3 +17,5 @@ class DeviceAdmin(admin.ModelAdmin):
 
 admin.site.register(LockDevice, DeviceAdmin, site=base_site)
 admin.site.register(TerminalDevice, DeviceAdmin, site=base_site)
+# регистрируется как девайс, т.к. нет отдельного поведения
+admin.site.register(PassiveConfig, admin.ModelAdmin, site=base_site)

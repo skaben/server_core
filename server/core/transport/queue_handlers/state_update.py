@@ -40,6 +40,10 @@ class StateUpdateHandler(BaseHandler):
         if packet_type == SkabenPackets.SAVE.value:
             device_conf = get_device_config()
             device = device_conf.get_by_topic(device_type)
+            if device.type == 'simple':
+                message.ack()
+                return
+
             serialized = device.schema(
                 device.model.objects.get(uid=device_uuid),
                 context=self.context,

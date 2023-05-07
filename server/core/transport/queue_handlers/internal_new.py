@@ -48,7 +48,7 @@ class InternalHandler(BaseHandler):
             return message.requeue()
 
         if packet_type == self.keepalive_mark:
-            self.dispatch_keepalive(body, routing_data[1:3])
+            self.dispatch_keepalive(body, [device_type, device_uuid, packet_type])
         elif packet_type in (self.state_save_mark, self.state_mutate_mark):
             body['datahold'].update({"timestamp": body.get('timestamp', get_server_timestamp())})
             self.dispatch(

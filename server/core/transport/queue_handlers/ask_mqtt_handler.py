@@ -46,7 +46,8 @@ class AskHandler(BaseHandler):
 
         # if the same key has already handled in time interval (default = 10) - ack and do nothing
         if self.get_locked(routing_key):
-            return message.ack()
+            message.ack()
+            return
         self.set_locked(routing_key)
 
         try:

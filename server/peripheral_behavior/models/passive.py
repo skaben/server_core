@@ -25,8 +25,8 @@ class PassiveConfig(models.Model):
     """
 
     class Meta:
-        verbose_name = 'Поведение пассивного устройства'
-        verbose_name_plural = 'Поведение пассивных устройств'
+        verbose_name = 'Пассивное устройство'
+        verbose_name_plural = 'Пассивные устройства'
         unique_together = ('state', 'topic')
 
     config = models.JSONField(default=dict, help_text="JSON-объект с конфигурацией устройства.")
