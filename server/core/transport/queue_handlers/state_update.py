@@ -54,4 +54,5 @@ class StateUpdateHandler(BaseHandler):
                 serialized.save()
             else:
                 return message.reject()
+
         message.ack()

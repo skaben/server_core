@@ -8,6 +8,8 @@ from core.devices import get_device_config
 from skabenproto import CUP
 from core.helpers import get_server_timestamp
 
+from peripheral_behavior.helpers import get_passive_config
+
 
 class ClientUpdateHandler(BaseHandler):
     """
@@ -43,13 +45,19 @@ class ClientUpdateHandler(BaseHandler):
         [incoming_mark, device_type, device_uid] = routing_key.split('.')
         if incoming_mark != self.incoming_mark:
             return message.requeue()
-        device = self.devices.get_by_topic(device_type)
         self.set_locked(routing_key)
 
         # device has already been updated
         if message.headers.get('external') and self.get_locked(routing_key):
             return message.reject()
 
+        # device is simple - send current config
+        if device_type in self.devices.topics('simple'):
+            current_config = get_passive_config(device_type)
+            self.dispatch(current_config, [device_type, device_uid])
+            return message.ack()
+
+        device = self.devices.get_by_topic(device_type)
         try:
             instance_data = self.get_instance_data(device, device_uid)
             if instance_data.get('hash', 0) != body.get('hash', 1) or message.headers.get('force_update'):

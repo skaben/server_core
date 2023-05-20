@@ -25,7 +25,7 @@ class BaseHandler(ConsumerProducerMixin):
     running: bool
     accepts: str = 'json'
     outgoing_mark: str
-    incoming_mark: str
+    incoming_mark: str | list
 
     def __init__(self, config: MQConfig, queues: Dict[str, str]):
         """

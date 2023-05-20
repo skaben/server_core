@@ -1,3 +1,4 @@
+import re
 import json
 import uuid as _uuid
 import base64
@@ -12,7 +13,7 @@ from django.conf import settings
 
 
 def get_server_timestamp() -> int:
-    return int(datetime.now().time().strftime('%s'))
+    return int(time.time())
 
 
 def get_uuid():
@@ -66,3 +67,8 @@ def hex_to_rgb(hexdata: str) -> str:
     hexdata = ''.join([h.lower() for h in hexdata])
     return ",".join([str(i) for i in bytes.fromhex(hexdata)])
 
+
+def format_mac_address(mac_address: str) -> str:
+    """Converts MAC to standart format"""
+    cleaned_mac = re.sub(r'[^a-zA-Z0-9]', '', mac_address)
+    return ':'.join(cleaned_mac[i:i+2] for i in range(0, len(cleaned_mac), 2))

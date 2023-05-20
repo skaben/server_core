@@ -212,6 +212,7 @@ EXCHANGE_CHOICES = [
 MAX_CHANNEL_NAME_LEN = 64
 RESPONSE_TIMEOUT = {
     'ask': 10,
+    'ping': 10,
     'client_update': 30,
 }
 

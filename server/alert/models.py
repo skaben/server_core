@@ -26,7 +26,7 @@ class AlertCounter(models.Model):
     )
 
     def __str__(self):
-        return f'{self.value} {self.comment} at {self.timestamp}'
+        return f'{self.value} {self.reason} at {self.timestamp}'
 
 
 class AlertState(models.Model):
@@ -34,6 +34,7 @@ class AlertState(models.Model):
     """In-game Global Alert State"""
 
     __original_state = None
+
     class Meta:
         verbose_name = 'Тревога: именной статус'
         verbose_name_plural = 'Тревога: именные статусы'

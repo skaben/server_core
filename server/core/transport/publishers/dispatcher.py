@@ -1,10 +1,7 @@
 from typing import Optional
-# from transport.rabbitmq import exchanges
 from alert.models import get_current
-# from transport.interfaces import send_log, publish_without_producer
 
 from core.helpers import fix_database_conn
-# from core.models import ControlCommand
 from actions.alert import AlertService
 from alert.serializers import AlertStateSerializer
 

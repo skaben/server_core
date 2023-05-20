@@ -4,6 +4,7 @@ from kombu import Message
 from core.helpers import from_json
 from core.transport.config import SkabenQueue, SkabenPackets, MQConfig
 from core.transport.queue_handlers import BaseHandler
+from core.models.base import DeviceKeepalive
 
 
 class AskHandler(BaseHandler):
@@ -12,7 +13,7 @@ class AskHandler(BaseHandler):
     """
     name: str = 'mqtt_bridge_ask_handler'
     incoming_mark: str = SkabenPackets.ASK.value
-    outgoing_mark: str = SkabenQueue.NEW.value
+    outgoing_mark: str = SkabenQueue.INTERNAL.value
     datahold_packet_mark: list[str] = [
         SkabenPackets.INFO.value,
         SkabenPackets.CLIENT.value,
@@ -54,6 +55,13 @@ class AskHandler(BaseHandler):
             payload_data = from_json(body)
             if packet_type in self.datahold_packet_mark:
                 payload_data.update(self.parse_datahold(payload_data))
+            try:
+                self.save_timestamp(device_uuid, int(payload_data.get('timestamp', 0)))
+            except DeviceKeepalive.DoesNotExist:
+                self.dispatch(
+                    {'message': 'new device active'},
+                    [self.outgoing_mark, device_type, device_uuid, SkabenPackets.INFO.value]
+                )
         except Exception as e:
             message.reject()
             raise Exception(f"cannot parse message payload `{body}` >> {e}")
@@ -62,6 +70,16 @@ class AskHandler(BaseHandler):
             payload_data,
             [self.outgoing_mark, device_type, device_uuid, packet_type]
         )
+
+    @staticmethod
+    def save_timestamp(mac_addr: str, timestamp: int):
+        try:
+            obj = DeviceKeepalive.objects.get(mac_addr=mac_addr)
+            obj.timestamp = timestamp
+            obj.save()
+        except DeviceKeepalive.DoesNotExist:
+            DeviceKeepalive.objects.create(timestamp=timestamp, mac_addr=mac_addr)
+            raise
 
     @staticmethod
     def parse_datahold(data: Union[str, Dict]) -> Dict:

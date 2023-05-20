@@ -21,11 +21,10 @@ class SkabenPackets(Enum):
 
 class SkabenQueue(Enum):
 
-    NEW = 'events'
-    LOG_INFO = 'log_info'
-    LOG_ERROR = 'log_error'
+    INTERNAL = 'internal'
     STATE_UPDATE = 'state_update'
     CLIENT_UPDATE = 'client_update'
+    EVENT = 'event'
 
 
 class MQFactory:

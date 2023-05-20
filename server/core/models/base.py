@@ -1,3 +1,4 @@
+import re
 from django.db import models
 from core.helpers import get_uuid
 
@@ -17,3 +18,12 @@ class BaseModelUUID(models.Model):
         default=get_uuid,
         editable=False
     )
+
+
+class DeviceKeepalive(models.Model):
+    timestamp = models.PositiveIntegerField()
+    mac_addr = models.CharField(max_length=32)
+
+    def save(self, *args, **kwargs):
+        self.mac_addr = re.sub(r'[^a-zA-Z0-9]', '', self.mac_addr)
+        super().save(*args, **kwargs)
