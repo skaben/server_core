@@ -28,11 +28,13 @@ class AlertCounter(models.Model):
 
     def save(self, *args, **kwargs):
         prev_alert_counter = AlertCounter.objects.order_by('-id').first()
+        prev_value = 0 if not prev_alert_counter else prev_alert_counter.value
+
         super().save(*args, **kwargs)
         mq_interface = get_interface()
         mq_interface.send_event('alert_counter', {
             'counter': self.value,
-            'increased': prev_alert_counter.value or 0 < self.value,
+            'increased': prev_value < self.value,
         })
 
     def __str__(self):

@@ -31,7 +31,7 @@ class DeviceConfig:
         # type, name, topic, model, schema
         self.devices = [self._named(*params) for params in FULL_DEVICE_LIST]
 
-    def topics(self, _type: str | None) -> [str]:
+    def topics(self, _type: str | None = None) -> [str]:
         if not _type:
             return [device.topic for device in self.devices]
         else:

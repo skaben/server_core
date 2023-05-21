@@ -46,13 +46,13 @@ class ClientUpdateHandler(BaseHandler):
         routing_data = routing_key.split('.')
         incoming_mark = routing_data[0]
         device_type = routing_data[1]
-        device_uid = None  # при значении None рассылка уйдет в топик типа устройств
+        device_uid = None
+
         if len(routing_data) > 2:
             device_uid = routing_data[2]
 
         if incoming_mark != self.incoming_mark:
             return message.requeue()
-        self.set_locked(routing_key)
 
         # device has already been updated
         if message.headers.get('external') and self.get_locked(routing_key):
@@ -61,7 +61,8 @@ class ClientUpdateHandler(BaseHandler):
         try:
             if device_type in self.devices.topics('simple'):
                 current_config = get_passive_config(device_type)
-                self.dispatch(current_config, [device_type, device_uid])
+                address = device_uid or 'all'  # 'all' маркирует броадкастовую рассылку
+                self.dispatch(current_config, [device_type, address])
                 return message.ack()
 
             device = self.devices.get_by_topic(device_type)

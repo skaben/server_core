@@ -26,8 +26,8 @@ class MQPublisher(object):
         except Exception:
             raise Exception(f"{traceback.format_exc()}")
 
-    def send_event(self, payload: dict):
-        return self.send_internal(f'{SkabenQueue.INTERNAL.value}', payload, headers={'event': True})
+    def send_event(self, event_type: str, payload: dict):
+        return self.send_internal(f'{SkabenQueue.INTERNAL.value}', payload, headers={'event': event_type})
 
     def send_internal(self, routing_key: str, payload: dict, **kwargs):
         return self._publish(

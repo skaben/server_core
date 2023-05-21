@@ -1,3 +1,4 @@
+import logging
 from typing import Dict, List
 
 import settings
@@ -47,9 +48,14 @@ class InternalHandler(BaseHandler):
             body (dict): The message body.
             message (Message): The message instance.
         """
-        if message.headers and message.headers.get('event'):
-            return self.handle_event(message.headers.get('event'), body)
-        self.route_device_event(body, message)
+        try:
+            message.ack()
+            if message.headers and message.headers.get('event'):
+                return self.handle_event(message.headers.get('event'), body)
+            self.route_device_event(body, message)
+        except Exception:  # noqa
+            logging.exception('while handling internal queue message')
+            message.reject()
 
     def handle_event(self, event_type: str, event_data: dict):
         """
@@ -65,17 +71,12 @@ class InternalHandler(BaseHandler):
         # базовая механика, применяющаяся вне зависимости от сценария игры
         if event_type == 'alert_state':
             # обновление конфигурации устройств при смене уровня тревоги
-            for topic in devices.topics:
-                self.dispatch(
-                    {},
-                    [SkabenQueue.CLIENT_UPDATE.value, topic]
-                )
+            for topic in devices.topics():
+                if topic != 'scl':
+                    self.dispatch({}, [SkabenQueue.CLIENT_UPDATE.value, topic])
         if event_type == 'alert_counter':
             # специальный посыл конфига для шкал
-            self.dispatch(
-                get_passive_config('scl'),
-                [SkabenQueue.CLIENT_UPDATE.value, 'scl']
-            )
+            self.dispatch({}, [SkabenQueue.CLIENT_UPDATE.value, 'scl'])
         # применение сценария игры
         apply_pipeline(event_type, event_data)
 
@@ -115,10 +116,10 @@ class InternalHandler(BaseHandler):
                 'device_type': device_type,
                 'device_uuid': device_uuid,
             })
+            message.ack()
             self.handle_event('device', payload)
         else:
-            message.reject()
-            return
+            return message.reject()
 
         message.ack()
 
