@@ -21,8 +21,11 @@ class BaseModelUUID(models.Model):
 
 
 class DeviceKeepalive(models.Model):
-    timestamp = models.PositiveIntegerField()
+    """Device keepalive record keeper"""
+
     mac_addr = models.CharField(max_length=32)
+    timestamp = models.PositiveIntegerField()
+    previous = models.PositiveIntegerField()
 
     def save(self, *args, **kwargs):
         self.mac_addr = re.sub(r'[^a-zA-Z0-9]', '', self.mac_addr)

@@ -1,5 +1,7 @@
 import logging
+
 from operator import itemgetter
+from typing import List
 
 from alert.models import (
     AlertCounter,
@@ -78,11 +80,25 @@ class AlertService:
             counter.save()
         return counter.value
 
-    @staticmethod
-    def compare_threshold_by_name(level_name: str) -> bool:
+    def compare_threshold_by_name(self, level_name: str) -> bool:
         """Сравнивает трешхолд выбранного уровня с трешхолдом текущего"""
         new = AlertState.get_by_name(level_name)
-        return new.threshold > AlertState.get_current.threshold
+        return new.threshold > self.get_state_current().threshold
+
+    def split_thresholds(self, count: int = 3) -> List[int]:
+        range_size = self.max_alert_value - self.min_alert_value
+        sub_range_size = range_size / count
+        thresholds = []
+        threshold = self.min_alert_value
+        for _ in range(count):
+            threshold += sub_range_size
+            thresholds.append(int(threshold))
+
+        return thresholds
+
+    @staticmethod
+    def get_state_current() -> AlertState:
+        return AlertState.objects.filter(current=True).first()
 
     @staticmethod
     def set_state_current(instance: AlertState) -> AlertState:
@@ -94,7 +110,7 @@ class AlertService:
     @property
     def max_alert_value(self) -> int:
         states = [state.threshold for state in AlertState.objects.all().order_by("threshold")]
-        return max(states) if states else 1
+        return max(states) if states else self.min_alert_value
 
     @staticmethod
     def _get_ingame_states(sort_by: str | None = 'order'):

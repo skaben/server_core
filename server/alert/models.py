@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+from core.transport.publish import get_interface
 
 
 class AlertCounter(models.Model):
@@ -24,6 +25,15 @@ class AlertCounter(models.Model):
         verbose_name='Время последнего изменения',
         default=timezone.now,
     )
+
+    def save(self, *args, **kwargs):
+        prev_alert_counter = AlertCounter.objects.order_by('-id').first()
+        super().save(*args, **kwargs)
+        mq_interface = get_interface()
+        mq_interface.send_event('alert_counter', {
+            'counter': self.value,
+            'increased': prev_alert_counter.value or 0 < self.value,
+        })
 
     def __str__(self):
         return f'{self.value} {self.reason} at {self.timestamp}'
@@ -71,6 +81,16 @@ class AlertState(models.Model):
         default=5,
         blank=False
     )
+    auto_increase = models.IntegerField(
+        verbose_name='Авто-увеличение уровня тревоги',
+        help_text='Увеличивается ли уровень со временем (settings.ALERT_COOLDOWN). Значение 0 выключает параметр',
+        default=0,
+    )
+    auto_decrease = models.IntegerField(
+        verbose_name='Применяется ли авто-сброс тревоги',
+        help_text='Уменьшается ли уровень со временем (settings.ALERT_COOLDOWN). Значение 0 выключает параметр',
+        default=0,
+    )
 
     def __init__(self, *args, **kwargs):
         super(AlertState, self).__init__(*args, **kwargs)
@@ -107,6 +127,10 @@ class AlertState(models.Model):
             other_states.update(current=False)
 
         super().save(*args, **kwargs)
+
+        if self.__original_state != self.current:
+            mq_interface = get_interface()
+            mq_interface.send_event('alert_state', {'state': self.name})
         self.__original_state = self.current
 
     is_final.fget.short_description = 'Финальный игровой статус'

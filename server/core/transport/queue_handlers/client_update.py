@@ -1,5 +1,6 @@
 import logging
 from typing import Dict, List
+from collections import namedtuple
 from kombu import Message
 from core.transport.queue_handlers import BaseHandler
 from core.transport.publish import get_interface
@@ -42,7 +43,13 @@ class ClientUpdateHandler(BaseHandler):
             message (Message): The message instance.
         """
         routing_key = message.delivery_info.get('routing_key')
-        [incoming_mark, device_type, device_uid] = routing_key.split('.')
+        routing_data = routing_key.split('.')
+        incoming_mark = routing_data[0]
+        device_type = routing_data[1]
+        device_uid = None  # при значении None рассылка уйдет в топик типа устройств
+        if len(routing_data) > 2:
+            device_uid = routing_data[2]
+
         if incoming_mark != self.incoming_mark:
             return message.requeue()
         self.set_locked(routing_key)
@@ -51,25 +58,41 @@ class ClientUpdateHandler(BaseHandler):
         if message.headers.get('external') and self.get_locked(routing_key):
             return message.reject()
 
-        # device is simple - send current config
-        if device_type in self.devices.topics('simple'):
-            current_config = get_passive_config(device_type)
-            self.dispatch(current_config, [device_type, device_uid])
-            return message.ack()
+        try:
+            if device_type in self.devices.topics('simple'):
+                current_config = get_passive_config(device_type)
+                self.dispatch(current_config, [device_type, device_uid])
+                return message.ack()
 
-        device = self.devices.get_by_topic(device_type)
+            device = self.devices.get_by_topic(device_type)
+            if device_uid:
+                self.send_config(device, device_uid, body, message)
+            else:
+                list_of_devices = device.model.objects.exclude(override=True).values_list('mac_addr', flat=True)
+                mac_addr_list = list(list_of_devices)
+                for mac in mac_addr_list:
+                    self.send_config(device, mac, body, message)
+
+        except Exception:  # noqa
+            return message.reject()
+        message.ack()
+
+    def send_config(self, device: namedtuple, device_uid: str, body: dict, message: Message):
         try:
             instance_data = self.get_instance_data(device, device_uid)
-            if instance_data.get('hash', 0) != body.get('hash', 1) or message.headers.get('force_update'):
+            if instance_data.get('override'):
+                logging.warning(f'device {device_uid} is under override policy. skipping update')
+                return
+
+            if message.headers.get('force_update') or instance_data.get('hash', 0) != body.get('hash', 1):
                 self.dispatch(
                     instance_data,
-                    [device_type, device_uid],
+                    [device.topic, device_uid],
                 )
         except device.model.DoesNotExist:
             # todo: operation of new device approval is not implemented yet
-            logging.error(f'device of type {device_type} with MAC {device_uid} not found in DB')
-            return message.reject()
-        message.ack()
+            logging.error(f'device of type {device.topic} with MAC {device_uid} not found in DB')
+            raise
 
     def dispatch(self, data: Dict, routing_data: List[str], **kwargs) -> None:
         """Dispatches message to external MQTT."""
@@ -84,7 +107,7 @@ class ClientUpdateHandler(BaseHandler):
         self.ext_publisher.send_mqtt_skaben(packet)
 
     @staticmethod
-    def get_instance_data(device, mac_id) -> Dict:
+    def get_instance_data(device: namedtuple, mac_id: str) -> Dict:
         """
         Returns instance data as a dictionary.
 

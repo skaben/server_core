@@ -1,8 +1,14 @@
 from typing import Dict, List
+
+import settings
 from core.helpers import get_server_timestamp
 from kombu import Message
+from django.db import models
 from core.transport.config import SkabenQueue, SkabenPackets, MQConfig
+from core.devices import get_device_config
+from peripheral_behavior.helpers import get_passive_config
 from core.transport.queue_handlers import BaseHandler
+from reactions.main import apply_pipeline
 
 
 class InternalHandler(BaseHandler):
@@ -35,11 +41,51 @@ class InternalHandler(BaseHandler):
 
     def handle_message(self, body: Dict, message: Message) -> None:
         """
-        Handles incoming internal messages.
+        Routes incoming internal messages.
 
         Args:
             body (dict): The message body.
             message (Message): The message instance.
+        """
+        if message.headers and message.headers.get('event'):
+            return self.handle_event(message.headers.get('event'), body)
+        self.route_device_event(body, message)
+
+    def handle_event(self, event_type: str, event_data: dict):
+        """
+        Обрабатывает события на основе типа события и данных.
+
+        Это основная функция-обработчик, здесь применяются сценарии игры.
+
+        Аргументы:
+            event_type (str): Тип события, связанного с событием.
+            event_data (dict): Данные события.
+        """
+        devices = get_device_config()
+        # базовая механика, применяющаяся вне зависимости от сценария игры
+        if event_type == 'alert_state':
+            # обновление конфигурации устройств при смене уровня тревоги
+            for topic in devices.topics:
+                self.dispatch(
+                    {},
+                    [SkabenQueue.CLIENT_UPDATE.value, topic]
+                )
+        if event_type == 'alert_counter':
+            # специальный посыл конфига для шкал
+            self.dispatch(
+                get_passive_config('scl'),
+                [SkabenQueue.CLIENT_UPDATE.value, 'scl']
+            )
+        # применение сценария игры
+        apply_pipeline(event_type, event_data)
+
+    def route_device_event(self, body: Dict, message: Message):
+        """
+        Обрабатывает события, специфичные для устройства.
+
+        Аргументы:
+            body (dict): Тело сообщения.
+            message (Message): Экземпляр сообщения.
         """
         routing_data: List[str] = message.delivery_info.get('routing_key').split('.')
         [incoming_mark, device_type, device_uuid, packet_type] = routing_data
@@ -48,13 +94,12 @@ class InternalHandler(BaseHandler):
             return message.requeue()
 
         if packet_type == self.keepalive_mark:
-            if body.get('timestamp', 0) < get_server_timestamp():
+            if message.headers.get('timestamp', 0) + settings.DEVICE_KEEPALIVE_TIMEOUT < get_server_timestamp():
                 self.dispatch(
                     body,
                     [SkabenQueue.CLIENT_UPDATE.value, device_type, device_uuid]
                 )
         elif packet_type == self.state_save_mark:
-            body['datahold'].update({"timestamp": body.get('timestamp', get_server_timestamp())})
             self.dispatch(
                 body['datahold'],
                 [SkabenQueue.STATE_UPDATE.value, device_type, device_uuid, packet_type]
@@ -66,7 +111,11 @@ class InternalHandler(BaseHandler):
                 headers={'external': True},
             )
         elif packet_type == self.info_mark:
-            self.handle_event(routing_data, body)
+            payload = body['datahold'].update({
+                'device_type': device_type,
+                'device_uuid': device_uuid,
+            })
+            self.handle_event('device', payload)
         else:
             message.reject()
             return
@@ -74,9 +123,9 @@ class InternalHandler(BaseHandler):
         message.ack()
 
     @staticmethod
-    def get_instance(model: type, uid: str):
+    def get_instance(model: models.Model, uid: str):
         """
-        Gets an instance of a model.
+        Получает экземпляр модели.
 
         Args:
             model (type): The model type.
@@ -86,6 +135,3 @@ class InternalHandler(BaseHandler):
             The model instance.
         """
         return model.objects.get(uid=uid)
-
-    def handle_event(self, routing_data: List[str], body: dict):
-        print(routing_data, body)

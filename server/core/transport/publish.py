@@ -1,7 +1,8 @@
 import logging
 import traceback
 import skabenproto
-from core.transport.config import MQConfig, get_mq_config
+
+from core.transport.config import MQConfig, get_mq_config, SkabenQueue
 
 
 class MQPublisher(object):
@@ -25,14 +26,18 @@ class MQPublisher(object):
         except Exception:
             raise Exception(f"{traceback.format_exc()}")
 
-    def send_internal(self, routing_key: str, payload: dict):
+    def send_event(self, payload: dict):
+        return self.send_internal(f'{SkabenQueue.INTERNAL.value}', payload, headers={'event': True})
+
+    def send_internal(self, routing_key: str, payload: dict, **kwargs):
         return self._publish(
             payload,
             exchange=self.config.exchanges.get('internal'),
-            routing_key=routing_key
+            routing_key=routing_key,
+            **kwargs,
         )
 
-    def _publish(self, body: dict, exchange: str, routing_key: str):
+    def _publish(self, body: dict, exchange: str, routing_key: str, **kwargs):
         try:
             with self.config.pool.acquire() as channel:
                 prod = self.config.conn.Producer(channel)
@@ -40,7 +45,8 @@ class MQPublisher(object):
                     body,
                     exchange=exchange,
                     routing_key=routing_key,
-                    retry=True
+                    retry=True,
+                    **kwargs,
                 )
         except Exception as e:
             logging.error(f'[sync] exception occurred when sending packet to {routing_key}: {e}')

@@ -232,6 +232,16 @@ SKABEN_DEVICE_TOPICS = {
 ACCESS_CARD_CODE_LEN = 6
 DEVICE_KEEPALIVE_TIMEOUT = 60
 
+PWR_STATE_DISPATCH_TABLE = {
+    'aux': 'cyan',
+    'pwr': 'green',
+}
+
+ALERT_COOLDOWN = {
+    'increase': 60,
+    'decrease': 120,
+}
+
 # DEBUG
 
 if DEBUG:

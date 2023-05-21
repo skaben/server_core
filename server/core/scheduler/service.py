@@ -2,7 +2,12 @@ import asyncio
 from functools import lru_cache
 from typing import List
 from django.conf import settings
-from server.core.scheduler.tasks import Task, PingerTask
+from server.core.scheduler.tasks import (
+    Task,
+    PingerTask,
+    # IncreaseAlertTask,
+    # DecreaseAlertTask,
+)
 
 
 class SchedulerService:
@@ -62,5 +67,11 @@ def get_service() -> SchedulerService:
         The scheduler service object.
     """
     pinger = PingerTask(timeout=settings.RESPONSE_TIMEOUT.get('ping', 10))
-    service = SchedulerService(tasks=[pinger])
+    # increase_alert = IncreaseAlertTask(timeout=settings.ALERT_COOLDOWN.get('increase', 60))
+    # decrease_alert = DecreaseAlertTask(timeout=settings.ALERT_COOLDOWN.get('decrease', 60))
+    service = SchedulerService(tasks=[
+        pinger,
+        # increase_alert,
+        # decrease_alert,
+    ])
     return service

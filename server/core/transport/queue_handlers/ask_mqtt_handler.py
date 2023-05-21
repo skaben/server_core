@@ -1,7 +1,7 @@
 from typing import Dict, Union
 from kombu import Message
 
-from core.helpers import from_json
+from core.helpers import from_json, get_server_timestamp
 from core.transport.config import SkabenQueue, SkabenPackets, MQConfig
 from core.transport.queue_handlers import BaseHandler
 from core.models.base import DeviceKeepalive
@@ -51,12 +51,13 @@ class AskHandler(BaseHandler):
             return
         self.set_locked(routing_key)
 
+        timestamp = 0
         try:
             payload_data = from_json(body)
             if packet_type in self.datahold_packet_mark:
                 payload_data.update(self.parse_datahold(payload_data))
             try:
-                self.save_timestamp(device_uuid, int(payload_data.get('timestamp', 0)))
+                timestamp = self.save_timestamp(device_uuid, get_server_timestamp())
             except DeviceKeepalive.DoesNotExist:
                 self.dispatch(
                     {'message': 'new device active'},
@@ -65,21 +66,28 @@ class AskHandler(BaseHandler):
         except Exception as e:
             message.reject()
             raise Exception(f"cannot parse message payload `{body}` >> {e}")
+
         message.ack()
         self.dispatch(
             payload_data,
-            [self.outgoing_mark, device_type, device_uuid, packet_type]
+            [self.outgoing_mark, device_type, device_uuid, packet_type],
+            headers={'timestamp': timestamp},
         )
 
     @staticmethod
-    def save_timestamp(mac_addr: str, timestamp: int):
+    def save_timestamp(mac_addr: str, timestamp: int) -> int:
         try:
             obj = DeviceKeepalive.objects.get(mac_addr=mac_addr)
+            obj.previous = obj.timestamp
             obj.timestamp = timestamp
             obj.save()
+            return obj.previous
         except DeviceKeepalive.DoesNotExist:
-            DeviceKeepalive.objects.create(timestamp=timestamp, mac_addr=mac_addr)
-            raise
+            DeviceKeepalive.objects.create(
+                previous=timestamp,
+                timestamp=timestamp,
+                mac_addr=mac_addr
+            )
 
     @staticmethod
     def parse_datahold(data: Union[str, Dict]) -> Dict:
