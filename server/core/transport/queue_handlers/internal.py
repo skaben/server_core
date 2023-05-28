@@ -8,7 +8,7 @@ from django.db import models
 from core.transport.config import SkabenQueue, SkabenPackets, MQConfig
 from core.devices import get_device_config
 from core.transport.queue_handlers import BaseHandler
-from reactions.powerstate import apply_powerstate
+from reactions.main import apply_pipeline
 
 
 class InternalHandler(BaseHandler):
@@ -75,8 +75,7 @@ class InternalHandler(BaseHandler):
             # специальный посыл конфига для шкал
             self.dispatch({}, [SkabenQueue.CLIENT_UPDATE.value, 'scl'])
         # применение механики ЩИТКА (pwr)
-        if event_type == 'device':
-            apply_powerstate(event_data)
+        apply_pipeline(event_type, event_data)
 
     def route_device_event(self, body: Dict, message: Message):
         """
@@ -110,6 +109,7 @@ class InternalHandler(BaseHandler):
                 headers={'external': True},
             )
         elif packet_type == self.info_mark:
+            logging.info(f'{message} {body}')
             body['datahold'].update({
                 'device_type': device_type,
                 'device_uuid': device_uuid,
