@@ -7,9 +7,8 @@ from kombu import Message
 from django.db import models
 from core.transport.config import SkabenQueue, SkabenPackets, MQConfig
 from core.devices import get_device_config
-from peripheral_behavior.helpers import get_passive_config
 from core.transport.queue_handlers import BaseHandler
-from reactions.main import apply_pipeline
+from reactions.powerstate import apply_powerstate
 
 
 class InternalHandler(BaseHandler):
@@ -77,8 +76,9 @@ class InternalHandler(BaseHandler):
         if event_type == 'alert_counter':
             # специальный посыл конфига для шкал
             self.dispatch({}, [SkabenQueue.CLIENT_UPDATE.value, 'scl'])
-        # применение сценария игры
-        apply_pipeline(event_type, event_data)
+        # применение механики ЩИТКА (pwr)
+        if event_type == 'device':
+            apply_powerstate(event_data)
 
     def route_device_event(self, body: Dict, message: Message):
         """

@@ -97,15 +97,16 @@ class ClientUpdateHandler(BaseHandler):
 
     def dispatch(self, data: Dict, routing_data: List[str], **kwargs) -> None:
         """Dispatches message to external MQTT."""
-        [device_type, device_uid] = routing_data
-        packet = CUP(
-            topic=device_type,
-            uid=device_uid,
-            task_id='n/a',
-            datahold=data,
-            timestamp=get_server_timestamp()
-        )
-        self.ext_publisher.send_mqtt_skaben(packet)
+        if data:
+            [device_type, device_uid] = routing_data
+            packet = CUP(
+                topic=device_type,
+                uid=device_uid,
+                task_id='n/a',
+                datahold=data,
+                timestamp=get_server_timestamp()
+            )
+            self.ext_publisher.send_mqtt_skaben(packet)
 
     @staticmethod
     def get_instance_data(device: namedtuple, mac_id: str) -> Dict:

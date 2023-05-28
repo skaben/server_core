@@ -1,7 +1,6 @@
 import logging
 
 from peripheral_behavior.models.passive import PassiveConfig
-# from alert.models import AlertState, AlertCounter
 from alert.service import AlertService
 
 
