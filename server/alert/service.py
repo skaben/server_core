@@ -47,6 +47,8 @@ class AlertService:
 
     def set_state_by_name(self, name: str):
         """Устанавливает статус тревоги по названию"""
+        if not name:
+            raise ValueError('alert state name not provided')
         try:
             instance = AlertState.objects.filter(name=name).first()
             self.set_state_current(instance)

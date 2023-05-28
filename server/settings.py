@@ -234,7 +234,7 @@ DEVICE_KEEPALIVE_TIMEOUT = 60
 
 PWR_STATE_DISPATCH_TABLE = {
     'aux': 'cyan',
-    'pwr': 'green',
+    'on': 'green',
 }
 
 ALERT_COOLDOWN = {
