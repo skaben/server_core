@@ -48,7 +48,6 @@ class InternalHandler(BaseHandler):
             message (Message): The message instance.
         """
         try:
-            message.ack()
             if message.headers and message.headers.get('event'):
                 return self.handle_event(message.headers.get('event'), body)
             self.route_device_event(body, message)
@@ -115,12 +114,12 @@ class InternalHandler(BaseHandler):
                 'device_type': device_type,
                 'device_uuid': device_uuid,
             })
-            message.ack()
             self.handle_event('device', payload)
         else:
             return message.reject()
 
-        message.ack()
+        if not message.acknowledged:
+            message.ack()
 
     @staticmethod
     def get_instance(model: models.Model, uid: str):
