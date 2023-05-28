@@ -54,7 +54,6 @@ class InternalHandler(BaseHandler):
             self.route_device_event(body, message)
         except Exception:  # noqa
             logging.exception('while handling internal queue message')
-            message.reject()
 
     def handle_event(self, event_type: str, event_data: dict):
         """

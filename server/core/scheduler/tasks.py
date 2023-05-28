@@ -42,7 +42,7 @@ class PingerTask(Task):
         """
         for topic in settings.SKABEN_DEVICE_TOPICS.keys():
             packet = PING(
-                topic=topic,
+                topic=f'{topic}.all',
                 timestamp=get_server_timestamp(),
             )
             self.publisher.send_mqtt_skaben(packet)
