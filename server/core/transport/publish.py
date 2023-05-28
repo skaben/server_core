@@ -12,7 +12,8 @@ class MQPublisher(object):
 
     def send_mqtt_skaben(self, packet: skabenproto.BasePacket):
         """Отправить SKABEN пакет через MQTT"""
-        return self.send_mqtt_raw(packet.topic, packet.payload)
+        topic = '.'.join(packet.topic.split('/'))
+        return self.send_mqtt_raw(topic, packet.payload)
 
     def send_mqtt_raw(self, topic: str, message: str | dict):
         """Отправить команду в MQTT"""
