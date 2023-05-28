@@ -110,11 +110,11 @@ class InternalHandler(BaseHandler):
                 headers={'external': True},
             )
         elif packet_type == self.info_mark:
-            payload = body['datahold'].update({
+            body['datahold'].update({
                 'device_type': device_type,
                 'device_uuid': device_uuid,
             })
-            self.handle_event('device', payload)
+            self.handle_event('device', body['datahold'])
         else:
             return message.reject()
 
