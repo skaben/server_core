@@ -4,9 +4,8 @@ from typing import List
 from django.conf import settings
 from server.core.scheduler.tasks import (
     Task,
+    AlertTask,
     PingerTask,
-    # IncreaseAlertTask,
-    # DecreaseAlertTask,
 )
 
 
@@ -67,11 +66,14 @@ def get_service() -> SchedulerService:
         The scheduler service object.
     """
     pinger = PingerTask(timeout=settings.RESPONSE_TIMEOUT.get('ping', 10))
-    # increase_alert = IncreaseAlertTask(timeout=settings.ALERT_COOLDOWN.get('increase', 60))
-    # decrease_alert = DecreaseAlertTask(timeout=settings.ALERT_COOLDOWN.get('decrease', 60))
+
+    alert_timeout = int(settings.ALERT_COOLDOWN.get('increase', 60)) 
+
+    increase_alert = AlertTask(timeout=alert_timeout, increase=True)
+    decrease_alert = AlertTask(timeout=alert_timeout, increase=False)
     service = SchedulerService(tasks=[
         pinger,
-        # increase_alert,
-        # decrease_alert,
+        increase_alert,
+        decrease_alert,
     ])
     return service

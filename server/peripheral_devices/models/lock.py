@@ -13,13 +13,26 @@ class LockDevice(SkabenDevice):
         verbose_name = 'Лазерная дверь'
         verbose_name_plural = 'Лазерные двери'
 
-    sound = models.BooleanField(default=False)
-    closed = models.BooleanField(default=True)
-    blocked = models.BooleanField(default=False)
-    timer = models.IntegerField(default=10)
+    sound = models.BooleanField(
+        verbose_name='Звук замка',
+        default=False,
+    )
+    closed = models.BooleanField(
+        verbose_name='Закрыт',
+        default=True,
+    )
+    blocked = models.BooleanField(
+        verbose_name='Заблокирован',
+        default=False,
+    )
+    timer = models.IntegerField(
+        verbose_name='Время автоматического закрытия',
+        default=10,
+    )
 
     @property
     def acl(self) -> dict:
+        """Получает словарь связанных карт-кодов и статусов тревоги, в которых они открывают замок."""
         # unload list of Card codes for lock end-device
         acl = {}
         for perm in self.permission_set.filter(lock_id=self.id):
@@ -29,7 +42,9 @@ class LockDevice(SkabenDevice):
 
     @property
     def topic(self):
+        """Получает MQTT-топик."""
         return 'lock'
 
     def __str__(self):
+        """Строковое представление модели."""
         return f'LOCK [ip: {self.ip}] {self.description}'

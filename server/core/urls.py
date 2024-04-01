@@ -10,7 +10,7 @@ from events.urls import router as eventlog_router
 from peripheral_devices.urls import router as device_router
 
 from rest_framework.routers import DefaultRouter
-from core.views import CreateTokenView, login_view
+from core.views import CreateTokenView, login_view, health_check
 
 # setting up nested router
 core_router = DefaultRouter()
@@ -31,6 +31,7 @@ urlpatterns = [
     path('api/auth/token/', CreateTokenView.as_view(), name='token'),
     path('api/auth/login/', login_view, name="login"),
     path('api/device/', include('peripheral_devices.urls')),
+    path('healthcheck', health_check, name='healthcheck'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 urlpatterns += staticfiles_urlpatterns()

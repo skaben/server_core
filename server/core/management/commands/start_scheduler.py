@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
 from server.core.scheduler.service import get_service
+from asgiref.sync import sync_to_async
 import asyncio
 import time
 from threading import Thread
@@ -14,9 +15,10 @@ class Command(BaseCommand):
         """
         Runs the scheduler asynchronously.
         """
-        service = get_service()
+        self.stdout.write(self.style.SUCCESS('Scheduler starting...'))
+        _get_service = sync_to_async(get_service)
+        service = await _get_service()
         await service.start()
-        self.stdout.write(self.style.SUCCESS('Scheduler running...'))
 
     def handle(self, *args: str, **options: str) -> None:
         """

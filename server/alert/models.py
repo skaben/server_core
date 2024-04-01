@@ -16,7 +16,7 @@ class AlertCounter(models.Model):
         help_text='Счетчик примет указанное значение, уровень тревоги может быть сброшен',
         default=0
     )
-    reason = models.CharField(
+    comment = models.CharField(
         verbose_name='Причина изменений',
         default='reason: changed by admin',
         max_length=64,
@@ -27,6 +27,7 @@ class AlertCounter(models.Model):
     )
 
     def save(self, *args, **kwargs):
+        """Сохранение, связывающее модели AlertCounter и AlertState."""
         prev_alert_counter = AlertCounter.objects.order_by('-id').first()
         prev_value = 0 if not prev_alert_counter else prev_alert_counter.value
 
@@ -38,7 +39,7 @@ class AlertCounter(models.Model):
         })
 
     def __str__(self):
-        return f'{self.value} {self.reason} at {self.timestamp}'
+        return f'{self.value} {self.comment} at {self.timestamp}'
 
 
 class AlertState(models.Model):
@@ -52,33 +53,39 @@ class AlertState(models.Model):
         verbose_name_plural = 'Тревога: именные статусы'
 
     name = models.CharField(
-        verbose_name='название статуса',
+        verbose_name='Название статуса',
         max_length=32,
         blank=False,
         unique=True
     )
     info = models.CharField(
-        verbose_name='описание статуса',
+        verbose_name='Описание статуса',
         max_length=256
     )
+    ingame = models.BooleanField(
+        verbose_name='Игровой статус',
+        help_text=('Будет ли статус автоматически изменяться системой счетчика тревоги, '
+                   'или переключиться в него можно только специальным событием или вручную. '),
+        default=True,
+    )
     threshold = models.IntegerField(
-        verbose_name='порог срабатывания ',
+        verbose_name='Порог срабатывания ',
         help_text=('Нижнее значение счетчика счетчика тревоги для переключения в статус. '
                    'Чтобы отключить авто-переключение - выставьте отрицательное значение'),
         default=-1
     )
     current = models.BooleanField(
-        verbose_name='сейчас активен',
+        verbose_name='Сейчас активен',
         default=False
     )
     order = models.IntegerField(
-        verbose_name='цифровой id статуса',
+        verbose_name='Цифровой id статуса',
         help_text='используется для идентификации и упорядочивания статуса без привязки к id в БД',
         blank=False,
         unique=True
     )
     modifier = models.IntegerField(
-        verbose_name='штраф за ошибку',
+        verbose_name='Штраф за ошибку',
         help_text='на сколько изменяется счетчик при ошибке прохождения данжа',
         default=5,
         blank=False
@@ -97,11 +104,6 @@ class AlertState(models.Model):
     def __init__(self, *args, **kwargs):
         super(AlertState, self).__init__(*args, **kwargs)
         self.__original_state = self.current
-
-    @property
-    def is_ingame(self):
-        """В игре ли статус"""
-        return self.threshold >= 0
 
     @property
     def is_final(self):
@@ -124,6 +126,7 @@ class AlertState(models.Model):
             raise ValidationError('cannot unset current - no other current states')
 
     def save(self, *args, **kwargs):
+        """Сохранение, связывающее модели AlertCounter и AlertState."""
         if self.current and not self.__original_state:
             other_states = AlertState.objects.all().exclude(pk=self.id)
             other_states.update(current=False)
@@ -136,7 +139,6 @@ class AlertState(models.Model):
         self.__original_state = self.current
 
     is_final.fget.short_description = 'Финальный игровой статус'
-    is_ingame.fget.short_description = 'Игровой статус'
 
     def __str__(self):
         s = f'[{self.order}] State: {self.name} ({self.info})'

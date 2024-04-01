@@ -4,6 +4,7 @@ from alert.models import AlertCounter, AlertState
 
 
 class AlertStateCustomAdmin(admin.ModelAdmin):
+    """Админка статусов тревоги."""
 
     list_display = ('current', 'name', 'info', 'order', 'threshold', 'modifier')
 
@@ -24,7 +25,9 @@ class AlertStateCustomAdmin(admin.ModelAdmin):
     )
 
 class AlertCounterCustomAdmin(admin.ModelAdmin):
+    """Админка счетчиков тревоги."""
 
+    list_display = ('timestamp', 'value', 'comment')
     readonly_fields = ('timestamp',)
 
 

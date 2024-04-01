@@ -1,9 +1,10 @@
 from django.conf import settings
+from asgiref.sync import sync_to_async
+
 from skabenproto import PING
 from server.core.helpers import get_server_timestamp
 from server.core.transport.publish import get_interface
 from server.alert.service import AlertService
-import threading
 
 
 class Task:
@@ -21,7 +22,7 @@ class Task:
         """
         Starts the task.
         """
-        raise NotImplementedError("Subclasses must implement the start() method.")
+        raise NotImplementedError("Subclasses must implement the run() method.")
 
 
 class PingerTask(Task):
@@ -34,37 +35,57 @@ class PingerTask(Task):
             timeout: Timeout value for the task.
         """
         super().__init__(timeout)
-        self.publisher = get_interface()
+
+    def _run(self) -> None:
+        """
+            Runs the pinger task by sending PING packets for each topic.
+        """
+        with get_interface() as publisher:
+            for topic in settings.SKABEN_DEVICE_TOPICS.keys():
+                packet = PING(
+                    uid='all',
+                    topic=topic,
+                    timestamp=get_server_timestamp(),
+                )
+                publisher.send_mqtt_skaben(packet)
+    
+    async def run(self) -> None:
+        await sync_to_async(self._run)()
+
+
+class AlertTask(Task):
+    
+    increase: bool
+
+    def __init__(self, timeout: int, increase: bool):
+        """Инициализация авто-изменения уровня тревоги.
+
+        Args:
+            timeout: регулярность запуска задачи
+            increase: увеличивать или уменьшать уровень тревоги
+        """
+        super().__init__(timeout)
+
+        self.increase = increase
+        with AlertService() as service:
+            states = service.get_ingame_states()
+            self.boundaries = [states.first().threshold, states.last().threshold]
+
+    def _run(self) -> None:
+        with AlertService() as service:
+            current = service.get_state_current()
+            counter = service.get_last_counter()
+
+            if not current.ingame or counter not in self.boundaries:
+                return
+            
+            val = current.modifier
+
+            if not self.increase and current.auto_decrease:
+                service.change_alert_counter(val, increase=False, comment=f'auto decrease by {val}')
+            
+            if self.increase and current.auto_increase:
+                service.change_alert_counter(val, increase=True, comment=f'auto increase by {val}')
 
     async def run(self) -> None:
-        """
-        Runs the pinger task by sending PING packets for each topic.
-        """
-        for topic in settings.SKABEN_DEVICE_TOPICS.keys():
-            packet = PING(
-                uid='all',
-                topic=topic,
-                timestamp=get_server_timestamp(),
-            )
-            self.publisher.send_mqtt_skaben(packet)
-
-
-# class IncreaseAlertTask(Task):
-#
-#     def __init__(self, timeout: int):
-#         super().__init__(timeout)
-#         self.packet = {
-#             ''
-#         }
-#
-#     async def run(self):
-#         """Decreases alert level"""
-#         self.publisher.send
-#
-#
-# class DecreaseAlertTask(IncreaseAlertTask):
-#
-#     def action(self):
-#         current = self.service.get_state_current()
-#         if current.auto_decrease:
-#             self.service.change_alert_counter(current.modifier, increase=False, comment='auto decrease')
+        await sync_to_async(self._run)()

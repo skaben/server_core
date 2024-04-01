@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from rest_framework import viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.serializers import AuthTokenSerializer
@@ -40,3 +40,16 @@ def login_view(request):
     """
 
     return HttpResponse(html)
+
+
+def health_check(request):
+    module = request.GET.get('module')
+
+    result = {
+        "status": "healthy"
+    }
+
+    if module == 'workers':
+        result = {}
+
+    return JsonResponse(result)

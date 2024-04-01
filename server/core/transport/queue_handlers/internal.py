@@ -55,8 +55,7 @@ class InternalHandler(BaseHandler):
             logging.exception('while handling internal queue message')
 
     def handle_event(self, event_type: str, event_data: dict):
-        """
-        Обрабатывает события на основе типа события и данных.
+        """Обрабатывает события на основе типа события и данных.
 
         Это основная функция-обработчик, здесь применяются сценарии игры.
 
@@ -64,8 +63,13 @@ class InternalHandler(BaseHandler):
             event_type (str): Тип события, связанного с событием.
             event_data (dict): Данные события.
         """
+        self.apply_default(event_type) 
+        # применение механики игры через пайплайн
+        apply_pipeline(event_type, event_data)
+
+    def apply_default(self, event_type: str):
+        """Сценарий обработки событий по умолчанию."""
         devices = get_device_config()
-        # базовая механика, применяющаяся вне зависимости от сценария игры
         if event_type == 'alert_state':
             # обновление конфигурации устройств при смене уровня тревоги
             for topic in devices.topics():
@@ -74,14 +78,13 @@ class InternalHandler(BaseHandler):
         if event_type == 'alert_counter':
             # специальный посыл конфига для шкал
             self.dispatch({}, [SkabenQueue.CLIENT_UPDATE.value, 'scl'])
-        # применение механики ЩИТКА (pwr)
-        apply_pipeline(event_type, event_data)
 
     def route_device_event(self, body: Dict, message: Message):
-        """
-        Обрабатывает события, специфичные для устройства.
+        """Обрабатывает события, специфичные для устройства.
 
-        Аргументы:
+        Перенаправляет их в различные очереди, в зависимости от типа пакета.
+
+        Args:
             body (dict): Тело сообщения.
             message (Message): Экземпляр сообщения.
         """

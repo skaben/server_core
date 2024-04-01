@@ -26,7 +26,7 @@ class AlertService:
         if name:
             self.set_state_by_name(name)
         else:
-            in_game = self._get_ingame_states()
+            in_game = self.get_ingame_states()
             self.set_state_current(in_game[0])
 
     def reset_counter(self, level: int | None = None, comment: str | None = None):
@@ -115,15 +115,15 @@ class AlertService:
         return max(states) if states else self.min_alert_value
 
     @staticmethod
-    def _get_ingame_states(sort_by: str | None = 'order'):
+    def get_ingame_states(sort_by: str | None = 'order'):
         """Получает все внутриигровые статусы"""
-        return sorted([state.is_ingame for state in AlertState.objects.all()], key=itemgetter(sort_by))
+        return AlertState.objects.filter(ingame=True).order_by(sort_by).all()
 
     def _calc_alert_ranges(self):
         """Вычисляет начальные и конечные уровни тревоги для каждого статуса"""
         result = {}
         self.state_ranges = dict()
-        self.states = dict(enumerate(self._get_ingame_states()))
+        self.states = dict(enumerate(self.get_ingame_states()))
         max_scale_value = self.max_alert_value + int(round(self.max_alert_value * 0.1))
 
         for index, item in self.states.items():
