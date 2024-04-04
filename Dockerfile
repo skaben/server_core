@@ -17,16 +17,16 @@ FROM builder as base_build
 ENV PROJECT_ROOT=/opt/app/server
 WORKDIR /opt/app
 ENV PYTHONPATH="${PYTHONPATH}:${PROJECT_ROOT}"
-COPY ./requirements.txt scripts/wait-for-it.sh /opt/app/
+COPY ./requirements.txt /opt/app/
 
 RUN python -m pip install --no-cache-dir -r /opt/app/requirements.txt
 
 FROM base_build as api_build
-COPY scripts/wait-for-it.sh /opt/app/
-COPY entrypoint.sh /opt/app
+COPY scripts/wait-for-it.sh /opt/scripts/
+COPY entrypoint.sh /opt/app/
 
 RUN mkdir -p ${PROJECT_ROOT}/static && \
     chmod +x /opt/app/entrypoint.sh && \
-    chmod +x /opt/app/wait-for-it.sh
+    chmod +x /opt/scripts/wait-for-it.sh
 
 EXPOSE 8000

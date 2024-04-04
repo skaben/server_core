@@ -1,7 +1,7 @@
 #!/bin/sh
 
 echo "Awaiting broker"
-/opt/app/wait-for-it.sh rabbitmq:5672
+/opt/scripts/wait-for-it.sh rabbitmq:5672
 
 echo "Waiting for database"
 python manage.py wait_for_db
