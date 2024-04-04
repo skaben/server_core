@@ -1,3 +1,6 @@
+--index-url https://pypi.fury.io/zerthmonk/
+--extra-index-url https://pypi.org/simple/
+
 amqp==5.2.0
 asgiref==3.8.1
 async-timeout==4.0.3

@@ -69,8 +69,8 @@ def get_service() -> SchedulerService:
 
     alert_timeout = int(settings.ALERT_COOLDOWN.get('increase', 60)) 
 
-    increase_alert = AlertTask(timeout=alert_timeout, increase=True)
-    decrease_alert = AlertTask(timeout=alert_timeout, increase=False)
+    increase_alert = AlertTask(timeout=alert_timeout)
+    decrease_alert = AlertTask(timeout=alert_timeout)
     service = SchedulerService(tasks=[
         pinger,
         increase_alert,

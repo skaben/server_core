@@ -57,35 +57,34 @@ class AlertTask(Task):
     
     increase: bool
 
-    def __init__(self, timeout: int, increase: bool):
+    def __init__(self, timeout: int):
         """Инициализация авто-изменения уровня тревоги.
 
         Args:
             timeout: регулярность запуска задачи
-            increase: увеличивать или уменьшать уровень тревоги
         """
         super().__init__(timeout)
-
-        self.increase = increase
-        with AlertService() as service:
-            states = service.get_ingame_states()
-            self.boundaries = [states.first().threshold, states.last().threshold]
 
     def _run(self) -> None:
         with AlertService() as service:
             current = service.get_state_current()
-            counter = service.get_last_counter()
 
-            if not current.ingame or counter not in self.boundaries:
+            if not current.ingame:
                 return
             
-            val = current.modifier
-
-            if not self.increase and current.auto_decrease:
-                service.change_alert_counter(val, increase=False, comment=f'auto decrease by {val}')
+            if current.auto_decrease and current.counter_decrease > 0:
+                service.change_alert_counter(
+                    current.counter_decrease,
+                    increase=False,
+                    comment=f'auto decrease by {current.counter_decrease}'
+                )
             
-            if self.increase and current.auto_increase:
-                service.change_alert_counter(val, increase=True, comment=f'auto increase by {val}')
+            if current.auto_increase and current.counter_increase > 0:
+                service.change_alert_counter(
+                    current.counter_increase,
+                    increase=True,
+                    comment=f'auto increase by {current.counter_increase}'
+                )
 
     async def run(self) -> None:
         await sync_to_async(self._run)()

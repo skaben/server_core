@@ -6,6 +6,7 @@ from core.transport.config import MQConfig, get_mq_config, SkabenQueue
 
 
 class MQPublisher(object):
+    """Паблишер для очередей. Предназначен для использования другими модулями."""
 
     def __init__(self, config: MQConfig):
         self.config = config
@@ -28,17 +29,29 @@ class MQPublisher(object):
             raise Exception(f"{traceback.format_exc()}")
 
     def send_event(self, event_type: str, payload: dict):
-        return self.send_internal(f'{SkabenQueue.INTERNAL.value}', payload, headers={'event': event_type})
+        """Отправляет событие с заголовками."""
+        payload = payload or {}
+
+        return self.send_internal(
+            payload=payload,
+            headers={'event': event_type},
+            routing_key=f'{SkabenQueue.INTERNAL.value}',
+        )
 
     def send_internal(self, routing_key: str, payload: dict, **kwargs):
+        """Отправляет сообщение во внутреннюю очередь."""
+        payload = payload or {}
+
         return self._publish(
-            payload,
+            body=payload,
             exchange=self.config.exchanges.get('internal'),
             routing_key=routing_key,
             **kwargs,
         )
 
     def _publish(self, body: dict, exchange: str, routing_key: str, **kwargs):
+        body = body or {}
+
         try:
             with self.config.pool.acquire() as channel:
                 prod = self.config.conn.Producer(channel)

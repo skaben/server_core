@@ -32,11 +32,11 @@ class AlertCounter(models.Model):
         prev_value = 0 if not prev_alert_counter else prev_alert_counter.value
 
         super().save(*args, **kwargs)
-        mq_interface = get_interface()
-        mq_interface.send_event('alert_counter', {
-            'counter': self.value,
-            'increased': prev_value < self.value,
-        })
+        with get_interface() as mq_interface:
+            mq_interface.send_event('alert_counter', {
+                'counter': self.value,
+                'increased': prev_value < self.value,
+            })
 
     def __str__(self):
         return f'{self.value} {self.comment} at {self.timestamp}'
@@ -84,20 +84,30 @@ class AlertState(models.Model):
         blank=False,
         unique=True
     )
-    modifier = models.IntegerField(
-        verbose_name='Штраф за ошибку',
-        help_text='на сколько изменяется счетчик при ошибке прохождения данжа',
-        default=5,
-        blank=False
+
+    auto_increase = models.BooleanField(
+        verbose_name='Авто-увеличение тревоги',
+        help_text=('Включить автоматическое повышение тревоги со временем'),
+        default=False,
     )
-    auto_increase = models.IntegerField(
-        verbose_name='Авто-увеличение уровня тревоги',
-        help_text='Увеличивается ли уровень со временем (settings.ALERT_COOLDOWN). Значение 0 выключает параметр',
+
+    auto_decrease = models.BooleanField(
+        verbose_name='Авто-уменьшение тревоги',
+        help_text=('Включить автоматическое повышение тревоги со временем'),
+        default=False,
+    )
+
+    counter_increase = models.IntegerField(
+        verbose_name='На сколько увеличить уровень тревоги',
+        help_text=('Цена ошибки. Также определяет на сколько увеличится уровень '
+                   'со временем (settings.ALERT_COOLDOWN) автоматически.'),
         default=0,
     )
-    auto_decrease = models.IntegerField(
-        verbose_name='Применяется ли авто-сброс тревоги',
-        help_text='Уменьшается ли уровень со временем (settings.ALERT_COOLDOWN). Значение 0 выключает параметр',
+
+    counter_decrease = models.IntegerField(
+        verbose_name='На сколько уменьшить уровень тревоги',
+        help_text=('Насколько снизится уровень тревоги при действии. Также определяет, на сколько уменьшится уровень '
+                   'со временем (settings.ALERT_COOLDOWN) автоматически.'),
         default=0,
     )
 
@@ -134,8 +144,8 @@ class AlertState(models.Model):
         super().save(*args, **kwargs)
 
         if self.__original_state != self.current:
-            mq_interface = get_interface()
-            mq_interface.send_event('alert_state', {'state': self.name})
+            with get_interface() as mq_interface:
+                mq_interface.send_event('alert_state', {'state': self.name})
         self.__original_state = self.current
 
     is_final.fget.short_description = 'Финальный игровой статус'

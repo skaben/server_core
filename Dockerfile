@@ -30,5 +30,3 @@ RUN mkdir -p ${PROJECT_ROOT}/static && \
     chmod +x /opt/app/wait-for-it.sh
 
 EXPOSE 8000
-
-CMD ["sh", "-c", "/opt/app/entrypoint.sh"]

@@ -6,7 +6,15 @@ from alert.models import AlertCounter, AlertState
 class AlertStateCustomAdmin(admin.ModelAdmin):
     """Админка статусов тревоги."""
 
-    list_display = ('current', 'name', 'info', 'order', 'threshold', 'modifier')
+    list_display = (
+        'current',
+        'name',
+        'info',
+        'order',
+        'threshold',
+        'counter_increase',
+        'counter_decrease',
+    )
 
     list_filter = [
         'current',
@@ -18,10 +26,16 @@ class AlertStateCustomAdmin(admin.ModelAdmin):
             'fields': (
                 ('name', 'current'),
                 ('info', 'order'),
-                'modifier',
                 'threshold',
             )
         }),
+        ('Автоматическое изменение уровня', {
+            'classes': ('none',),
+            'fields': (
+                ('counter_increase', 'auto_increase'),
+                ('counter_decrease', 'auto_decrease'),
+            )
+        })
     )
 
 class AlertCounterCustomAdmin(admin.ModelAdmin):

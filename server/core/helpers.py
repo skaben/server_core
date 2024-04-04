@@ -72,3 +72,8 @@ def format_mac_address(mac_address: str) -> str:
     """Converts MAC to standart format"""
     cleaned_mac = re.sub(r'[^a-zA-Z0-9]', '', mac_address)
     return ':'.join(cleaned_mac[i:i+2] for i in range(0, len(cleaned_mac), 2))
+
+
+def format_routing_key(*args) -> str:
+    """Formats routing key for Rabbit."""
+    return '.'.join([arg for arg in args])

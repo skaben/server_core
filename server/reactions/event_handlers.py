@@ -1,8 +1,8 @@
-from server.reactions.exceptions import StopReactionPipeline
-from server.reactions.powerstate import apply_powerstate
+from reactions.exceptions import StopReactionPipeline
+from reactions.powerstate import apply_powerstate
 
 
-def apply_pipeline(event_type: str, event_data: dict):
+def handle(event_type: str, event_data: dict):
     """Базовый пайплайн обработки эвентов"""
     try:
         if event_type == 'device':
