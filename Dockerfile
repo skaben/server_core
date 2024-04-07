@@ -22,9 +22,11 @@ COPY ./requirements.txt /opt/app/
 RUN python -m pip install --no-cache-dir -r /opt/app/requirements.txt
 
 FROM base_build as api_build
-COPY entrypoint.sh /opt/scripts/
+COPY entrypoint.sh /opt/app/
 
 RUN mkdir -p ${PROJECT_ROOT}/static && \
-    chmod +x /opt/scripts/entrypoint.sh
+    chmod +x /opt/app/entrypoint.sh
 
 EXPOSE 8000
+
+CMD ["sh", "-c", "/opt/app/entrypoint.sh"]
