@@ -1,8 +1,5 @@
 #!/bin/sh
 
-echo "Awaiting broker"
-/opt/scripts/wait-for-it.sh rabbitmq:5672
-
 cd /opt/app
 
 echo "Waiting for database"
