@@ -1,11 +1,26 @@
+import logging
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from core.transport.publish import get_interface
 
 
+class AlertCounterManager(models.Manager):
+
+    def create_initial(self, *args, **kwargs):
+        """Создает базовый счетчик."""
+        initial_counter = self.model(
+            value=0,
+            comment='create initial',
+        )
+        initial_counter.save(context='no_send')
+        return initial_counter
+
+
 class AlertCounter(models.Model):
     """In-game Global Alert State counter"""
+
+    objects = AlertCounterManager()
 
     class Meta:
         verbose_name = 'Тревога: счетчик уровня'
@@ -26,17 +41,18 @@ class AlertCounter(models.Model):
         default=timezone.now,
     )
 
-    def save(self, *args, **kwargs):
+    def save(self, context: str = '', *args, **kwargs):
         """Сохранение, связывающее модели AlertCounter и AlertState."""
         prev_alert_counter = AlertCounter.objects.order_by('-id').first()
         prev_value = 0 if not prev_alert_counter else prev_alert_counter.value
 
         super().save(*args, **kwargs)
-        with get_interface() as mq_interface:
-            mq_interface.send_event('alert_counter', {
-                'counter': self.value,
-                'increased': prev_value < self.value,
-            })
+        if context != 'no_send':
+            with get_interface() as mq_interface:
+                mq_interface.send_event('alert_counter', {
+                    'counter': self.value,
+                    'increased': prev_value < self.value,
+                })
 
     def __str__(self):
         return f'{self.value} {self.comment} at {self.timestamp}'
@@ -142,10 +158,13 @@ class AlertState(models.Model):
             other_states.update(current=False)
 
         super().save(*args, **kwargs)
+        logging.debug(f'alert state changed to {self}')
 
-        if self.__original_state != self.current:
-            with get_interface() as mq_interface:
-                mq_interface.send_event('alert_state', {'state': self.name})
+        if kwargs.get('context') != 'no_send':
+            if self.__original_state != self.current:
+                with get_interface() as mq_interface:
+                    mq_interface.send_event('alert_state', {'state': self.name})
+
         self.__original_state = self.current
 
     is_final.fget.short_description = 'Финальный игровой статус'

@@ -45,11 +45,12 @@ class AskHandler(BaseHandler):
             message.requeue()
             return
 
+        # todo: improve de-dup
         # if the same key has already handled in time interval (default = 10) - ack and do nothing
-        if self.get_locked(routing_key):
-            message.ack()
-            return
-        self.set_locked(routing_key)
+        # if self.get_locked(routing_key):
+        #     message.ack()
+        #     return
+        # self.set_locked(routing_key)
 
         timestamp = 0
         try:

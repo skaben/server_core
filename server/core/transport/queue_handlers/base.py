@@ -1,9 +1,10 @@
 import logging
 from typing import List, Dict
-from kombu import Message
+from kombu import Message, Connection
+from kombu.pools import producers
 from kombu.mixins import ConsumerProducerMixin
 from django.conf import settings
-from core.transport.config import MQConfig
+from core.transport.config import MQConfig, get_connection
 from datetime import timedelta
 from redis_pool import get_redis_client
 
@@ -37,8 +38,8 @@ class BaseHandler(ConsumerProducerMixin):
         """
         self.config = config
         self.queues = queues
-        self.connection = config.conn
         self.redis_client = get_redis_client()
+        self.connection = get_connection()
 
     def start(self):
         print(f'{self}: listening on {self.queues}')
@@ -62,12 +63,13 @@ class BaseHandler(ConsumerProducerMixin):
             data (dict): The message data.
             routing_data (list): The message routing data.
         """
-        self.producer.publish(
-            data,
-            exchange=self.config.internal_exchange,
-            routing_key='.'.join(routing_data),
-            **kwargs,
-        )
+        with producers[self.connection].acquire(block=True) as producer:
+            producer.publish(
+                data,
+                exchange=self.config.internal_exchange,
+                routing_key='.'.join(routing_data),
+                **kwargs,
+            )
 
     def set_locked(self, key: str, timeout: int = None):
         """
@@ -107,7 +109,7 @@ class BaseHandler(ConsumerProducerMixin):
         consumer = consumer(queues=self.queues,
                             accept=[self.accepts],
                             callbacks=[self.handle_message],
-                            tag_prefix=f'skaben_')
+                            tag_prefix='skaben_')
         logging.info(f'acquired broker connection with {consumer}')
         return [consumer]
 

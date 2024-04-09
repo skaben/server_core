@@ -54,9 +54,10 @@ class ClientUpdateHandler(BaseHandler):
         if incoming_mark != self.incoming_mark:
             return message.requeue()
 
+        # todo: improve de-dup
         # device has already been updated
-        if message.headers.get('external') and self.get_locked(routing_key):
-            return message.reject()
+        # if message.headers.get('external') and self.get_locked(routing_key):
+        #     return message.reject()
 
         try:
             if device_type in self.devices.topics('simple'):

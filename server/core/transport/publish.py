@@ -2,7 +2,17 @@ import logging
 import traceback
 import skabenproto
 
-from core.transport.config import MQConfig, get_mq_config, SkabenQueue
+from kombu import Connection
+from kombu.pools import producers
+
+from django.conf import settings
+
+from core.transport.config import (
+    MQConfig,
+    get_connection,
+    get_mq_config,
+    SkabenQueue
+)
 
 
 class MQPublisher(object):
@@ -51,13 +61,14 @@ class MQPublisher(object):
 
     def _publish(self, body: dict, exchange: str, routing_key: str, **kwargs):
         body = body or {}
+        conn = get_connection()
 
         try:
-            with self.config.pool.acquire() as channel:
-                prod = self.config.conn.Producer(channel)
+            with producers[conn].acquire(block=True) as prod:
                 prod.publish(
                     body,
                     exchange=exchange,
+                    declare=[exchange],
                     routing_key=routing_key,
                     retry=True,
                     **kwargs,
