@@ -1,8 +1,7 @@
 from django.urls import include, path
 from rest_framework.routers import SimpleRouter
 
-from .views import (AccessCodeViewSet, MenuItemViewSet, PermissionViewSet,
-                    WorkModeViewSet)
+from .views import AccessCodeViewSet, MenuItemViewSet, PermissionViewSet, WorkModeViewSet
 
 app_name = 'peripherals'
 

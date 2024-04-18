@@ -1,16 +1,14 @@
+from alert.urls import router as alert_router
+from assets.urls import router as assets_router
+from core.views import CreateTokenView, health_check, login_view
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.urls import include, path
-
-from alert.urls import router as alert_router
-from assets.urls import router as assets_router
 from events.urls import router as eventlog_router
 from peripheral_devices.urls import router as device_router
-
 from rest_framework.routers import DefaultRouter
-from core.views import CreateTokenView, login_view, health_check
 
 # setting up nested router
 core_router = DefaultRouter()

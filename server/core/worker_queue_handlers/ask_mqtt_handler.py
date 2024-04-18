@@ -1,10 +1,12 @@
+"""Описывает работу обработчика для ask exchange - входящих MQTT пакетов."""
+
 from typing import Dict, Union
-from kombu import Message
 
 from core.helpers import from_json, get_server_timestamp
-from core.transport.config import SkabenQueue, SkabenPackets, MQConfig
-from core.transport.queue_handlers import BaseHandler
 from core.models.base import DeviceKeepalive
+from core.transport.config import MQConfig, SkabenPackets, SkabenQueue
+from core.worker_queue_handlers.base import BaseHandler
+from kombu import Message
 
 
 class AskHandler(BaseHandler):
@@ -58,12 +60,13 @@ class AskHandler(BaseHandler):
             if packet_type in self.datahold_packet_mark:
                 payload_data.update(self.parse_datahold(payload_data))
             try:
-                timestamp = self.save_timestamp(device_uuid, get_server_timestamp())
+                timestamp = self.save_timestamp(device_uuid,
+                                                get_server_timestamp())
             except DeviceKeepalive.DoesNotExist:
-                self.dispatch(
-                    {'message': 'new device active'},
-                    [self.outgoing_mark, device_type, device_uuid, SkabenPackets.INFO.value]
-                )
+                self.dispatch({'message': 'new device active'}, [
+                    self.outgoing_mark, device_type, device_uuid,
+                    SkabenPackets.INFO.value
+                ])
         except Exception as e:
             message.reject()
             raise Exception(f"cannot parse message payload `{body}` >> {e}")
@@ -84,11 +87,9 @@ class AskHandler(BaseHandler):
             obj.save()
             return obj.previous
         except DeviceKeepalive.DoesNotExist:
-            DeviceKeepalive.objects.create(
-                previous=timestamp,
-                timestamp=timestamp,
-                mac_addr=mac_addr
-            )
+            DeviceKeepalive.objects.create(previous=timestamp,
+                                           timestamp=timestamp,
+                                           mac_addr=mac_addr)
 
     @staticmethod
     def parse_datahold(data: Union[str, Dict]) -> Dict:
@@ -103,10 +104,8 @@ class AskHandler(BaseHandler):
         """
         result = {'datahold': f'{data}'}
         if isinstance(data, dict):
-            result = dict(
-                timestamp=int(data.get('timestamp', 0)),
-                task_id=data.get('task_id', 0),
-                hash=data.get('hash', ''),
-                datahold=from_json(data.get('datahold', {}))
-            )
+            result = dict(timestamp=int(data.get('timestamp', 0)),
+                          task_id=data.get('task_id', 0),
+                          hash=data.get('hash', ''),
+                          datahold=from_json(data.get('datahold', {})))
         return result

@@ -1,7 +1,8 @@
-import redis
-from redis import ConnectionPool
 from functools import lru_cache
+
+import redis
 from django.conf import settings
+from redis import ConnectionPool
 
 _pool = ConnectionPool(
     host=settings.REDIS_HOST,

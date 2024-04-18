@@ -1,6 +1,7 @@
 import csv
+
 from django import forms
-from server.peripheral_behavior.models import SkabenUser, AccessCode
+from server.peripheral_behavior.models import AccessCode, SkabenUser
 
 
 class CSVUploadForm(forms.Form):

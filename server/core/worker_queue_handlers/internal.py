@@ -2,15 +2,13 @@ import logging
 from typing import Dict, List
 
 import settings
-
+from alert.event_handling import handle as alert_handle
 from core.helpers import get_server_timestamp
-from kombu import Message
+from core.transport.config import MQConfig, SkabenPackets, SkabenQueue
+from core.worker_queue_handlers.base import BaseHandler
 from django.db import models
-from core.transport.config import SkabenQueue, SkabenPackets, MQConfig
-from core.transport.queue_handlers import BaseHandler
-
-from alert import event_handlers as alert_handlers
-from reactions import event_handlers as reaction_handlers
+from kombu import Message
+from reactions import queue_events as reaction_events
 
 
 class InternalHandler(BaseHandler):
@@ -42,21 +40,23 @@ class InternalHandler(BaseHandler):
         super().__init__(config, queues)
 
     def handle_message(self, body: Dict, message: Message) -> None:
-        """
-        Routes incoming internal messages.
+        """Распознает внутренние сообщения в зависимости от заголовков.
 
         Args:
-            body (dict): The message body.
-            message (Message): The message instance.
+            body (dict): Тело сообщения.
+            message (Message): Экземпляр сообщения.
         """
         try:
-            if message.headers and message.headers.get('event'):
-                # сообщение уже было обработано ранее
-                self.handle_event(message.headers.get('event'), body)
+            if message.headers and message.headers.get('event_type'):
+                # определяем, что сообщение является внутренним событием
+                # пакеты не обладают заголовком event_type
+                self.handle_event(message.headers, body)
             else:
                 self.route_event(body, message)
         except Exception:  # noqa
-            logging.exception('while handling internal queue message')
+            logging.exception(
+                f'while handling internal queue message {message.headers} {message}'
+            )
 
     def route_event(self, body: Dict, message: Message) -> None:
         """Перенаправляет события в различные очереди, в зависимости от типа пакета.
@@ -65,23 +65,25 @@ class InternalHandler(BaseHandler):
             body (dict): Тело сообщения.
             message (Message): Экземпляр сообщения.
         """
-        routing_data: List[str] = message.delivery_info.get('routing_key').split('.')
+        routing_data: List[str] = message.delivery_info.get(
+            'routing_key').split('.')
         [incoming_mark, device_type, device_uuid, packet_type] = routing_data
 
         if incoming_mark != self.incoming_mark:
             return message.requeue()
 
         if packet_type == self.keepalive_mark:
-            if message.headers.get('timestamp', 0) + settings.DEVICE_KEEPALIVE_TIMEOUT < get_server_timestamp():
-                self.dispatch(
-                    body,
-                    [SkabenQueue.CLIENT_UPDATE.value, device_type, device_uuid]
-                )
+            if message.headers.get(
+                    'timestamp', 0
+            ) + settings.DEVICE_KEEPALIVE_TIMEOUT < get_server_timestamp():
+                self.dispatch(body, [
+                    SkabenQueue.CLIENT_UPDATE.value, device_type, device_uuid
+                ])
         elif packet_type == self.state_save_mark:
-            self.dispatch(
-                body['datahold'],
-                [SkabenQueue.STATE_UPDATE.value, device_type, device_uuid, packet_type]
-            )
+            self.dispatch(body['datahold'], [
+                SkabenQueue.STATE_UPDATE.value, device_type, device_uuid,
+                packet_type
+            ])
         elif packet_type == self.client_update_mark:
             self.dispatch(
                 body,
@@ -89,7 +91,6 @@ class InternalHandler(BaseHandler):
                 headers={'external': True},
             )
         elif packet_type == self.info_mark:
-            logging.info(f'{message} {body}')
             body['datahold'].update({
                 'device_type': device_type,
                 'device_uuid': device_uuid,
@@ -100,19 +101,19 @@ class InternalHandler(BaseHandler):
 
         if not message.acknowledged:
             message.ack()
-    
-    def handle_event(self, event_type: str, event_data: dict):
+
+    def handle_event(self, event_headers: dict, event_data: dict):
         """Обрабатывает события на основе типа события и данных.
 
         Это основная функция-обработчик, здесь применяются сценарии игры.
 
         Аргументы:
-            event_type (str): Тип события, связанного с событием.
-            event_data (dict): Данные события.
+            headers (dict): Мета-данные события, включающие тип.
+            event_data (dict): Полезная нагрузка события.
         """
-        alert_handlers.handle(event_type, event_data)
+        alert_handle(event_headers, event_data)
         # применение механики игры через пайплайн
-        reaction_handlers.handle(event_type, event_data)
+        # reaction_events.handle(event_type, event_data)
 
     @staticmethod
     def get_instance(model: models.Model, uid: str):

@@ -1,14 +1,5 @@
+from assets.models import AudioFile, HackGame, ImageFile, SkabenFile, TextFile, UserInput, VideoFile
 from rest_framework import serializers
-
-from assets.models import (
-    AudioFile,
-    HackGame,
-    ImageFile,
-    SkabenFile,
-    TextFile,
-    VideoFile,
-    UserInput
-)
 
 
 class UserInputSerializer(serializers.ModelSerializer):

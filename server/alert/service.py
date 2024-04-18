@@ -1,43 +1,31 @@
 import logging
+from typing import List, Literal, Optional, Union
 
-from operator import itemgetter
-from typing import List
-
-from alert.models import (
-    AlertCounter,
-    AlertState,
-)
+from alert.event_types import ALERT_COUNTER, ALERT_STATE
+from alert.models import AlertCounter, AlertState
 
 
 class AlertService:
-    """ Global Alert mutation service """
+    """Сервис управления счетчиком и уровнем тревоги."""
 
     states: dict
     state_ranges: dict
     min_alert_value: int
+    init_by: str
 
-    def __init__(self):
+    def __init__(self,
+                 init_by: Union[Literal[ALERT_COUNTER], Literal[ALERT_STATE],
+                                Literal['external']] = 'external'):
         self.states = {}
         self.state_ranges = {}
         self.min_alert_value = 1
-
-    def reset_state(self, name: str | None = ''):
-        """Сбрасывает состояние до указанного или до минимального игрового"""
-        if name:
-            self.set_state_by_name(name)
-        else:
-            in_game = self.get_ingame_states()
-            self.set_state_current(in_game[0])
-
-    def reset_counter(self, level: int | None = None, comment: str | None = None):
-        """Сбрасывает тревогу до указанного или минимального игрового"""
-        if not level:
-            level = self.min_alert_value
-        self.set_alert_counter(value=level, comment=comment)
+        self.init_by = init_by
 
     def get_state_by_alert(self, alert_value: int):
         """Получает статус тревоги по значению счетчика тревоги"""
-        logging.debug(f'{self} getting state by alert value: {alert_value}')
+        if alert_value < 0:
+            return
+
         if not self.state_ranges:
             self.state_ranges = self._calc_alert_ranges()
 
@@ -45,49 +33,66 @@ class AlertService:
             if alert_value in range(*_range):
                 return self.states.get(index)
 
+    def get_state_by_name(self, name: str):
+        """Получает статус тревоги по названию"""
+        if not name:
+            raise ValueError('alert state name not provided')
+        return AlertState.objects.filter(name=name).first()
+
     def set_state_by_name(self, name: str):
         """Устанавливает статус тревоги по названию"""
         if not name:
             raise ValueError('alert state name not provided')
-        try:
-            instance = AlertState.objects.filter(name=name).first()
+        instance = self.get_state_by_name(name)
+        if instance:
             self.set_state_current(instance)
-        except AlertState.DoesNotExist:
-            raise
 
-    def change_alert_counter(self, value: int, increase: bool, comment: str | None = ''):
+    def set_state_by_alert(self, value: int):
+        """Устанавливает новое значение уровня тревоги по счетчику."""
+        is_new_state = self.get_state_by_alert(value)
+        current_state = self.get_state_current()
+
+        if is_new_state and is_new_state != current_state:
+            self.set_state_current(is_new_state)
+
+    def change_alert_counter(self,
+                             value: int,
+                             increase: bool,
+                             comment: str | None = ''):
         """Уменьшает или увеличивает счетчик тревоги на значение"""
         latest = self.get_last_counter()
         new_value = latest + value if increase else latest - value
         self.set_alert_counter(new_value, comment)
 
-    def set_alert_counter(self, value: int, comment: str | None = 'auto-change by alert service'):
-        """Изменяет числовое значение счетчика тревоги"""
-        counter = AlertCounter(value, comment)
-        counter.save()
-        # todo: this is duplicate of check in AlertCounterSerializer, refactor later
-        is_new_state = self.get_state_by_alert(value)
-        if is_new_state != self.current:
-            self.set_state_current(is_new_state)
+    def set_state_current(self, instance: AlertState) -> AlertState:
+        """Устанавливает значение уровня тревоги как текущее."""
+        if not instance.current:
+            instance.current = True
+            instance.save(event_source=self.init_by)
+        return instance
 
-    @staticmethod
-    def get_last_counter() -> int:
-        try:
-            counter = AlertCounter.objects.latest('id')
-        except AlertCounter.DoesNotExist:
-            counter = AlertCounter(
-                value=0,
-                comment='initial counter set by AlertService'
-            )
-            counter.save()
-        return counter.value
+    def set_alert_counter(self,
+                          value: int,
+                          comment: str
+                          | None = 'auto-change by alert service'):
+        """Изменяет числовое значение счетчика тревоги.
+
+        Приводит к изменению статуса тревоги, если значение попадает в диапазон значений срабатывания.
+        """
+        counter = AlertCounter(value=value, comment=comment)
+        counter.save(event_source=self.init_by)
 
     def compare_threshold_by_name(self, level_name: str) -> bool:
         """Сравнивает трешхолд выбранного уровня с трешхолдом текущего"""
         new = AlertState.get_by_name(level_name)
-        return new.threshold > self.get_state_current().threshold
+        current = self.get_state_current()
+        if not new:
+            raise AlertState.DoesNotExist(
+                f'cannot retrieve state by name {level_name}')
+        return new.threshold > current.threshold
 
-    def split_thresholds(self, count: int = 3) -> List[int]:
+    def split_thresholds(self, count: int) -> List[int]:
+        """Разделение диапазона уровня тревоги на равномерные диапазоны."""
         range_size = self.max_alert_value - self.min_alert_value
         sub_range_size = range_size / count
         thresholds = []
@@ -98,39 +103,49 @@ class AlertService:
 
         return thresholds
 
-    @staticmethod
-    def get_state_current() -> AlertState:
-        return AlertState.objects.filter(current=True).first()
-
-    @staticmethod
-    def set_state_current(instance: AlertState) -> AlertState:
-        if not instance.current:
-            instance.current = True
-            instance.save()
-        return instance
-
-    @property
-    def max_alert_value(self) -> int:
-        states = [state.threshold for state in AlertState.objects.all().order_by("threshold")]
-        return max(states) if states else self.min_alert_value
-
-    @staticmethod
-    def get_ingame_states(sort_by: str | None = 'order'):
-        """Получает все внутриигровые статусы"""
-        return AlertState.objects.filter(ingame=True).order_by(sort_by).all()
-
     def _calc_alert_ranges(self):
         """Вычисляет начальные и конечные уровни тревоги для каждого статуса"""
         result = {}
         self.state_ranges = dict()
         self.states = dict(enumerate(self.get_ingame_states()))
-        max_scale_value = self.max_alert_value + int(round(self.max_alert_value * 0.1))
+        max_scale_value = self.max_alert_value + int(
+            round(self.max_alert_value * 0.1))
 
         for index, item in self.states.items():
             nxt = self.states.get(index + 1)
             nxt_threshold = getattr(nxt, 'threshold', max_scale_value)
             result.update({index: [item.threshold, nxt_threshold]})
         return result
+
+    @property
+    def max_alert_value(self) -> int:
+        """Получает максимальное значение счетчика тревоги."""
+        states = [
+            state.threshold
+            for state in AlertState.objects.all().order_by("threshold")
+        ]
+        return max(states) if states else self.min_alert_value
+
+    @staticmethod
+    def get_state_current() -> AlertState:
+        """Получает текущий статус тревоги."""
+        return AlertState.objects.filter(current=True).get()
+
+    @staticmethod
+    def get_last_counter() -> int:
+        """Получает последний счетчик тревоги."""
+        try:
+            counter = AlertCounter.objects.latest('id')
+        except AlertCounter.DoesNotExist:
+            counter = AlertCounter(
+                value=0, comment='initial counter set by AlertService')
+            counter.save()
+        return counter.value
+
+    @staticmethod
+    def get_ingame_states(sort_by: str | None = 'order'):
+        """Получает все внутриигровые статусы"""
+        return AlertState.objects.filter(ingame=True).order_by(sort_by).all()
 
     def __str__(self):
         return 'AlertService'

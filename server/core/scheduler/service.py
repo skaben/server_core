@@ -1,12 +1,9 @@
 import asyncio
 from functools import lru_cache
 from typing import List
+
 from django.conf import settings
-from server.core.scheduler.tasks import (
-    Task,
-    AlertTask,
-    PingerTask,
-)
+from server.core.scheduler.tasks import AlertTask, PingerTask, Task
 
 
 class SchedulerService:

@@ -1,6 +1,6 @@
-from django.contrib import admin
+from assets.models import AudioFile, HackGame, ImageFile, TextFile, UserInput, VideoFile
 from core.admin import base_site
-from assets.models import AudioFile, HackGame, ImageFile, TextFile, VideoFile, UserInput
+from django.contrib import admin
 
 
 class FileAdmin(admin.ModelAdmin):

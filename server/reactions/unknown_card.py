@@ -1,4 +1,5 @@
 import logging
+
 from django.conf import settings
 from peripheral_behavior.models import AccessCode
 from peripheral_devices.models import LockDevice as Lock

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 
-flake8 skaben
-isort skaben
-vulture skaben
+flake8 server
+isort server
+vulture server

@@ -1,5 +1,5 @@
-from peripheral_devices import views
 from django.urls import include, path
+from peripheral_devices import views
 from rest_framework.routers import SimpleRouter
 
 app_name = 'device'

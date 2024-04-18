@@ -1,16 +1,10 @@
-from django import forms
-from django.contrib import admin
 import re
 
 from core.admin import base_site
-
-from peripheral_devices.models import (
-    LockDevice,
-    TerminalDevice,
-)
-from peripheral_behavior.models import (
-    PassiveConfig,
-)
+from django import forms
+from django.contrib import admin
+from peripheral_behavior.models import PassiveConfig
+from peripheral_devices.models import LockDevice, TerminalDevice
 
 
 class MacAddressFormField(forms.CharField):

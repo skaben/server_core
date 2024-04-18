@@ -1,0 +1,10 @@
+[tool.vulture]
+exclude = ["wsgi.py", "static/", "templates/"]
+make_whitelist = true
+min_confidence = 80
+sort_by_size = true
+verbose = true
+
+[tool.isort]
+profile = "hug"
+src_paths = ["isort", "test"]

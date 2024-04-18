@@ -1,7 +1,8 @@
 from core.views import DynamicAuthMixin
 from django_filters.rest_framework import DjangoFilterBackend
 from events import serializers
-from rest_framework import viewsets, filters
+from rest_framework import filters, viewsets
+
 from .models import EventRecord
 
 

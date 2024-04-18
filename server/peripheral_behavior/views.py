@@ -9,6 +9,7 @@ from .serializers import (
     WorkModeSerializer,
 )
 
+
 class AccessCodeViewSet(viewsets.ModelViewSet, DynamicAuthMixin):
     """ Events in database """
     queryset = AccessCode.objects.all()

@@ -1,6 +1,7 @@
 import re
-from django.db import models
+
 from core.helpers import get_uuid
+from django.db import models
 
 __all__ = (
     'BaseModelUUID',

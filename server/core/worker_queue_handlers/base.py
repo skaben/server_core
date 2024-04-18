@@ -1,11 +1,12 @@
 import logging
-from typing import List, Dict
-from kombu import Message, Connection
-from kombu.pools import producers
-from kombu.mixins import ConsumerProducerMixin
-from django.conf import settings
-from core.transport.config import MQConfig, get_connection
 from datetime import timedelta
+from typing import Dict, List
+
+from core.transport.config import MQConfig, get_connection
+from core.transport.publish import publish
+from django.conf import settings
+from kombu import Message
+from kombu.mixins import ConsumerProducerMixin
 from redis_pool import get_redis_client
 
 __all__ = ['BaseHandler']
@@ -63,13 +64,12 @@ class BaseHandler(ConsumerProducerMixin):
             data (dict): The message data.
             routing_data (list): The message routing data.
         """
-        with producers[self.connection].acquire(block=True) as producer:
-            producer.publish(
-                data,
-                exchange=self.config.internal_exchange,
-                routing_key='.'.join(routing_data),
-                **kwargs,
-            )
+        publish(
+            body=data,
+            exchange=self.config.internal_exchange,
+            routing_key='.'.join(routing_data),
+            **kwargs,
+        )
 
     def set_locked(self, key: str, timeout: int = None):
         """

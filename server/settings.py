@@ -3,8 +3,8 @@ Django settings for SKABEN project
 """
 
 import os
-
 from collections import namedtuple
+
 from django.core.management.utils import get_random_secret_key
 
 # основные настройки проекта
@@ -91,7 +91,8 @@ TEMPLATES = [
         'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
-            'debug': DEBUG,
+            'debug':
+            DEBUG,
             'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
@@ -121,16 +122,20 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        'NAME':
+        'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'NAME':
+        'django.contrib.auth.password_validation.MinimumLengthValidator',
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        'NAME':
+        'django.contrib.auth.password_validation.CommonPasswordValidator',
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        'NAME':
+        'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
 
@@ -154,9 +159,8 @@ CACHES = {
 # DRF
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.TokenAuthentication',
-    ),
+    'DEFAULT_AUTHENTICATION_CLASSES':
+    ('rest_framework.authentication.TokenAuthentication', ),
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
@@ -178,8 +182,9 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '%(asctime)s :: <%(filename)s:%(lineno)s - '
-                      '%(funcName)s()>  %(levelname)s > %(message)s'
+            'format':
+            '%(asctime)s :: <%(filename)s:%(lineno)s - '
+            '%(funcName)s()>  %(levelname)s > %(message)s'
         },
         'simple': {
             'format': '%(levelname)s %(message)s'
@@ -214,16 +219,14 @@ RABBITMQ_USER = os.environ.get('RABBITMQ_USERNAME')
 RABBITMQ_PASS = os.environ.get('RABBITMQ_PASSWORD')
 AMQP_URI = f"pyamqp://{RABBITMQ_USER}:{RABBITMQ_PASS}@rabbitmq:5672"
 AMQP_TIMEOUT = 10
-EXCHANGE_CHOICES = [
-    ('mqtt', 'mqtt'),
-    ('internal', 'internal')
-]
+EXCHANGE_CHOICES = [('mqtt', 'mqtt'), ('internal', 'internal')]
 MAX_CHANNEL_NAME_LEN = 64
 RESPONSE_TIMEOUT = {
     'ask': 10,
     'ping': 10,
     'client_update': 30,
 }
+ASK_QUEUE = 'ask'
 
 # DEVICE TYPES
 
@@ -235,6 +238,8 @@ SKABEN_DEVICE_TOPICS = {
     'lock': ('lock', 'smart'),
     'terminal': ('terminal', 'smart'),
 }
+
+SKABEN_SCALE_TOPIC = 'scl'
 
 # INGAME SETTINGS
 
@@ -260,4 +265,4 @@ if DEBUG:
         'DEFAULT_PERMISSION_CLASSES': [],
         'UNAUTHENTICATED_USER': None,
     }
-    MEDIA_URL='media/'
+    MEDIA_URL = 'media/'

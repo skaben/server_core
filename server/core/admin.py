@@ -1,16 +1,10 @@
-from django.contrib import admin
-from django.urls import path
-
-from django.contrib.auth.models import Group, User
-
-from core.models.mqtt import DeviceTopic, ControlReaction
+from admin_extended.views import download_example_csv, upload_csv_view
+from core.models.mqtt import ControlReaction, DeviceTopic
 from core.models.system import System
+from django.contrib import admin
+from django.contrib.auth.models import Group, User
+from django.urls import path
 from events.models import EventRecord
-
-from admin_extended.views import (
-    upload_csv_view,
-    download_example_csv,
-)
 
 
 class BaseSiteAdmin(admin.AdminSite):

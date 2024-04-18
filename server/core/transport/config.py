@@ -1,14 +1,13 @@
-import kombu
 import logging
 from enum import Enum
-from typing import List
 from functools import lru_cache
+
+import kombu
+from django.conf import settings
 from kombu import Connection, Exchange, Queue
 from kombu.pools import connections
-from django.conf import settings
 
 kombu.disable_insecure_serializers(allowed=['json'])
-ASK_QUEUE = 'ask'  # incoming mqtt filtering queue
 
 
 def get_connection():
@@ -39,10 +38,9 @@ class SkabenPackets(Enum):
 
 class SkabenQueue(Enum):
 
-    INTERNAL = 'internal'
-    STATE_UPDATE = 'state_update'
-    CLIENT_UPDATE = 'client_update'
-    EVENT = 'event'
+    STATE_UPDATE = 'state_update'  # update configuration server-side
+    CLIENT_UPDATE = 'client_update'  # update configuration client-side
+    INTERNAL = 'internal'  # marking as internal event
 
 
 class MQFactory:
@@ -78,8 +76,8 @@ class MQConfig:
         self.exchanges = {}
         self._init_mqtt_exchange()
         filtering_queue = {
-            ASK_QUEUE: MQFactory.create_queue(
-                ASK_QUEUE,
+            settings.ASK_QUEUE: MQFactory.create_queue(
+                settings.ASK_QUEUE,
                 self.mqtt_exchange,
                 durable=True,
             )
