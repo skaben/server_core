@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 from testing.assembly.ingame import ingame_assembly
 
-MI_URL = reverse('api:menuitem-list')
+MI_URL = reverse("api:menuitem-list")
 
 
 class TestPublicMenuItemsApi(APITestCase):
@@ -23,15 +23,12 @@ class TestPrivateMenuItemsAPI(APITestCase):
     """Test the private available menu items"""
 
     def setUp(self):
-        self.user = get_user_model().objects.create_user(
-            'test@test.com',
-            'password1234'
-        )
+        self.user = get_user_model().objects.create_user("test@test.com", "password1234")
         self.client.force_authenticate(self.user)
 
     def test_retrieve_menu_items(self):
-        """ Test retrieving menu items success. """
-        payload = ingame_assembly('menu').get_payload()
+        """Test retrieving menu items success."""
+        payload = ingame_assembly("menu").get_payload()
         for x in range(3):
             MenuItem.objects.create(**payload)
 
@@ -44,11 +41,11 @@ class TestPrivateMenuItemsAPI(APITestCase):
         assert res.data == serializer.data, serializer.data
 
     def test_create_menu_item(self):
-        """ Test create menu item """
-        item = ingame_assembly('menu')
+        """Test create menu item"""
+        item = ingame_assembly("menu")
         res = self.client.post(MI_URL, item.payload)
 
         exists = MenuItem.objects.filter(action=item.action).exists()
 
         assert res.status_code == status.HTTP_201_CREATED, res.content
-        assert exists, 'item not in database'
+        assert exists, "item not in database"

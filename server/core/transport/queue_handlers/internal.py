@@ -24,7 +24,8 @@ class InternalHandler(BaseHandler):
         state_save_mark (str): The state save message mark.
         client_update_mark (str): The client update message mark.
     """
-    name: str = 'main_internal'
+
+    name: str = "main_internal"
     info_mark: str = SkabenPackets.INFO.value
     incoming_mark: str = SkabenQueue.INTERNAL.value
     keepalive_mark: str = SkabenPackets.PONG.value
@@ -50,13 +51,13 @@ class InternalHandler(BaseHandler):
             message (Message): The message instance.
         """
         try:
-            if message.headers and message.headers.get('event'):
+            if message.headers and message.headers.get("event"):
                 # сообщение уже было обработано ранее
-                self.handle_event(message.headers.get('event'), body)
+                self.handle_event(message.headers.get("event"), body)
             else:
                 self.route_event(body, message)
         except Exception:  # noqa
-            logging.exception('while handling internal queue message')
+            logging.exception("while handling internal queue message")
 
     def route_event(self, body: Dict, message: Message) -> None:
         """Перенаправляет события в различные очереди, в зависимости от типа пакета.
@@ -65,42 +66,38 @@ class InternalHandler(BaseHandler):
             body (dict): Тело сообщения.
             message (Message): Экземпляр сообщения.
         """
-        routing_data: List[str] = message.delivery_info.get('routing_key').split('.')
+        routing_data: List[str] = message.delivery_info.get("routing_key").split(".")
         [incoming_mark, device_type, device_uuid, packet_type] = routing_data
 
         if incoming_mark != self.incoming_mark:
             return message.requeue()
 
         if packet_type == self.keepalive_mark:
-            if message.headers.get('timestamp', 0) + settings.DEVICE_KEEPALIVE_TIMEOUT < get_server_timestamp():
-                self.dispatch(
-                    body,
-                    [SkabenQueue.CLIENT_UPDATE.value, device_type, device_uuid]
-                )
+            if message.headers.get("timestamp", 0) + settings.DEVICE_KEEPALIVE_TIMEOUT < get_server_timestamp():
+                self.dispatch(body, [SkabenQueue.CLIENT_UPDATE.value, device_type, device_uuid])
         elif packet_type == self.state_save_mark:
-            self.dispatch(
-                body['datahold'],
-                [SkabenQueue.STATE_UPDATE.value, device_type, device_uuid, packet_type]
-            )
+            self.dispatch(body["datahold"], [SkabenQueue.STATE_UPDATE.value, device_type, device_uuid, packet_type])
         elif packet_type == self.client_update_mark:
             self.dispatch(
                 body,
                 [SkabenQueue.CLIENT_UPDATE.value, device_type, device_uuid],
-                headers={'external': True},
+                headers={"external": True},
             )
         elif packet_type == self.info_mark:
-            logging.info(f'{message} {body}')
-            body['datahold'].update({
-                'device_type': device_type,
-                'device_uuid': device_uuid,
-            })
-            self.handle_event('device', body['datahold'])
+            logging.info(f"{message} {body}")
+            body["datahold"].update(
+                {
+                    "device_type": device_type,
+                    "device_uuid": device_uuid,
+                }
+            )
+            self.handle_event("device", body["datahold"])
         else:
             return message.reject()
 
         if not message.acknowledged:
             message.ack()
-    
+
     def handle_event(self, event_type: str, event_data: dict):
         """Обрабатывает события на основе типа события и данных.
 

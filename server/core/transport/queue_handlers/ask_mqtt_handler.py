@@ -9,9 +9,10 @@ from core.models.base import DeviceKeepalive
 
 class AskHandler(BaseHandler):
     """Incoming messages from MQTT terminates here.
-        Providing translation into internal format and passing results to internal queue.
+    Providing translation into internal format and passing results to internal queue.
     """
-    name: str = 'mqtt_bridge_ask_handler'
+
+    name: str = "mqtt_bridge_ask_handler"
     incoming_mark: str = SkabenPackets.ASK.value
     outgoing_mark: str = SkabenQueue.INTERNAL.value
     datahold_packet_mark: list[str] = [
@@ -38,8 +39,8 @@ class AskHandler(BaseHandler):
             body (Union[str, Dict]): The message body.
             message (Message): The message instance.
         """
-        routing_key = message.delivery_info.get('routing_key')
-        [routing_type, device_type, device_uuid, packet_type] = routing_key.split('.')
+        routing_key = message.delivery_info.get("routing_key")
+        [routing_type, device_type, device_uuid, packet_type] = routing_key.split(".")
 
         if routing_type != self.incoming_mark:
             message.requeue()
@@ -60,8 +61,8 @@ class AskHandler(BaseHandler):
                 timestamp = self.save_timestamp(device_uuid, get_server_timestamp())
             except DeviceKeepalive.DoesNotExist:
                 self.dispatch(
-                    {'message': 'new device active'},
-                    [self.outgoing_mark, device_type, device_uuid, SkabenPackets.INFO.value]
+                    {"message": "new device active"},
+                    [self.outgoing_mark, device_type, device_uuid, SkabenPackets.INFO.value],
                 )
         except Exception as e:
             message.reject()
@@ -71,7 +72,7 @@ class AskHandler(BaseHandler):
         self.dispatch(
             payload_data,
             [self.outgoing_mark, device_type, device_uuid, packet_type],
-            headers={'timestamp': timestamp},
+            headers={"timestamp": timestamp},
         )
 
     @staticmethod
@@ -83,11 +84,7 @@ class AskHandler(BaseHandler):
             obj.save()
             return obj.previous
         except DeviceKeepalive.DoesNotExist:
-            DeviceKeepalive.objects.create(
-                previous=timestamp,
-                timestamp=timestamp,
-                mac_addr=mac_addr
-            )
+            DeviceKeepalive.objects.create(previous=timestamp, timestamp=timestamp, mac_addr=mac_addr)
 
     @staticmethod
     def parse_datahold(data: Union[str, Dict]) -> Dict:
@@ -100,12 +97,12 @@ class AskHandler(BaseHandler):
         Returns:
             The parsed datahold.
         """
-        result = {'datahold': f'{data}'}
+        result = {"datahold": f"{data}"}
         if isinstance(data, dict):
             result = dict(
-                timestamp=int(data.get('timestamp', 0)),
-                task_id=data.get('task_id', 0),
-                hash=data.get('hash', ''),
-                datahold=from_json(data.get('datahold', {}))
+                timestamp=int(data.get("timestamp", 0)),
+                task_id=data.get("task_id", 0),
+                hash=data.get("hash", ""),
+                datahold=from_json(data.get("datahold", {})),
             )
         return result

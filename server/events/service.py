@@ -2,7 +2,7 @@ from core.helpers import get_server_timestamp
 from events.serializers import EventSerializer
 
 
-def write_event(stream: str, source: str, _type: str, message: str, level: str = 'info'):
+def write_event(stream: str, source: str, _type: str, message: str, level: str = "info"):
     """Записываем событие для отображения в потоке"""
 
     event_data = {
@@ -10,11 +10,7 @@ def write_event(stream: str, source: str, _type: str, message: str, level: str =
         "stream": stream,
         "source": source,
         "timestamp": get_server_timestamp() + 1,  # fixing confusing 'too fast replies'
-        "message": {
-            "type": _type,
-            "peripherals": message,
-            "response": True
-        }
+        "message": {"type": _type, "peripherals": message, "response": True},
     }
     serializer = EventSerializer(data=event_data)
     if serializer.is_valid():

@@ -38,23 +38,23 @@ class PingerTask(Task):
 
     def _run(self) -> None:
         """
-            Runs the pinger task by sending PING packets for each topic.
+        Runs the pinger task by sending PING packets for each topic.
         """
         with get_interface() as publisher:
             for topic in settings.SKABEN_DEVICE_TOPICS.keys():
                 packet = PING(
-                    uid='all',
+                    uid="all",
                     topic=topic,
                     timestamp=get_server_timestamp(),
                 )
                 publisher.send_mqtt_skaben(packet)
-    
+
     async def run(self) -> None:
         await sync_to_async(self._run)()
 
 
 class AlertTask(Task):
-    
+
     increase: bool
 
     def __init__(self, timeout: int):
@@ -71,19 +71,15 @@ class AlertTask(Task):
 
             if not current.ingame:
                 return
-            
+
             if current.auto_decrease and current.counter_decrease > 0:
                 service.change_alert_counter(
-                    current.counter_decrease,
-                    increase=False,
-                    comment=f'auto decrease by {current.counter_decrease}'
+                    current.counter_decrease, increase=False, comment=f"auto decrease by {current.counter_decrease}"
                 )
-            
+
             if current.auto_increase and current.counter_increase > 0:
                 service.change_alert_counter(
-                    current.counter_increase,
-                    increase=True,
-                    comment=f'auto increase by {current.counter_increase}'
+                    current.counter_increase, increase=True, comment=f"auto increase by {current.counter_increase}"
                 )
 
     async def run(self) -> None:

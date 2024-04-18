@@ -10,7 +10,7 @@ from alert.models import (
 
 
 class AlertService:
-    """ Global Alert mutation service """
+    """Global Alert mutation service"""
 
     states: dict
     state_ranges: dict
@@ -21,7 +21,7 @@ class AlertService:
         self.state_ranges = {}
         self.min_alert_value = 1
 
-    def reset_state(self, name: str | None = ''):
+    def reset_state(self, name: str | None = ""):
         """Сбрасывает состояние до указанного или до минимального игрового"""
         if name:
             self.set_state_by_name(name)
@@ -37,7 +37,7 @@ class AlertService:
 
     def get_state_by_alert(self, alert_value: int):
         """Получает статус тревоги по значению счетчика тревоги"""
-        logging.debug(f'{self} getting state by alert value: {alert_value}')
+        logging.debug(f"{self} getting state by alert value: {alert_value}")
         if not self.state_ranges:
             self.state_ranges = self._calc_alert_ranges()
 
@@ -48,20 +48,20 @@ class AlertService:
     def set_state_by_name(self, name: str):
         """Устанавливает статус тревоги по названию"""
         if not name:
-            raise ValueError('alert state name not provided')
+            raise ValueError("alert state name not provided")
         try:
             instance = AlertState.objects.filter(name=name).first()
             self.set_state_current(instance)
         except AlertState.DoesNotExist:
             raise
 
-    def change_alert_counter(self, value: int, increase: bool, comment: str | None = ''):
+    def change_alert_counter(self, value: int, increase: bool, comment: str | None = ""):
         """Уменьшает или увеличивает счетчик тревоги на значение"""
         latest = self.get_last_counter()
         new_value = latest + value if increase else latest - value
         self.set_alert_counter(new_value, comment)
 
-    def set_alert_counter(self, value: int, comment: str | None = 'auto-change by alert service'):
+    def set_alert_counter(self, value: int, comment: str | None = "auto-change by alert service"):
         """Изменяет числовое значение счетчика тревоги"""
         counter = AlertCounter(value, comment)
         counter.save()
@@ -73,12 +73,9 @@ class AlertService:
     @staticmethod
     def get_last_counter() -> int:
         try:
-            counter = AlertCounter.objects.latest('id')
+            counter = AlertCounter.objects.latest("id")
         except AlertCounter.DoesNotExist:
-            counter = AlertCounter(
-                value=0,
-                comment='initial counter set by AlertService'
-            )
+            counter = AlertCounter(value=0, comment="initial counter set by AlertService")
             counter.save()
         return counter.value
 
@@ -115,7 +112,7 @@ class AlertService:
         return max(states) if states else self.min_alert_value
 
     @staticmethod
-    def get_ingame_states(sort_by: str | None = 'order'):
+    def get_ingame_states(sort_by: str | None = "order"):
         """Получает все внутриигровые статусы"""
         return AlertState.objects.filter(ingame=True).order_by(sort_by).all()
 
@@ -128,12 +125,12 @@ class AlertService:
 
         for index, item in self.states.items():
             nxt = self.states.get(index + 1)
-            nxt_threshold = getattr(nxt, 'threshold', max_scale_value)
+            nxt_threshold = getattr(nxt, "threshold", max_scale_value)
             result.update({index: [item.threshold, nxt_threshold]})
         return result
 
     def __str__(self):
-        return 'AlertService'
+        return "AlertService"
 
     def __enter__(self):
         return self

@@ -7,7 +7,7 @@ from core.transport.config import MQConfig
 from datetime import timedelta
 from redis_pool import get_redis_client
 
-__all__ = ['BaseHandler']
+__all__ = ["BaseHandler"]
 
 
 class BaseHandler(ConsumerProducerMixin):
@@ -21,9 +21,9 @@ class BaseHandler(ConsumerProducerMixin):
         incoming_mark (str): The incoming message mark.
     """
 
-    name: str = 'base'
+    name: str = "base"
     running: bool
-    accepts: str = 'json'
+    accepts: str = "json"
     outgoing_mark: str
     incoming_mark: str | list
 
@@ -41,7 +41,7 @@ class BaseHandler(ConsumerProducerMixin):
         self.redis_client = get_redis_client()
 
     def start(self):
-        print(f'{self}: listening on {self.queues}')
+        print(f"{self}: listening on {self.queues}")
         super().run(consumer_tag=self.name)
 
     def handle_message(self, body: Dict, message: Message) -> None:
@@ -65,7 +65,7 @@ class BaseHandler(ConsumerProducerMixin):
         self.producer.publish(
             data,
             exchange=self.config.internal_exchange,
-            routing_key='.'.join(routing_data),
+            routing_key=".".join(routing_data),
             **kwargs,
         )
 
@@ -79,7 +79,7 @@ class BaseHandler(ConsumerProducerMixin):
                 If not specified, the value of `settings.DEVICE_KEEPALIVE_TIMEOUT` will be used.
         """
         timeout = timeout or settings.RESPONSE_TIMEOUT.get(self.incoming_mark, 10)
-        self.redis_client.setex(key, timedelta(seconds=timeout), 'lock')
+        self.redis_client.setex(key, timedelta(seconds=timeout), "lock")
 
     def get_locked(self, key: str) -> bool:
         """
@@ -104,11 +104,10 @@ class BaseHandler(ConsumerProducerMixin):
         Returns:
             list: The list of consumers.
         """
-        consumer = consumer(queues=self.queues,
-                            accept=[self.accepts],
-                            callbacks=[self.handle_message],
-                            tag_prefix=f'skaben_')
-        logging.info(f'acquired broker connection with {consumer}')
+        consumer = consumer(
+            queues=self.queues, accept=[self.accepts], callbacks=[self.handle_message], tag_prefix=f"skaben_"
+        )
+        logging.info(f"acquired broker connection with {consumer}")
         return [consumer]
 
     def __str__(self) -> str:

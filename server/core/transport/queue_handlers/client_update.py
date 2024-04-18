@@ -19,7 +19,8 @@ class ClientUpdateHandler(BaseHandler):
     Attributes:
         incoming_mark (str): The incoming message mark.
     """
-    name: str = 'client_updater'
+
+    name: str = "client_updater"
     incoming_mark: str = SkabenQueue.CLIENT_UPDATE.value
 
     def __init__(self, config: MQConfig, queues: Dict[str, str]):
@@ -42,8 +43,8 @@ class ClientUpdateHandler(BaseHandler):
             body (dict): The message body.
             message (Message): The message instance.
         """
-        routing_key = message.delivery_info.get('routing_key')
-        routing_data = routing_key.split('.')
+        routing_key = message.delivery_info.get("routing_key")
+        routing_data = routing_key.split(".")
         incoming_mark = routing_data[0]
         device_type = routing_data[1]
         device_uid = None
@@ -55,13 +56,13 @@ class ClientUpdateHandler(BaseHandler):
             return message.requeue()
 
         # device has already been updated
-        if message.headers.get('external') and self.get_locked(routing_key):
+        if message.headers.get("external") and self.get_locked(routing_key):
             return message.reject()
 
         try:
-            if device_type in self.devices.topics('simple'):
+            if device_type in self.devices.topics("simple"):
                 current_config = get_passive_config(device_type)
-                address = device_uid or 'all'  # 'all' маркирует броадкастовую рассылку
+                address = device_uid or "all"  # 'all' маркирует броадкастовую рассылку
                 self.dispatch(current_config, [device_type, address])
                 return message.ack()
 
@@ -69,7 +70,7 @@ class ClientUpdateHandler(BaseHandler):
             if device_uid:
                 self.send_config(device, device_uid, body, message)
             else:
-                list_of_devices = device.model.objects.exclude(override=True).values_list('mac_addr', flat=True)
+                list_of_devices = device.model.objects.exclude(override=True).values_list("mac_addr", flat=True)
                 mac_addr_list = list(list_of_devices)
                 for mac in mac_addr_list:
                     self.send_config(device, mac, body, message)
@@ -81,18 +82,18 @@ class ClientUpdateHandler(BaseHandler):
     def send_config(self, device: namedtuple, device_uid: str, body: dict, message: Message):
         try:
             instance_data = self.get_instance_data(device, device_uid)
-            if instance_data.get('override'):
-                logging.warning(f'device {device_uid} is under override policy. skipping update')
+            if instance_data.get("override"):
+                logging.warning(f"device {device_uid} is under override policy. skipping update")
                 return
 
-            if message.headers.get('force_update') or instance_data.get('hash', 0) != body.get('hash', 1):
+            if message.headers.get("force_update") or instance_data.get("hash", 0) != body.get("hash", 1):
                 self.dispatch(
                     instance_data,
                     [device.topic, device_uid],
                 )
         except device.model.DoesNotExist:
             # todo: operation of new device approval is not implemented yet
-            logging.error(f'device of type {device.topic} with MAC {device_uid} not found in DB')
+            logging.error(f"device of type {device.topic} with MAC {device_uid} not found in DB")
             raise
 
     def dispatch(self, data: Dict, routing_data: List[str], **kwargs) -> None:
@@ -100,11 +101,7 @@ class ClientUpdateHandler(BaseHandler):
         if data:
             [device_type, device_uid] = routing_data
             packet = CUP(
-                topic=device_type,
-                uid=device_uid,
-                task_id='n/a',
-                datahold=data,
-                timestamp=get_server_timestamp()
+                topic=device_type, uid=device_uid, task_id="n/a", datahold=data, timestamp=get_server_timestamp()
             )
             self.ext_publisher.send_mqtt_skaben(packet)
 

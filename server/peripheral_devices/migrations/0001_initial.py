@@ -25,9 +25,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "ip",
-                    models.GenericIPAddressField(
-                        blank=True, null=True, verbose_name="IP-адрес"
-                    ),
+                    models.GenericIPAddressField(blank=True, null=True, verbose_name="IP-адрес"),
                 ),
                 ("mac_addr", models.CharField(max_length=16, unique=True)),
                 (
@@ -50,9 +48,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "timer",
-                    models.IntegerField(
-                        default=10, verbose_name="Время автоматического закрытия"
-                    ),
+                    models.IntegerField(default=10, verbose_name="Время автоматического закрытия"),
                 ),
             ],
             options={
@@ -74,9 +70,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "ip",
-                    models.GenericIPAddressField(
-                        blank=True, null=True, verbose_name="IP-адрес"
-                    ),
+                    models.GenericIPAddressField(blank=True, null=True, verbose_name="IP-адрес"),
                 ),
                 ("mac_addr", models.CharField(max_length=16, unique=True)),
                 (

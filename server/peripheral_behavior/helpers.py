@@ -11,7 +11,7 @@ def get_passive_config(device_type: str) -> dict:
         if not current:
             return config
         try:
-            if device_type == 'scl':  # cоздаем конфиг для шкал
+            if device_type == "scl":  # cоздаем конфиг для шкал
                 counter = service.get_last_counter()
                 config = {
                     "level": counter,
@@ -22,6 +22,6 @@ def get_passive_config(device_type: str) -> dict:
                 cfg = PassiveConfig.objects.get(topic=device_type, state=current)
                 config = cfg.config
         except PassiveConfig.DoesNotExist:
-            logging.error(f'device {device_type} config for state {current.name} not exists')
+            logging.error(f"device {device_type} config for state {current.name} not exists")
             pass
     return config

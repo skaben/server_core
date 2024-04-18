@@ -8,24 +8,19 @@ from django.conf import settings
 
 TOPIC = settings.SKABEN_DEVICE_TOPICS
 FULL_DEVICE_LIST = [
-    (*TOPIC.get('rgb'), None, None),
-    (*TOPIC.get('pwr'), None, None),
-    (*TOPIC.get('scl'), None, None),
-    (*TOPIC.get('box'), None, None),
-    (*TOPIC.get('lock'), models.LockDevice, schema.LockSerializer),
-    (*TOPIC.get('terminal'), models.TerminalDevice, schema.TerminalSerializer)
+    (*TOPIC.get("rgb"), None, None),
+    (*TOPIC.get("pwr"), None, None),
+    (*TOPIC.get("scl"), None, None),
+    (*TOPIC.get("box"), None, None),
+    (*TOPIC.get("lock"), models.LockDevice, schema.LockSerializer),
+    (*TOPIC.get("terminal"), models.TerminalDevice, schema.TerminalSerializer),
 ]
 
 
 class DeviceConfig:
 
     devices: list
-    _named = namedtuple('Device', [
-        'topic',
-        'type',
-        'model',
-        'schema'
-    ])
+    _named = namedtuple("Device", ["topic", "type", "model", "schema"])
 
     def __init__(self):
         # type, name, topic, model, schema

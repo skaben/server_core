@@ -9,7 +9,8 @@ from rest_framework.settings import api_settings
 
 
 class CreateTokenView(ObtainAuthToken):
-    """ Create a new auth token for user """
+    """Create a new auth token for user"""
+
     serializer_class = AuthTokenSerializer
     renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
 
@@ -43,13 +44,11 @@ def login_view(request):
 
 
 def health_check(request):
-    module = request.GET.get('module')
+    module = request.GET.get("module")
 
-    result = {
-        "status": "healthy"
-    }
+    result = {"status": "healthy"}
 
-    if module == 'workers':
+    if module == "workers":
         result = {}
 
     return JsonResponse(result)

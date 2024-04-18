@@ -7,16 +7,15 @@ from rest_framework.response import Response
 from peripheral_devices.models import LockDevice, TerminalDevice
 
 
-@api_view(http_method_names=['GET'])
+@api_view(http_method_names=["GET"])
 def update_devices(request):
     """update all devices"""
     try:
         # send_config_all()
         # send_config_to_simple()
-        return Response('success')
+        return Response("success")
     except Exception as e:
-        return Response({'exception': f'{e}'},
-                        status=status.HTTP_403_FORBIDDEN)
+        return Response({"exception": f"{e}"}, status=status.HTTP_403_FORBIDDEN)
 
 
 @api_view(http_method_names=["POST", "PUT", "PATCH"])
@@ -26,12 +25,14 @@ def save_device(data):
 
 
 class LockViewSet(viewsets.ModelViewSet, DynamicAuthMixin):
-    """ Manage locks in database """
+    """Manage locks in database"""
+
     queryset = LockDevice.objects.all()
     serializer_class = serializers.LockSerializer
 
 
 class TerminalViewSet(viewsets.ModelViewSet, DynamicAuthMixin):
-    """ Manage terminals in database """
+    """Manage terminals in database"""
+
     queryset = TerminalDevice.objects.all()
     serializer_class = serializers.TerminalSerializer
