@@ -3,7 +3,7 @@ from rest_framework import serializers
 
 
 class UserInputSerializer(serializers.ModelSerializer):
-    """ Serializer for menu item objects """
+    """Serializer for menu item objects"""
 
     class Meta:
         model = UserInput
@@ -11,22 +11,22 @@ class UserInputSerializer(serializers.ModelSerializer):
 
 
 class FileSerializer(serializers.ModelSerializer):
-    file = serializers.SerializerMethodField('get_file_url')
+    file = serializers.SerializerMethodField("get_file_url")
 
     class Meta:
         model = SkabenFile
         abstract = True
 
     def get_file_url(self, obj):
-        return self.context['request'].build_absolute_uri(obj.file.path)
+        return self.context["request"].build_absolute_uri(obj.file.path)
 
 
 class AudioFileSerializer(FileSerializer):
 
     class Meta:
         model = AudioFile
-        exclude = ("id", )
-        read_only_fields = ("hash", )
+        exclude = ("id",)
+        read_only_fields = ("hash",)
 
 
 class VideoFileSerializer(FileSerializer):
@@ -34,7 +34,7 @@ class VideoFileSerializer(FileSerializer):
     class Meta:
         model = VideoFile
         exclude = ("id",)
-        read_only_fields = ("hash", )
+        read_only_fields = ("hash",)
 
 
 class ImageFileSerializer(FileSerializer):
@@ -42,7 +42,7 @@ class ImageFileSerializer(FileSerializer):
     class Meta:
         model = ImageFile
         exclude = ("id",)
-        read_only_fields = ("hash", )
+        read_only_fields = ("hash",)
 
 
 class TextFileSerializer(serializers.ModelSerializer):

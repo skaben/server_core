@@ -1,4 +1,4 @@
-__all__ = ['ConfigException']
+__all__ = ["ConfigException"]
 
 
 class SkabenException(Exception):

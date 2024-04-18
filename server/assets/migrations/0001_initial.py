@@ -32,9 +32,7 @@ class Migration(migrations.Migration):
                 (
                     "file",
                     models.FileField(
-                        storage=assets.storages.OverwriteStorage(
-                            location="/media/audio"
-                        ),
+                        storage=assets.storages.OverwriteStorage(location="/media/audio"),
                         upload_to="",
                     ),
                 ),
@@ -93,9 +91,7 @@ class Migration(migrations.Migration):
                 (
                     "file",
                     models.ImageField(
-                        storage=assets.storages.OverwriteStorage(
-                            location="/media/image"
-                        ),
+                        storage=assets.storages.OverwriteStorage(location="/media/image"),
                         upload_to="",
                     ),
                 ),
@@ -126,9 +122,7 @@ class Migration(migrations.Migration):
                     models.FileField(
                         blank=True,
                         null=True,
-                        storage=assets.storages.OverwriteStorage(
-                            location="/media/text"
-                        ),
+                        storage=assets.storages.OverwriteStorage(location="/media/text"),
                         upload_to="",
                     ),
                 ),
@@ -209,9 +203,7 @@ class Migration(migrations.Migration):
                 (
                     "file",
                     models.FileField(
-                        storage=assets.storages.OverwriteStorage(
-                            location="/media/video"
-                        ),
+                        storage=assets.storages.OverwriteStorage(location="/media/video"),
                         upload_to="",
                     ),
                 ),

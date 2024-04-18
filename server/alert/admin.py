@@ -7,42 +7,49 @@ class AlertStateCustomAdmin(admin.ModelAdmin):
     """Админка статусов тревоги."""
 
     list_display = (
-        'current',
-        'name',
-        'info',
-        'order',
-        'threshold',
-        'counter_increase',
-        'counter_decrease',
+        "current",
+        "name",
+        "info",
+        "order",
+        "threshold",
+        "counter_increase",
+        "counter_decrease",
     )
 
     list_filter = [
-        'current',
+        "current",
     ]
 
     fieldsets = (
-        ('Параметры уровня тревоги', {
-            'classes': ('none',),
-            'fields': (
-                ('name', 'current'),
-                ('info', 'order'),
-                'threshold',
-            )
-        }),
-        ('Автоматическое изменение уровня', {
-            'classes': ('none',),
-            'fields': (
-                ('counter_increase', 'auto_increase'),
-                ('counter_decrease', 'auto_decrease'),
-            )
-        })
+        (
+            "Параметры уровня тревоги",
+            {
+                "classes": ("none",),
+                "fields": (
+                    ("name", "current"),
+                    ("info", "order"),
+                    "threshold",
+                ),
+            },
+        ),
+        (
+            "Автоматическое изменение уровня",
+            {
+                "classes": ("none",),
+                "fields": (
+                    ("counter_increase", "auto_increase"),
+                    ("counter_decrease", "auto_decrease"),
+                ),
+            },
+        ),
     )
+
 
 class AlertCounterCustomAdmin(admin.ModelAdmin):
     """Админка счетчиков тревоги."""
 
-    list_display = ('timestamp', 'value', 'comment')
-    readonly_fields = ('timestamp',)
+    list_display = ("timestamp", "value", "comment")
+    readonly_fields = ("timestamp",)
 
 
 admin.site.register(AlertCounter, AlertCounterCustomAdmin, site=base_site)

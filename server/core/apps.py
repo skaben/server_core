@@ -3,7 +3,7 @@ from django.apps import AppConfig
 
 
 class CoreConfig(AppConfig):
-    name = 'core'
+    name = "core"
 
     def ready(self):
         """do something on app start"""

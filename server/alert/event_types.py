@@ -3,8 +3,8 @@ from typing import Literal, Optional
 
 from core.transport.events import SkabenEvent
 
-ALERT_STATE: str = 'alert_state'
-ALERT_COUNTER: str = 'alert_counter'
+ALERT_STATE: str = "alert_state"
+ALERT_COUNTER: str = "alert_counter"
 
 
 @dataclass(frozen=True)
@@ -33,5 +33,5 @@ class AlertCounterEvent(SkabenEvent):
 
     event_type: str = ALERT_COUNTER
     value: int
-    change: Literal['increase', 'decrease', 'set']
+    change: Literal["increase", "decrease", "set"]
     comment: Optional[str]

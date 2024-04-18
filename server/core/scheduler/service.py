@@ -62,15 +62,17 @@ def get_service() -> SchedulerService:
     Returns:
         The scheduler service object.
     """
-    pinger = PingerTask(timeout=settings.RESPONSE_TIMEOUT.get('ping', 10))
+    pinger = PingerTask(timeout=settings.RESPONSE_TIMEOUT.get("ping", 10))
 
-    alert_timeout = int(settings.ALERT_COOLDOWN.get('increase', 60)) 
+    alert_timeout = int(settings.ALERT_COOLDOWN.get("increase", 60))
 
     increase_alert = AlertTask(timeout=alert_timeout)
     decrease_alert = AlertTask(timeout=alert_timeout)
-    service = SchedulerService(tasks=[
-        pinger,
-        increase_alert,
-        decrease_alert,
-    ])
+    service = SchedulerService(
+        tasks=[
+            pinger,
+            increase_alert,
+            decrease_alert,
+        ]
+    )
     return service

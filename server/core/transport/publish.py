@@ -20,9 +20,7 @@ def publish(body, exchange, routing_key, **kwargs):
                 **kwargs,
             )
     except Exception as e:
-        logging.error(
-            f'[sync] exception occurred when sending packet to {routing_key}: {e}'
-        )
+        logging.error(f"[sync] exception occurred when sending packet to {routing_key}: {e}")
 
 
 class MQPublisher(object):
@@ -35,7 +33,7 @@ class MQPublisher(object):
         """Отправить SKABEN пакет через MQTT"""
         return publish(
             body=packet.encode(),
-            exchange=self.config.exchanges.get('mqtt'),
+            exchange=self.config.exchanges.get("mqtt"),
             routing_key=packet.routing_key,
         )
 
@@ -46,8 +44,8 @@ class MQPublisher(object):
         return publish(
             body=encoded.data,
             headers=encoded.headers,
-            exchange=self.config.exchanges.get('internal'),
-            routing_key=f'{SkabenQueue.INTERNAL.value}',
+            exchange=self.config.exchanges.get("internal"),
+            routing_key=f"{SkabenQueue.INTERNAL.value}",
         )
 
     @staticmethod

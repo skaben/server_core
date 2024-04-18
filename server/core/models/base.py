@@ -3,9 +3,7 @@ import re
 from core.helpers import get_uuid
 from django.db import models
 
-__all__ = (
-    'BaseModelUUID',
-)
+__all__ = ("BaseModelUUID",)
 
 
 class BaseModelUUID(models.Model):
@@ -14,11 +12,7 @@ class BaseModelUUID(models.Model):
     class Meta:
         abstract = True
 
-    uuid = models.UUIDField(
-        primary_key=True,
-        default=get_uuid,
-        editable=False
-    )
+    uuid = models.UUIDField(primary_key=True, default=get_uuid, editable=False)
 
 
 class DeviceKeepalive(models.Model):
@@ -29,5 +23,5 @@ class DeviceKeepalive(models.Model):
     previous = models.PositiveIntegerField()
 
     def save(self, *args, **kwargs):
-        self.mac_addr = re.sub(r'[^a-zA-Z0-9]', '', self.mac_addr)
+        self.mac_addr = re.sub(r"[^a-zA-Z0-9]", "", self.mac_addr)
         super().save(*args, **kwargs)

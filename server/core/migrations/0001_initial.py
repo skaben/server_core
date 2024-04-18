@@ -43,9 +43,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "channel",
-                    models.CharField(
-                        max_length=64, unique=True, verbose_name="Канал MQTT"
-                    ),
+                    models.CharField(max_length=64, unique=True, verbose_name="Канал MQTT"),
                 ),
                 (
                     "type",
@@ -88,9 +86,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "ping_timeout",
-                    models.IntegerField(
-                        default=10, verbose_name="Задержка посыла PING в канал"
-                    ),
+                    models.IntegerField(default=10, verbose_name="Задержка посыла PING в канал"),
                 ),
                 (
                     "keep_alive",
@@ -133,9 +129,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "comment",
-                    models.TextField(
-                        blank=True, default="", verbose_name="Комментарий"
-                    ),
+                    models.TextField(blank=True, default="", verbose_name="Комментарий"),
                 ),
                 (
                     "routing",

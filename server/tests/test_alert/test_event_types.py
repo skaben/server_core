@@ -4,10 +4,8 @@ from pydantic import ValidationError
 
 
 def test_alert_event_types_get_by_type():
-    assert AlertEventTypes.get_by_type(
-        AlertEventTypes.ALERT_STATE) == AlertStateEvent
-    assert AlertEventTypes.get_by_type(
-        AlertEventTypes.ALERT_COUNTER) == AlertCounterEvent
+    assert AlertEventTypes.get_by_type(AlertEventTypes.ALERT_STATE) == AlertStateEvent
+    assert AlertEventTypes.get_by_type(AlertEventTypes.ALERT_COUNTER) == AlertCounterEvent
 
 
 def test_alert_event_types_invalid_type():
@@ -16,18 +14,16 @@ def test_alert_event_types_invalid_type():
 
 
 def test_alert_state_event_valid():
-    event = AlertStateEvent(event_type="alert_state",
-                            event_source='test',
-                            state="active")
+    event = AlertStateEvent(event_type="alert_state", event_source="test", state="active")
     encoded = event.encode()
 
     assert event.event_type == "alert_state"
     assert event.state == "active"
     assert encoded.headers == {
-        'event_type': 'alert_state',
-        'event_source': 'test',
+        "event_type": "alert_state",
+        "event_source": "test",
     }
-    assert encoded.data == {'state': 'active', 'counter_reset': True}
+    assert encoded.data == {"state": "active", "counter_reset": True}
 
 
 def test_alert_state_event_missing_state():
@@ -36,10 +32,7 @@ def test_alert_state_event_missing_state():
 
 
 def test_alert_counter_event_valid():
-    event = AlertCounterEvent(event_type="alert_counter",
-                              value=10,
-                              change="increase",
-                              comment='test mock')
+    event = AlertCounterEvent(event_type="alert_counter", value=10, change="increase", comment="test mock")
     assert event.event_type == "alert_counter"
     assert event.value == 10
     assert event.change == "increase"

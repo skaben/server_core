@@ -66,9 +66,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "name",
-                    models.CharField(
-                        max_length=32, unique=True, verbose_name="Название статуса"
-                    ),
+                    models.CharField(max_length=32, unique=True, verbose_name="Название статуса"),
                 ),
                 (
                     "info",

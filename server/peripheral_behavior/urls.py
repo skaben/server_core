@@ -3,14 +3,14 @@ from rest_framework.routers import SimpleRouter
 
 from .views import AccessCodeViewSet, MenuItemViewSet, PermissionViewSet, WorkModeViewSet
 
-app_name = 'peripherals'
+app_name = "peripherals"
 
 router = SimpleRouter()
-router.register('accesscode', AccessCodeViewSet)
-router.register('permission', PermissionViewSet)
-router.register('menuitem', MenuItemViewSet)
-router.register('workmode', WorkModeViewSet)
+router.register("accesscode", AccessCodeViewSet)
+router.register("permission", PermissionViewSet)
+router.register("menuitem", MenuItemViewSet)
+router.register("workmode", WorkModeViewSet)
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path("", include(router.urls)),
 ]

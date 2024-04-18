@@ -8,12 +8,12 @@ from pydantic import BaseModel, Field, computed_field
 @dataclass(frozen=True)
 class SkabenPacketTypes:
 
-    PING: str = 'ping'
-    ACK: str = 'ack'
-    NACK: str = 'nack'
-    INFO: str = 'info'
-    CUP: str = 'cup'
-    SUP: str = 'sup'
+    PING: str = "ping"
+    ACK: str = "ack"
+    NACK: str = "nack"
+    INFO: str = "info"
+    CUP: str = "cup"
+    SUP: str = "sup"
 
 
 class SkabenPacket(BaseModel):
@@ -23,7 +23,7 @@ class SkabenPacket(BaseModel):
     посредством MQTT (отдельный exchange в RabbitMQ)
     """
 
-    uid: str = 'all'  # по умолчанию броадкаст
+    uid: str = "all"  # по умолчанию броадкаст
     topic: str = Field(description="Device type")
     command: str = Field(description="Packet type")
     timestamp: int = Field(default_factory=get_server_timestamp)
@@ -37,7 +37,7 @@ class SkabenPacket(BaseModel):
 
     def encode(self):
         """Подготавливает содержимое для отправки в очередь MQTT."""
-        return self.model_dump_json(exclude=['topic', 'uid', 'command'], exclude_unset=True)
+        return self.model_dump_json(exclude=["topic", "uid", "command"], exclude_unset=True)
 
 
 class PING(SkabenPacket):
@@ -47,7 +47,7 @@ class PING(SkabenPacket):
 
     def encode(self):
         """Подготавливает содержимое для отправки в очередь MQTT."""
-        return self.model_dump_json(include='timestamp')
+        return self.model_dump_json(include="timestamp")
 
 
 class ACK(SkabenPacket):
@@ -67,17 +67,16 @@ class DataholdPacket(SkabenPacket):
 
     datahold: dict = {}  # packet data load
 
-    def __init__(self,
-                 topic: str,
-                 datahold: dict,
-                 timestamp: int,
-                 config_hash: Optional[str] = None,
-                 uid: Optional[str] = None,
-                 task_id: Optional[str] = None):
-        super().__init__(topic=topic,
-                         timestamp=timestamp,
-                         config_hash=config_hash,
-                         uid=uid)
+    def __init__(
+        self,
+        topic: str,
+        datahold: dict,
+        timestamp: int,
+        config_hash: Optional[str] = None,
+        uid: Optional[str] = None,
+        task_id: Optional[str] = None,
+    ):
+        super().__init__(topic=topic, timestamp=timestamp, config_hash=config_hash, uid=uid)
         self.payload.update(datahold=datahold)  # separate datahold namespace
         if task_id:
             self.payload.update(task_id=task_id)

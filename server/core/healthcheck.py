@@ -8,8 +8,8 @@ from core.models import ControlReaction, DeviceTopic
 from core.transport.config import SkabenQueue, get_mq_config
 from django.conf import settings
 
-OK: Literal['OK'] = 'OK'
-ERROR: Literal['ERROR'] = 'ERROR'
+OK: Literal["OK"] = "OK"
+ERROR: Literal["ERROR"] = "ERROR"
 
 
 @dataclass(frozen=True)
@@ -46,8 +46,7 @@ class IntegrityCheck:
             self.errors.append(str(e))
 
     def _check(self):
-        raise NotImplementedError(
-            'method should be called only from inherited classes')
+        raise NotImplementedError("method should be called only from inherited classes")
 
 
 class AlertCounterIntegrityCheck(IntegrityCheck):
@@ -67,11 +66,9 @@ class AlertStateIntegrityCheck(IntegrityCheck):
                 # это проверит, назначен ли текущий уровень тревоги
                 service.get_state_current()
             except AlertState.DoesNotExist:
-                existing_states = AlertState.objects.all().order_by('order')
+                existing_states = AlertState.objects.all().order_by("order")
                 if existing_states.count() == 0:
-                    raise ConfigException(
-                        'Alert States not configured, load initial_data.json to fix it'
-                    )
+                    raise ConfigException("Alert States not configured, load initial_data.json to fix it")
                 service.set_state_current(existing_states[0])
 
 
@@ -79,16 +76,12 @@ class DeviceIntegrityCheck(IntegrityCheck):
 
     def _check(self):
         try:
-            active_topics = DeviceTopic.objects.filter(
-                active=True).values_list('channel', flat=True)
+            active_topics = DeviceTopic.objects.filter(active=True).values_list("channel", flat=True)
             reaction_count = ControlReaction.objects.count()
-            self.messages = [
-                f'Active MQTT topics:\t{list(active_topics)}',
-                f'Custom MQTT reactions:\t{reaction_count}'
-            ]
+            self.messages = [f"Active MQTT topics:\t{list(active_topics)}", f"Custom MQTT reactions:\t{reaction_count}"]
         except:
             raise ConfigException(
-                'Device topics misconfigured, check settings.SKABEN_DEVICE_TOPICS and DB MqttTopics content'
+                "Device topics misconfigured, check settings.SKABEN_DEVICE_TOPICS and DB MqttTopics content"
             )
 
 
@@ -97,10 +90,10 @@ class BrokerIntegrityCheck(IntegrityCheck):
     def _check(self):
         config = get_mq_config()
         if not config.internal_exchange or not config.mqtt_exchange:
-            raise ConfigException('Exchange configuration mismatch')
+            raise ConfigException("Exchange configuration mismatch")
         queues = sorted([e.value for e in SkabenQueue] + [settings.ASK_QUEUE])
         if sorted(config.queues) != queues:
-            raise ConfigException('Queue configuration mismatch')
+            raise ConfigException("Queue configuration mismatch")
 
 
 INTEGRATION_MODULE_MAP = {

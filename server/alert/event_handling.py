@@ -36,11 +36,11 @@ def _handle_alert_state_event(event: AlertCounterEvent | AlertStateEvent):
         with AlertService(init_by=ALERT_STATE) as service:
             state = service.get_state_by_name(event.state)
             if not state:
-                raise ValueError(f'no state with name {event.state}')
+                raise ValueError(f"no state with name {event.state}")
             # эта операция создаст дополнительное событие типа alert_counter
             service.set_alert_counter(
                 value=state.threshold,
-                comment=f'reset by alert state {event.state}',
+                comment=f"reset by alert state {event.state}",
             )
 
     # обновление конфигурации устройств при смене уровня тревоги
@@ -50,7 +50,7 @@ def _handle_alert_state_event(event: AlertCounterEvent | AlertStateEvent):
         with get_interface() as publisher:
             publisher.publish(
                 body={},
-                exchange=publisher.config.exchanges.get('internal'),
+                exchange=publisher.config.exchanges.get("internal"),
                 routing_key=format_routing_key(SkabenPacketTypes.CUP, topic),
             )
 
@@ -68,22 +68,18 @@ def _handle_alert_counter_event(event: AlertCounterEvent | AlertStateEvent):
     if source != ALERT_COUNTER:
         with AlertService(init_by=source) as service:
             _new_counter_value = event.value
-            if event.change == 'set':
-                service.set_alert_counter(value=event.value,
-                                          comment=event.comment)
+            if event.change == "set":
+                service.set_alert_counter(value=event.value, comment=event.comment)
             else:
-                is_increased = event.change != 'decrease'
-                service.change_alert_counter(value=event.value,
-                                             increase=is_increased,
-                                             comment=event.comment)
+                is_increased = event.change != "decrease"
+                service.change_alert_counter(value=event.value, increase=is_increased, comment=event.comment)
                 _new_counter_value = service.get_last_counter()
             # изменяем уровень тревоги, если счетчик попадает в диапазон срабатывания
             new_state = service.get_state_by_alert(_new_counter_value)
             if new_state and new_state != service.get_state_current():
                 # новое ALERT_STATE событие, которое отправит конфиги,
                 # будет создано моделью AlertState при сохранении в этой процедуре
-                return service.set_state_by_name(
-                    new_state)  # заканчиваем обработку
+                return service.set_state_by_name(new_state)  # заканчиваем обработку
 
     # В случае, когда событие инициировано ALERT_STATE апдейт для шкалы уже был отправлен
     if source != ALERT_STATE:
@@ -91,9 +87,8 @@ def _handle_alert_counter_event(event: AlertCounterEvent | AlertStateEvent):
         with get_interface() as publisher:
             publisher.publish(
                 body={},
-                exchange=publisher.config.exchanges.get('internal'),
-                routing_key=format_routing_key(SkabenPacketTypes.CUP,
-                                               settings.SKABEN_SCALE_TOPIC),
+                exchange=publisher.config.exchanges.get("internal"),
+                routing_key=format_routing_key(SkabenPacketTypes.CUP, settings.SKABEN_SCALE_TOPIC),
             )
 
 
@@ -103,14 +98,13 @@ def handle(event_headers: dict, event_data: dict):
     Валидирует данные, принятые из очереди в соответствии с моделью события.
     """
 
-    event_type = event_headers.get('event_type', '')
+    event_type = event_headers.get("event_type", "")
     event_class = AlertEventTypes.get_by_type(event_type)
     if not event_class:
         # todo: proper handling of non-existing event types
         return
 
-    _data = event_class.decode(event_headers=event_headers,
-                               event_data=event_data)
+    _data = event_class.decode(event_headers=event_headers, event_data=event_data)
     event = event_class.model_validate(_data)
 
     if event.event_type == ALERT_STATE:

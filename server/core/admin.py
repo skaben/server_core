@@ -9,9 +9,9 @@ from events.models import EventRecord
 
 class BaseSiteAdmin(admin.AdminSite):
 
-    site_title = 'SKABEN'
-    site_header = 'Dungeon admin'
-    index_title = 'Управление системами'
+    site_title = "SKABEN"
+    site_header = "Dungeon admin"
+    index_title = "Управление системами"
 
 
 base_site = BaseSiteAdmin()
@@ -24,27 +24,16 @@ class SystemAdmin(admin.ModelAdmin):
     def get_urls(self):
         urls = super().get_urls()
         my_urls = [
-            path('upload_csv/', self.admin_site.admin_view(upload_csv_view)),
-            path('download_example_csv/', self.admin_site.admin_view(download_example_csv)),
+            path("upload_csv/", self.admin_site.admin_view(upload_csv_view)),
+            path("download_example_csv/", self.admin_site.admin_view(download_example_csv)),
         ]
         return my_urls + urls
 
 
 class ControlCommandAdmin(admin.ModelAdmin):
     fieldsets = (
-        ('Основная настройка', {
-           'fields': (
-               ('name', 'channel'),
-               'payload',
-               'comment'
-           )
-        }),
-        ('Расширенная настройка роутинга', {
-            'classes': ('collapse',),
-            'fields': (
-                ('routing', 'exchange'),
-            )
-        }),
+        ("Основная настройка", {"fields": (("name", "channel"), "payload", "comment")}),
+        ("Расширенная настройка роутинга", {"classes": ("collapse",), "fields": (("routing", "exchange"),)}),
     )
 
 

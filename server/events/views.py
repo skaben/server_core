@@ -7,11 +7,12 @@ from .models import EventRecord
 
 
 class EventViewSet(viewsets.ModelViewSet, DynamicAuthMixin):
-    """ Events in database """
+    """Events in database"""
+
     queryset = EventRecord.objects.all()
     serializer_class = serializers.EventSerializer
 
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter]
-    search_fields = ['level', 'source', 'stream', 'message__type']
-    ordering_fields = ['timestamp']
-    ordering = ('timestamp',)
+    search_fields = ["level", "source", "stream", "message__type"]
+    ordering_fields = ["timestamp"]
+    ordering = ("timestamp",)

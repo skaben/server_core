@@ -4,12 +4,12 @@ from django.contrib import admin
 
 
 class FileAdmin(admin.ModelAdmin):
-    exclude = ('hash',)
+    exclude = ("hash",)
 
 
 class TextFileAdmin(admin.ModelAdmin):
-    exclude = ('hash', 'file')
-    readonly_fields = ('uri',)
+    exclude = ("hash", "file")
+    readonly_fields = ("uri",)
 
 
 # admin.site.register(AudioFile, FileAdmin, site=base_site)

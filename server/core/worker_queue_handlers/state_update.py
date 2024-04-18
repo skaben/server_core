@@ -10,8 +10,9 @@ class StateUpdateHandler(BaseHandler):
     """
     Handler for state update messages.
     """
-    name: str = 'state_update'
-    context: Dict[str, bool] = {'no_send': True}
+
+    name: str = "state_update"
+    context: Dict[str, bool] = {"no_send": True}
     incoming_mark: str = SkabenQueue.STATE_UPDATE.value
 
     def __init__(self, config: MQConfig, queues: Dict[str, str]):
@@ -32,7 +33,7 @@ class StateUpdateHandler(BaseHandler):
             body (dict): The message body.
             message (Message): The message instance.
         """
-        routing_data = message.delivery_info.get('routing_key').split('.')
+        routing_data = message.delivery_info.get("routing_key").split(".")
         [incoming_mark, device_type, device_uuid, packet_type] = routing_data
 
         if incoming_mark != self.incoming_mark:
@@ -41,15 +42,12 @@ class StateUpdateHandler(BaseHandler):
         if packet_type == SkabenPackets.SAVE.value:
             device_conf = get_device_config()
             device = device_conf.get_by_topic(device_type)
-            if device.type == 'simple':
+            if device.type == "simple":
                 message.ack()
                 return
 
             serialized = device.schema(
-                device.model.objects.get(uid=device_uuid),
-                context=self.context,
-                data=body,
-                partial=True
+                device.model.objects.get(uid=device_uuid), context=self.context, data=body, partial=True
             )
             if serialized.is_valid():
                 serialized.save()

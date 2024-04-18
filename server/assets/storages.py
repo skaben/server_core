@@ -20,7 +20,7 @@ class OverwriteStorage(FileSystemStorage):
         return name
 
 
-audio_storage = OverwriteStorage(location=get_dir('/media/audio'))
-video_storage = OverwriteStorage(location=get_dir('/media/video'))
-image_storage = OverwriteStorage(location=get_dir('/media/image'))
-text_storage = OverwriteStorage(location=get_dir('/media/text'))
+audio_storage = OverwriteStorage(location=get_dir("/media/audio"))
+video_storage = OverwriteStorage(location=get_dir("/media/video"))
+image_storage = OverwriteStorage(location=get_dir("/media/image"))
+text_storage = OverwriteStorage(location=get_dir("/media/text"))
