@@ -1,7 +1,7 @@
 from alert.models import AlertState
+from core.helpers import get_server_timestamp
 from django.conf import settings
 from django.db import models
-from core.helpers import get_server_timestamp
 
 __all__ = ("SkabenDevice",)
 

@@ -1,8 +1,7 @@
 from assets import serializers
+from assets.models import AudioFile, HackGame, ImageFile, TextFile, UserInput, VideoFile
 from core.views import DynamicAuthMixin
 from rest_framework import viewsets
-
-from assets.models import AudioFile, HackGame, ImageFile, TextFile, VideoFile, UserInput
 
 
 class UserInputViewSet(viewsets.ModelViewSet, DynamicAuthMixin):

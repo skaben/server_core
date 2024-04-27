@@ -1,5 +1,5 @@
-from django.conf import settings
 from alert.service import AlertService
+from django.conf import settings
 from reactions.exceptions import StopReactionPipeline
 
 dispatch = settings.PWR_STATE_DISPATCH_TABLE

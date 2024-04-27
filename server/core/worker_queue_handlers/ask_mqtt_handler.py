@@ -1,10 +1,12 @@
+"""Описывает работу обработчика для ask exchange - входящих MQTT пакетов."""
+
 from typing import Dict, Union
-from kombu import Message
 
 from core.helpers import from_json, get_server_timestamp
-from core.transport.config import SkabenQueue, SkabenPackets, MQConfig
-from core.transport.queue_handlers import BaseHandler
 from core.models.base import DeviceKeepalive
+from core.transport.config import MQConfig, SkabenPackets, SkabenQueue
+from core.worker_queue_handlers.base import BaseHandler
+from kombu import Message
 
 
 class AskHandler(BaseHandler):
@@ -46,11 +48,12 @@ class AskHandler(BaseHandler):
             message.requeue()
             return
 
+        # todo: improve de-dup
         # if the same key has already handled in time interval (default = 10) - ack and do nothing
-        if self.get_locked(routing_key):
-            message.ack()
-            return
-        self.set_locked(routing_key)
+        # if self.get_locked(routing_key):
+        #     message.ack()
+        #     return
+        # self.set_locked(routing_key)
 
         timestamp = 0
         try:

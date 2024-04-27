@@ -1,7 +1,8 @@
-from django.shortcuts import render
-from .forms import CSVUploadForm
 from django.http import HttpResponse
+from django.shortcuts import render
 from peripheral_behavior.models.access import SkabenUser
+
+from .forms import CSVUploadForm
 
 
 def upload_csv_view(request):

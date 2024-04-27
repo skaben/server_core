@@ -1,8 +1,9 @@
 from typing import Dict
-from kombu import Message
-from core.transport.config import SkabenQueue, SkabenPackets, MQConfig
-from core.transport.queue_handlers import BaseHandler
+
 from core.devices import get_device_config
+from core.transport.config import MQConfig, SkabenPackets, SkabenQueue
+from core.worker_queue_handlers.base import BaseHandler
+from kombu import Message
 
 
 class StateUpdateHandler(BaseHandler):

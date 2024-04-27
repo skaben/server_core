@@ -1,5 +1,5 @@
-from django.apps import AppConfig
 from core.transport.config import get_mq_config
+from django.apps import AppConfig
 
 
 class CoreConfig(AppConfig):

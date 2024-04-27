@@ -1,10 +1,9 @@
 from core.views import DynamicAuthMixin
 from peripheral_devices import serializers
+from peripheral_devices.models import LockDevice, TerminalDevice
 from rest_framework import status, viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-
-from peripheral_devices.models import LockDevice, TerminalDevice
 
 
 @api_view(http_method_names=["GET"])

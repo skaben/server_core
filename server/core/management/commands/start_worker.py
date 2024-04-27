@@ -1,12 +1,12 @@
-from django.core.management.base import BaseCommand
-from core.transport.queue_handlers import (
-    BaseHandler,
+from core.transport.config import get_mq_config
+from core.worker_queue_handlers import (
     AskHandler,
+    BaseHandler,
+    ClientUpdateHandler,
     InternalHandler,
     StateUpdateHandler,
-    ClientUpdateHandler,
 )
-from core.transport.config import get_mq_config
+from django.core.management.base import BaseCommand
 
 config = get_mq_config()
 
@@ -29,11 +29,8 @@ class Command(BaseCommand):
         parser.add_argument("handler", type=str, help=f"choose one from {_handlers_help}")
 
     @staticmethod
-    def bind_handler(handler: type(BaseHandler)) -> type(BaseHandler):
-        """Binds handler to queue.
-
-        At this moment we can only bind one handler to one queue
-        """
+    def bind_handler(handler: BaseHandler) -> BaseHandler:
+        """Binds handler to queue."""
         return handler(config, config.queues.get(handler.incoming_mark))
 
     def handle(self, *args, **options):

@@ -1,6 +1,6 @@
-from django.contrib import admin
-from core.admin import base_site
 from alert.models import AlertCounter, AlertState
+from core.admin import base_site
+from django.contrib import admin
 
 
 class AlertStateCustomAdmin(admin.ModelAdmin):

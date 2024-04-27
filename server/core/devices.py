@@ -1,10 +1,10 @@
-from functools import lru_cache
 from collections import namedtuple
+from functools import lru_cache
+from typing import List
 
+from django.conf import settings
 from peripheral_devices import models
 from peripheral_devices import serializers as schema
-from django.conf import settings
-
 
 TOPIC = settings.SKABEN_DEVICE_TOPICS
 FULL_DEVICE_LIST = [
@@ -26,7 +26,11 @@ class DeviceConfig:
         # type, name, topic, model, schema
         self.devices = [self._named(*params) for params in FULL_DEVICE_LIST]
 
-    def topics(self, _type: str | None = None) -> [str]:
+    @staticmethod
+    def get_non_configured():
+        return [settings.SKABEN_SCALE_TOPIC, "box"]
+
+    def topics(self, _type: str | None = None) -> List[str]:
         if not _type:
             return [device.topic for device in self.devices]
         else:

@@ -3,8 +3,8 @@ Django settings for SKABEN project
 """
 
 import os
-
 from collections import namedtuple
+
 from django.core.management.utils import get_random_secret_key
 
 # основные настройки проекта
@@ -52,6 +52,7 @@ CORS_ORIGIN_WHITELIST = [
 # APPLICATIONS
 
 INSTALLED_APPS = [
+    "drf_spectacular",
     "corsheaders",
     "django.contrib.admin",
     "django.contrib.auth",
@@ -101,7 +102,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "core.wsgi.application"
+WSGI_APPLICATION = "wsgi.application"
 
 DATABASES = {
     "default": {
@@ -158,7 +159,15 @@ REST_FRAMEWORK = {
         "rest_framework.renderers.JSONRenderer",
         "rest_framework.renderers.BrowsableAPIRenderer",
     ),
+    # 'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
+
+# SPECTACULAR_SETTINGS = {
+#     'TITLE': 'SKABEN API',
+#     'DESCRIPTION': 'SKABEN Dungeon API',
+#     'VERSION': '1.0.0',
+#     'SERVE_INCLUDE_SCHEMA': False,
+# }
 
 # LOGGING
 
@@ -199,6 +208,7 @@ RESPONSE_TIMEOUT = {
     "ping": 10,
     "client_update": 30,
 }
+ASK_QUEUE = "ask"
 
 # DEVICE TYPES
 
@@ -210,6 +220,8 @@ SKABEN_DEVICE_TOPICS = {
     "lock": ("lock", "smart"),
     "terminal": ("terminal", "smart"),
 }
+
+SKABEN_SCALE_TOPIC = "scl"
 
 # INGAME SETTINGS
 

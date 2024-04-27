@@ -63,6 +63,10 @@ class AlertCounterViewSet(
 
     @action(detail=False)
     def get_latest(self, *args, **kwargs):
-        latest = AlertCounter.objects.latest("id")
+        try:
+            latest = AlertCounter.objects.latest("id")
+        except AlertCounter.DoesNotExist:
+            latest = AlertCounter.objects.create_initial()
+
         serializer = self.get_serializer(latest)
         return Response(serializer.data)

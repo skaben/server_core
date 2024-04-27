@@ -1,15 +1,15 @@
 import logging
-from typing import Dict, List
 from collections import namedtuple
-from kombu import Message
-from core.transport.queue_handlers import BaseHandler
-from core.transport.publish import get_interface
-from core.transport.config import SkabenQueue, MQConfig
-from core.devices import get_device_config
-from skabenproto import CUP
-from core.helpers import get_server_timestamp
+from typing import Dict, List
 
+from core.devices import get_device_config
+from core.helpers import get_server_timestamp
+from core.transport.config import MQConfig, SkabenQueue
+from core.transport.publish import get_interface
+from core.worker_queue_handlers.base import BaseHandler
+from kombu import Message
 from peripheral_behavior.helpers import get_passive_config
+from skabenproto import CUP
 
 
 class ClientUpdateHandler(BaseHandler):
@@ -55,9 +55,10 @@ class ClientUpdateHandler(BaseHandler):
         if incoming_mark != self.incoming_mark:
             return message.requeue()
 
+        # todo: improve de-dup
         # device has already been updated
-        if message.headers.get("external") and self.get_locked(routing_key):
-            return message.reject()
+        # if message.headers.get('external') and self.get_locked(routing_key):
+        #     return message.reject()
 
         try:
             if device_type in self.devices.topics("simple"):

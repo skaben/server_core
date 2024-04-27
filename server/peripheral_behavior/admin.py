@@ -1,11 +1,6 @@
-from django.contrib import admin
 from core.admin import base_site
-
-from peripheral_behavior.models import (
-    SkabenUser,
-    AccessCode,
-    Permission,
-)
+from django.contrib import admin
+from peripheral_behavior.models import AccessCode, Permission, SkabenUser
 
 
 class WorkModeAdmin(admin.ModelAdmin):

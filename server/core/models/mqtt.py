@@ -1,7 +1,6 @@
 from core.helpers import get_uuid
-from django.db import models
 from django.conf import settings
-
+from django.db import models
 
 __all__ = (
     "DeviceTopic",

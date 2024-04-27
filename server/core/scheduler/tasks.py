@@ -1,10 +1,8 @@
-from django.conf import settings
+from alert.service import AlertService
 from asgiref.sync import sync_to_async
-
-from skabenproto import PING
-from server.core.helpers import get_server_timestamp
-from server.core.transport.publish import get_interface
-from server.alert.service import AlertService
+from core.transport.packets import PING
+from core.transport.publish import get_interface
+from django.conf import settings
 
 
 class Task:
@@ -42,12 +40,8 @@ class PingerTask(Task):
         """
         with get_interface() as publisher:
             for topic in settings.SKABEN_DEVICE_TOPICS.keys():
-                packet = PING(
-                    uid="all",
-                    topic=topic,
-                    timestamp=get_server_timestamp(),
-                )
-                publisher.send_mqtt_skaben(packet)
+                packet = PING(topic=topic)
+                publisher.send_mqtt(packet)
 
     async def run(self) -> None:
         await sync_to_async(self._run)()

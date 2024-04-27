@@ -6,8 +6,11 @@ echo "Waiting for database"
 python manage.py wait_for_db
 python manage.py createcachetable
 
-echo "Collect static files"
+echo "Collecting static files"
 python manage.py collectstatic --noinput --clear
+
+echo "Checking SKABEN integrity"
+python manage.py check_integrity
 
 if [ ${ENVIRONMENT} != 'dev' ]; then
     echo "Apply database migrations"
