@@ -4,16 +4,20 @@ from rest_framework import serializers
 
 
 class AlertStateSerializer(serializers.ModelSerializer):
-    """Global Alert State serializer
-
-    only 'current' field is allowed to be patched
-    """
+    """Global Alert State serializer"""
 
     class Meta:
         model = AlertState
         fields = "__all__"
-        read_only_fields = ("id", "name", "info", "order", "increment")
+        read_only_fields = ("__all__",)
 
+
+class AlertStateSetCurrentSerializer(serializers.ModelSerializer):
+    """Global Alert State serializer"""
+
+    class Meta:
+        model = AlertState
+        fields = ("current",)
 
 class AlertCounterSerializer(serializers.ModelSerializer):
     """Global alert value counter"""
