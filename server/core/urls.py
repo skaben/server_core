@@ -6,7 +6,7 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.urls import include, path
-from events.urls import router as eventlog_router
+from streams.urls import router as stream_router
 from peripheral_devices.urls import router as device_router
 from rest_framework.routers import DefaultRouter
 
@@ -16,7 +16,7 @@ core_router = DefaultRouter()
 routers = [
     alert_router,
     assets_router,
-    eventlog_router,
+    stream_router,
     device_router,
 ]
 

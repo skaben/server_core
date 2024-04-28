@@ -1,12 +1,12 @@
-from events.models import EventRecord
+from streams.models import StreamRecord
 from rest_framework import serializers
 
 
-class EventSerializer(serializers.ModelSerializer):
+class StreamRecordSerializer(serializers.ModelSerializer):
     """Serializer for event objects"""
 
     human_time = serializers.ReadOnlyField()
 
     class Meta:
-        model = EventRecord
+        model = StreamRecord
         exclude = ("uuid",)
