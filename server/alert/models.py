@@ -82,6 +82,9 @@ class AlertStateManager(models.Manager):
     def get_ingame(self):
         return self.get_queryset().filter(ingame=True)
 
+    def get_management_state(self):
+        return self.get_queryset().filter(name='white').get()
+
 
 class AlertState(models.Model):
     """In-game Global Alert State"""

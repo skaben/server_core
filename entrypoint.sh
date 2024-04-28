@@ -9,6 +9,9 @@ python manage.py createcachetable
 echo "Collecting static files"
 python manage.py collectstatic --noinput --clear
 
+echo "Generating OpenAPI schema"
+python manage.py spectacular --color --file schema.yml
+
 echo "Checking SKABEN integrity"
 python manage.py check_integrity
 

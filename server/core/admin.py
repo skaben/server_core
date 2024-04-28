@@ -4,7 +4,7 @@ from core.models.system import System
 from django.contrib import admin
 from django.contrib.auth.models import Group, User
 from django.urls import path
-from events.models import EventRecord
+from streams.models import StreamRecord
 
 
 class BaseSiteAdmin(admin.AdminSite):
@@ -40,4 +40,4 @@ class ControlCommandAdmin(admin.ModelAdmin):
 admin.site.register(ControlReaction, ControlCommandAdmin, site=base_site)
 admin.site.register(System, SystemAdmin, site=base_site)
 admin.site.register(DeviceTopic, SystemAdmin, site=base_site)
-admin.site.register(EventRecord, site=base_site)
+admin.site.register(StreamRecord, site=base_site)

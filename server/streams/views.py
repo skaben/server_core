@@ -1,18 +1,18 @@
 from core.views import DynamicAuthMixin
 from django_filters.rest_framework import DjangoFilterBackend
-from events import serializers
+from streams import serializers
 from rest_framework import filters, viewsets
 
-from .models import EventRecord
+from .models import StreamRecord
 
 
 class EventViewSet(viewsets.ModelViewSet, DynamicAuthMixin):
     """Events in database"""
 
-    queryset = EventRecord.objects.all()
-    serializer_class = serializers.EventSerializer
+    queryset = StreamRecord.objects.all()
+    serializer_class = serializers.StreamRecordSerializer
 
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter]
-    search_fields = ["level", "source", "stream", "message__type"]
-    ordering_fields = ["timestamp"]
+    search_fields = ["level", "source", "stream", "mark"]
+    ordering_fields = ["timestamp", "stream", "source"]
     ordering = ("timestamp",)

@@ -1,6 +1,8 @@
 from typing import Tuple
 
 from django.conf import settings
+
+from alert.models import AlertState
 from peripheral_behavior.models import AccessCode
 from peripheral_devices.models import LockDevice as Lock
 
@@ -32,11 +34,15 @@ def apply_card(data: dict, source: str) -> Tuple[bool, str]:
         if card_len + 1 > len(str(access_code)) < card_len:
             _close_lock(lock, True)
             return False, f"Код не является картой и его нет в базе - {access_code}"
-        instance = AccessCode(code=access_code, name=f"{access_code} from {source}")
-        instance.save()
+        mgmt_state = AlertState.objects.get_management_state()
+        if mgmt_state.current:
+            instance = AccessCode(code=access_code, name=f"{access_code} from {source}")
+            instance.save()
         return False, f"Первая попытка авторизации {instance.code} в {source}"
 
     except Lock.DoesNotExist:
-        new_lock = Lock.objects.create(mac_addr=source)
-        new_lock.save()
-        return False, f"Создано новое устройство типа `Замок` с адресом {source}"
+        mgmt_state = AlertState.objects.get_management_state()
+        if mgmt_state.current:
+            new_lock = Lock.objects.create(mac_addr=source)
+            new_lock.save()
+            return False, f"Создано новое устройство типа `Замок` с адресом {source}"
