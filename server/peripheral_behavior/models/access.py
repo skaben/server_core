@@ -28,6 +28,9 @@ class SkabenUser(models.Model):
         max_length=MAX_USER_LENGTH,
     )
 
+    def __str__(self):
+        return f'User<{self.name}>'
+
 
 class AccessCode(models.Model):
     """User access code."""
