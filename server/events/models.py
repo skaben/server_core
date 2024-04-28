@@ -1,5 +1,6 @@
-from core.helpers import get_time, get_uuid
 from django.db import models
+
+from core.helpers import get_time, get_uuid
 
 
 class EventRecord(models.Model):
