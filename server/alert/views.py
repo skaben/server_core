@@ -6,6 +6,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from .models import AlertCounter, AlertState
+from .service import AlertService
 
 
 class AlertStateViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet, DynamicAuthMixin):
@@ -28,18 +29,10 @@ class AlertStateViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewse
         """Set Alert State as current"""
         try:
             state = self.queryset.get(id=pk)
-            serializer = self.get_serializer_class()(AlertState, data=request.data)
-            if serializer.is_valid():
-                if not serializer.data.get("current"):
-                    return Response(f"state current cannot be unset - only switched to another state")
-                if state.current:
-                    return Response(f"state already set to current")
-                state.current = True
-                state.save()
-                serializer_resp = serializers.AlertStateSerializer(state)
-                return Response(serializer_resp.data)
-            else:
-                return Response(status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+            with AlertService() as service:
+                service.set_state_current(state)
+            serializer_resp = serializers.AlertStateSerializer(state)
+            return Response(serializer_resp.data)
         except AlertState.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
         except:

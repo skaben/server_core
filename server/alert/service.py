@@ -1,4 +1,3 @@
-import logging
 from typing import List, Literal, Optional, Union
 
 from alert.event_types import ALERT_COUNTER, ALERT_STATE
