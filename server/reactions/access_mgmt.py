@@ -15,7 +15,7 @@ def _close_lock(lock: Lock, close: bool):
 def apply_card(data: dict, source: str) -> Tuple[bool, str]:
     """Применяет правила открытия замка ключ-картой или кодом."""
     card_len = settings.ACCESS_CODE_CARD_LEN
-    access_code = data.get("peripherals") # ???
+    access_code = data.get("peripherals")  # ???
 
     try:
         lock = Lock.objects.filter(mac_addr=source).get()
@@ -39,4 +39,4 @@ def apply_card(data: dict, source: str) -> Tuple[bool, str]:
     except Lock.DoesNotExist:
         new_lock = Lock.objects.create(mac_addr=source)
         new_lock.save()
-        return False, f'Создано новое устройство типа `Замок` с адресом {source}'
+        return False, f"Создано новое устройство типа `Замок` с адресом {source}"

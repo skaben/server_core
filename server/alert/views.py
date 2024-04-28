@@ -16,9 +16,9 @@ class AlertStateViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewse
     filterset_fields = ["current"]
 
     def get_serializer_class(self):
-        if self.action == 'list':
+        if self.action == "list":
             return serializers.AlertStateSerializer
-        if self.action == 'set_current':
+        if self.action == "set_current":
             return serializers.AlertStateSetCurrentSerializer
         else:
             return serializers.AlertStateSerializer
@@ -30,7 +30,7 @@ class AlertStateViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewse
             state = self.queryset.get(id=pk)
             serializer = self.get_serializer_class()(AlertState, data=request.data)
             if serializer.is_valid():
-                if not serializer.data.get('current'):
+                if not serializer.data.get("current"):
                     return Response(f"state current cannot be unset - only switched to another state")
                 if state.current:
                     return Response(f"state already set to current")

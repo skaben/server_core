@@ -19,7 +19,7 @@ class SkabenDevice(models.Model):
     description = models.CharField(max_length=128, default="smart complex device")
     timestamp = models.IntegerField(default=get_server_timestamp)
     override = models.BooleanField(default=False)
-    
+
     @property
     def online(self) -> bool:
         return self.timestamp + settings.DEVICE_KEEPALIVE_TIMEOUT < get_server_timestamp()
@@ -47,5 +47,5 @@ class SkabenDevice(models.Model):
                 publisher.publish(
                     body={},
                     exchange=publisher.config.exchanges.get("internal"),
-                    routing_key=format_routing_key(SkabenQueue.CLIENT_UPDATE.value, self.mac_addr, 'all'),
+                    routing_key=format_routing_key(SkabenQueue.CLIENT_UPDATE.value, self.mac_addr, "all"),
                 )

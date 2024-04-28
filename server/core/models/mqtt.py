@@ -9,20 +9,20 @@ __all__ = (
     "ControlReaction",
 )
 
-ALL = 'all'
+ALL = "all"
 SIMPLE = "simple"
 SMART = "smart"
 
 
 class DeviceTopicManager(models.Manager):
-    
+
     _special_topics = [ALL, SIMPLE, SMART]
 
     def get_topics_active(self) -> List[str]:
-        return list(self.get_queryset().filter(active=True).values_list('channel', flat=True))
+        return list(self.get_queryset().filter(active=True).values_list("channel", flat=True))
 
     def get_topics_permitted(self) -> Set[str]:
-        return set(list(self.get_queryset().values_list('channel', flat=True)) + self._special_topics)
+        return set(list(self.get_queryset().values_list("channel", flat=True)) + self._special_topics)
 
     def get_topics_by_type(self, _type: str) -> List[str]:
         permitted = self.get_topics_permitted()
@@ -32,7 +32,7 @@ class DeviceTopicManager(models.Manager):
             qs = self.get_queryset().all()
         else:
             qs = self.get_queryset().filter(type=_type)
-        return list(qs.values_list('channel', flat=True))
+        return list(qs.values_list("channel", flat=True))
 
 
 class DeviceTopic(models.Model):

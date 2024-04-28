@@ -24,23 +24,25 @@ class UpdateDeviceView(APIView):
             if not serializer.is_valid():
                 return Response(serializer.errors, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
-            _topics = serializer.data.get('topics', [])
+            _topics = serializer.data.get("topics", [])
             send_to = _topics[:]
 
             for special in DeviceTopicManager._special_topics:
                 if special in _topics:
                     send_to.extend(DeviceTopic.objects.get_topics_by_type(special))
-            result = set([topic for topic in send_to if topic not in DeviceTopicManager._special_topics])  
+            result = set([topic for topic in send_to if topic not in DeviceTopicManager._special_topics])
             with get_interface() as publisher:
                 for topic in result:
                     publisher.publish(
                         body={},
                         exchange=publisher.config.exchanges.get("internal"),
-                        routing_key=format_routing_key(SkabenQueue.CLIENT_UPDATE.value, topic, 'all'),
+                        routing_key=format_routing_key(SkabenQueue.CLIENT_UPDATE.value, topic, "all"),
                     )
             return Response({"update_requested": _topics, "update_sent": result})
         except Exception as e:
-            return Response({"exception": f"{e} {traceback.format_exc()}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {"exception": f"{e} {traceback.format_exc()}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class LockViewSet(viewsets.ModelViewSet, DynamicAuthMixin):

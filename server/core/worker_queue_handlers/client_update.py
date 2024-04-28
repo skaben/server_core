@@ -64,39 +64,39 @@ class ClientUpdateHandler(BaseHandler):
 
         try:
             if not device_topic in DeviceTopic.objects.get_topics_permitted():
-                logging.error(f'Client update not handled. Uknown device with device type `{device_topic}`')
+                logging.error(f"Client update not handled. Uknown device with device type `{device_topic}`")
                 return message.reject()
 
-            if device_topic in DeviceTopic.objects.get_topics_by_type('simple'):
+            if device_topic in DeviceTopic.objects.get_topics_by_type("simple"):
                 address = device_uid or "all"  # 'all' маркирует броадкастовую рассылку
                 self.dispatch(
                     routing_data=[device_topic, address],
                     data=get_passive_config(device_topic),
                 )
                 return message.ack()
-            
-            if device_topic in DeviceTopic.objects.get_topics_by_type('smart'):
-                if device_uid and device_uid != 'all':
+
+            if device_topic in DeviceTopic.objects.get_topics_by_type("smart"):
+                if device_uid and device_uid != "all":
                     config = self.get_device_config(device_topic, device_uid, body, message)
                     self.dispatch(
                         routing_data=[device_topic, device_uid],
                         data=config,
                     )
 
-                if device_uid == 'all':
+                if device_uid == "all":
                     model = get_model_by_topic(device_topic)
                     serializer = get_serializer_by_topic(device_topic)
                     list_of_devices = model.objects.exclude(override=True)
                     for device in list_of_devices:
                         serialized = serializer(device)
                         if not serialized.is_valid():
-                            logging.error(f'Validation error: cannot send config for {device}')
+                            logging.error(f"Validation error: cannot send config for {device}")
                         self.send_config(
                             routing_data=[device_topic, device.mac_addr],
                             data=serialized.data,
                         )
         except Exception:  # noqa
-            logging.exception('Exception while handling client update.')
+            logging.exception("Exception while handling client update.")
             return message.reject()
 
         if not message.acknowledged:

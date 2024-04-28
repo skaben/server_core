@@ -66,7 +66,7 @@ class BaseHandler(ConsumerProducerMixin):
             data (dict): The message data.
             routing_data (list): The message routing data.
         """
-        exchange = kwargs.get('exchange', self.config.internal_exchange)
+        exchange = kwargs.get("exchange", self.config.internal_exchange)
         publish(
             body=data,
             exchange=exchange,

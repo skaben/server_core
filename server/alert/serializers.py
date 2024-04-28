@@ -19,6 +19,7 @@ class AlertStateSetCurrentSerializer(serializers.ModelSerializer):
         model = AlertState
         fields = ("current",)
 
+
 class AlertCounterSerializer(serializers.ModelSerializer):
     """Global alert value counter"""
 

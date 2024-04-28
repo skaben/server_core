@@ -70,20 +70,16 @@ class InternalHandler(BaseHandler):
         if incoming_mark != self.incoming_mark:
             return message.requeue()
 
-        logging.error(f'routing {incoming_mark} {device_type} {packet_type}')
+        logging.error(f"routing {incoming_mark} {device_type} {packet_type}")
 
         if packet_type == self.keepalive_packet_mark:
             if message.headers.get("timestamp", 0) + settings.DEVICE_KEEPALIVE_TIMEOUT < get_server_timestamp():
-                self.dispatch(
-                    data=body,
-                    routing_data=[self.client_update_queue_mark, device_type, device_uid]
-                )
+                self.dispatch(data=body, routing_data=[self.client_update_queue_mark, device_type, device_uid])
             return message.ack()
 
         if packet_type == self.state_save_packet_mark:
             self.dispatch(
-                data=body["datahold"],
-                routing_data=[self.state_save_queue_mark, device_type, device_uid, packet_type]
+                data=body["datahold"], routing_data=[self.state_save_queue_mark, device_type, device_uid, packet_type]
             )
             return message.ack()
 

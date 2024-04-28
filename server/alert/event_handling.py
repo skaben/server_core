@@ -51,7 +51,7 @@ def _handle_alert_state_event(event: AlertCounterEvent | AlertStateEvent):
             publisher.publish(
                 body={},
                 exchange=publisher.config.exchanges.get("internal"),
-                routing_key=format_routing_key(SkabenQueue.CLIENT_UPDATE.value, topic, 'all'),
+                routing_key=format_routing_key(SkabenQueue.CLIENT_UPDATE.value, topic, "all"),
             )
 
 
@@ -88,11 +88,7 @@ def _handle_alert_counter_event(event: AlertCounterEvent | AlertStateEvent):
             publisher.publish(
                 body={},
                 exchange=publisher.config.exchanges.get("internal"),
-                routing_key=format_routing_key(
-                    SkabenQueue.CLIENT_UPDATE.value,
-                    settings.SKABEN_SCALE_TOPIC,
-                    'all'
-                ),
+                routing_key=format_routing_key(SkabenQueue.CLIENT_UPDATE.value, settings.SKABEN_SCALE_TOPIC, "all"),
             )
 
 

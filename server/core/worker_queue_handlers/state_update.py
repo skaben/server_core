@@ -43,10 +43,10 @@ class StateUpdateHandler(BaseHandler):
             return message.requeue()
 
         if packet_type == SkabenPacketTypes.SUP:
-            if device_topic in DeviceTopic.objects.get_topics_by_type('smart'):
+            if device_topic in DeviceTopic.objects.get_topics_by_type("smart"):
                 model = get_model_by_topic(device_topic)
                 serializer = get_serializer_by_topic(device_topic)
-                
+
                 serialized = serializer(
                     model.objects.get(uid=device_uid), context=self.context, data=body, partial=True
                 )
