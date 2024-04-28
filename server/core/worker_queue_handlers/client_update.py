@@ -1,15 +1,20 @@
-import logging
-from collections import namedtuple
 from typing import Dict, List
 
-from core.devices import get_device_config
+import logging
+
+from kombu import Message
+from rest_framework.serializers import ModelSerializer
+
 from core.helpers import get_server_timestamp
+from core.models import DeviceTopic
+from core.transport.topics import get_topics
 from core.transport.config import MQConfig, SkabenQueue
 from core.transport.publish import get_interface
 from core.worker_queue_handlers.base import BaseHandler
-from kombu import Message
 from peripheral_behavior.helpers import get_passive_config
-from skabenproto import CUP
+from peripheral_devices.models import SkabenDevice
+from peripheral_devices.models.helpers import get_model_by_topic, get_serializer_by_topic
+from core.transport.packets import CUP
 
 
 class ClientUpdateHandler(BaseHandler):
@@ -32,8 +37,7 @@ class ClientUpdateHandler(BaseHandler):
             queues (dict): The queues for the handler.
         """
         super().__init__(config, queues)
-        self.devices = get_device_config()
-        self.ext_publisher = get_interface()
+        self.all_topics = get_topics()
 
     def handle_message(self, body: Dict, message: Message) -> None:
         """
@@ -46,7 +50,7 @@ class ClientUpdateHandler(BaseHandler):
         routing_key = message.delivery_info.get("routing_key")
         routing_data = routing_key.split(".")
         incoming_mark = routing_data[0]
-        device_type = routing_data[1]
+        device_topic = routing_data[1]
         device_uid = None
 
         if len(routing_data) > 2:
@@ -55,59 +59,81 @@ class ClientUpdateHandler(BaseHandler):
         if incoming_mark != self.incoming_mark:
             return message.requeue()
 
-        # todo: improve de-dup
-        # device has already been updated
-        # if message.headers.get('external') and self.get_locked(routing_key):
-        #     return message.reject()
+        if device_topic not in DeviceTopic.objects.get_topics_active():
+            return message.ack()
 
         try:
-            if device_type in self.devices.topics("simple"):
-                current_config = get_passive_config(device_type)
+            if not device_topic in DeviceTopic.objects.get_topics_permitted():
+                logging.error(f'Client update not handled. Uknown device with device type `{device_topic}`')
+                return message.reject()
+
+            if device_topic in DeviceTopic.objects.get_topics_by_type('simple'):
                 address = device_uid or "all"  # 'all' маркирует броадкастовую рассылку
-                self.dispatch(current_config, [device_type, address])
+                self.dispatch(
+                    routing_data=[device_topic, address],
+                    data=get_passive_config(device_topic),
+                )
                 return message.ack()
+            
+            if device_topic in DeviceTopic.objects.get_topics_by_type('smart'):
+                if device_uid and device_uid != 'all':
+                    config = self.get_device_config(device_topic, device_uid, body, message)
+                    self.dispatch(
+                        routing_data=[device_topic, device_uid],
+                        data=config,
+                    )
 
-            device = self.devices.get_by_topic(device_type)
-            if device_uid:
-                self.send_config(device, device_uid, body, message)
-            else:
-                list_of_devices = device.model.objects.exclude(override=True).values_list("mac_addr", flat=True)
-                mac_addr_list = list(list_of_devices)
-                for mac in mac_addr_list:
-                    self.send_config(device, mac, body, message)
-
+                if device_uid == 'all':
+                    model = get_model_by_topic(device_topic)
+                    serializer = get_serializer_by_topic(device_topic)
+                    list_of_devices = model.objects.exclude(override=True)
+                    for device in list_of_devices:
+                        serialized = serializer(device)
+                        if not serialized.is_valid():
+                            logging.error(f'Validation error: cannot send config for {device}')
+                        self.send_config(
+                            routing_data=[device_topic, device.mac_addr],
+                            data=serialized.data,
+                        )
         except Exception:  # noqa
+            logging.exception('Exception while handling client update.')
             return message.reject()
-        message.ack()
 
-    def send_config(self, device: namedtuple, device_uid: str, body: dict, message: Message):
+        if not message.acknowledged:
+            return message.ack()
+
+    def get_device_config(self, device_topic, device_uid: str, body: dict, message: Message):
+        model = get_model_by_topic(device_topic)
+        serializer = get_serializer_by_topic(device_topic)
         try:
-            instance_data = self.get_instance_data(device, device_uid)
+            instance_data = self.get_instance_data(model, serializer, device_uid)
             if instance_data.get("override"):
                 logging.warning(f"device {device_uid} is under override policy. skipping update")
                 return
 
             if message.headers.get("force_update") or instance_data.get("hash", 0) != body.get("hash", 1):
-                self.dispatch(
-                    instance_data,
-                    [device.topic, device_uid],
-                )
-        except device.model.DoesNotExist:
+                return instance_data
+        except model.DoesNotExist:
             # todo: operation of new device approval is not implemented yet
-            logging.error(f"device of type {device.topic} with MAC {device_uid} not found in DB")
-            raise
+            logging.error(f"device of type {device_topic} with MAC {device_uid} not found in DB")
 
-    def dispatch(self, data: Dict, routing_data: List[str], **kwargs) -> None:
+    def dispatch(self, data, routing_data: List[str], **kwargs) -> None:
         """Dispatches message to external MQTT."""
         if data:
-            [device_type, device_uid] = routing_data
             packet = CUP(
-                topic=device_type, uid=device_uid, task_id="n/a", datahold=data, timestamp=get_server_timestamp()
+                topic=routing_data[0],
+                uid=routing_data[1],
+                datahold=data,
+                timestamp=get_server_timestamp(),
             )
-            self.ext_publisher.send_mqtt_skaben(packet)
+            if routing_data[0] in DeviceTopic.objects.get_topics_by_type("smart") and data.get("hash"):
+                packet.config_hash = data["hash"]
+
+            with get_interface() as publisher:
+                publisher.send_mqtt(packet)
 
     @staticmethod
-    def get_instance_data(device: namedtuple, mac_id: str) -> Dict:
+    def get_instance_data(model: SkabenDevice, serializer: ModelSerializer, mac_id: str) -> Dict:
         """
         Returns instance data as a dictionary.
 
@@ -118,6 +144,6 @@ class ClientUpdateHandler(BaseHandler):
         Returns:
             dict: The instance data as a dictionary.
         """
-        instance = device.model.objects.get(mac_addr=mac_id)
-        serializer = device.serializer(instance=instance)
+        instance = model.objects.get(mac_addr=mac_id)
+        serializer = serializer(instance=instance)
         return serializer.data

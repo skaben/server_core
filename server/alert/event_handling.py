@@ -1,3 +1,5 @@
+from django.conf import settings
+
 from alert.event_types import (
     ALERT_COUNTER,
     ALERT_STATE,
@@ -6,11 +8,10 @@ from alert.event_types import (
     AlertStateEvent,
 )
 from alert.service import AlertService
-from core.devices import get_device_config
 from core.helpers import format_routing_key
-from core.transport.packets import SkabenPacketTypes
+from core.transport.config import SkabenQueue
 from core.transport.publish import get_interface
-from django.conf import settings
+from core.models.mqtt import DeviceTopic
 
 
 def _handle_alert_state_event(event: AlertCounterEvent | AlertStateEvent):
@@ -45,13 +46,12 @@ def _handle_alert_state_event(event: AlertCounterEvent | AlertStateEvent):
 
     # обновление конфигурации устройств при смене уровня тревоги
     # принудительно посылается CUP запрос, в ответ на который сервер пошлет конфигурации
-    devices = get_device_config()
-    for topic in devices.topics():
+    for topic in DeviceTopic.objects.get_topics_active():
         with get_interface() as publisher:
             publisher.publish(
                 body={},
                 exchange=publisher.config.exchanges.get("internal"),
-                routing_key=format_routing_key(SkabenPacketTypes.CUP, topic),
+                routing_key=format_routing_key(SkabenQueue.CLIENT_UPDATE.value, topic, 'all'),
             )
 
 
@@ -88,7 +88,11 @@ def _handle_alert_counter_event(event: AlertCounterEvent | AlertStateEvent):
             publisher.publish(
                 body={},
                 exchange=publisher.config.exchanges.get("internal"),
-                routing_key=format_routing_key(SkabenPacketTypes.CUP, settings.SKABEN_SCALE_TOPIC),
+                routing_key=format_routing_key(
+                    SkabenQueue.CLIENT_UPDATE.value,
+                    settings.SKABEN_SCALE_TOPIC,
+                    'all'
+                ),
             )
 
 

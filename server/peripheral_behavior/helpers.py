@@ -2,17 +2,19 @@ import logging
 
 from alert.service import AlertService
 from django.conf import settings
+from core.transport.topics import get_topics
 from peripheral_behavior.models.passive import PassiveConfig
 
 
 def get_passive_config(device_type: str) -> dict:
     config = {}
+    topics = get_topics()
     with AlertService() as service:
         current = service.get_state_current()
         if not current:
             return config
         try:
-            if device_type == settings.SKABEN_SCALE_TOPIC:  # cоздаем конфиг для шкал
+            if device_type == topics.scale_topic:  # cоздаем конфиг для шкал
                 counter = service.get_last_counter()
                 config = {
                     "level": counter,

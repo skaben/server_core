@@ -28,14 +28,22 @@ class AlertStateViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewse
         """Set Alert State as current"""
         try:
             state = self.queryset.get(id=pk)
-            if state.current:
-                return Response(f"state already set to current", status=status.HTTP_200_OK)
-            state.current = True
-            state.save()
-            serializer = serializers.AlertStateSerializer(state)
-            return Response(serializer.data)
+            serializer = self.get_serializer_class()(AlertState, data=request.data)
+            if serializer.is_valid():
+                if not serializer.data.get('current'):
+                    return Response(f"state current cannot be unset - only switched to another state")
+                if state.current:
+                    return Response(f"state already set to current")
+                state.current = True
+                state.save()
+                serializer_resp = serializers.AlertStateSerializer(state)
+                return Response(serializer_resp.data)
+            else:
+                return Response(status=status.HTTP_422_UNPROCESSABLE_ENTITY)
         except AlertState.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
+        except:
+            return Response(status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
 
 class AlertCounterViewSet(

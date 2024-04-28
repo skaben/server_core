@@ -1,3 +1,5 @@
+from typing import List, Set
+
 from core.helpers import get_uuid
 from django.conf import settings
 from django.db import models
@@ -7,11 +9,35 @@ __all__ = (
     "ControlReaction",
 )
 
+ALL = 'all'
 SIMPLE = "simple"
 SMART = "smart"
 
 
+class DeviceTopicManager(models.Manager):
+    
+    _special_topics = [ALL, SIMPLE, SMART]
+
+    def get_topics_active(self) -> List[str]:
+        return list(self.get_queryset().filter(active=True).values_list('channel', flat=True))
+
+    def get_topics_permitted(self) -> Set[str]:
+        return set(list(self.get_queryset().values_list('channel', flat=True)) + self._special_topics)
+
+    def get_topics_by_type(self, _type: str) -> List[str]:
+        permitted = self.get_topics_permitted()
+        if _type not in permitted:
+            ValueError(f"Invalid device type. Choose from {list(permitted)}.")
+        if _type == ALL:
+            qs = self.get_queryset().all()
+        else:
+            qs = self.get_queryset().filter(type=_type)
+        return list(qs.values_list('channel', flat=True))
+
+
 class DeviceTopic(models.Model):
+
+    objects = DeviceTopicManager()
 
     class Meta:
         verbose_name = "MQTT устройство"

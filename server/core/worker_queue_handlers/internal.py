@@ -4,31 +4,31 @@ from typing import Dict, List
 import settings
 from alert.event_handling import handle as alert_handle
 from core.helpers import get_server_timestamp
-from core.transport.config import MQConfig, SkabenPackets, SkabenQueue
+from core.transport.config import MQConfig, SkabenQueue
+from core.transport.packets import SkabenPacketTypes
 from core.worker_queue_handlers.base import BaseHandler
 from django.db import models
 from kombu import Message
 from reactions import queue_events as reaction_events
 
+# TODO: разделить сущность на роутер и обработчика событий.
+# в текущей реализации нарушается принцип single responsibility
+
 
 class InternalHandler(BaseHandler):
-    """
-    Handler for incoming internal messages.
-
-    Attributes:
-        info_mark (str): The state mutate message mark.
-        incoming_mark (str): The incoming message mark.
-        keepalive_mark (str): The keepalive message mark.
-        state_save_mark (str): The state save message mark.
-        client_update_mark (str): The client update message mark.
-    """
+    """Обработчик внутренней очереди."""
 
     name: str = "main_internal"
-    info_mark: str = SkabenPackets.INFO.value
+
     incoming_mark: str = SkabenQueue.INTERNAL.value
-    keepalive_mark: str = SkabenPackets.PONG.value
-    state_save_mark: str = SkabenPackets.SAVE.value
-    client_update_mark: str = SkabenPackets.CLIENT.value
+
+    state_save_queue_mark: str = SkabenQueue.STATE_UPDATE.value
+    client_update_queue_mark: str = SkabenQueue.CLIENT_UPDATE.value
+
+    state_save_packet_mark: str = SkabenPacketTypes.SUP
+    client_update_packet_mark: str = SkabenPacketTypes.CUP
+    info_packet_mark: str = SkabenPacketTypes.INFO
+    keepalive_packet_mark: str = SkabenPacketTypes.PONG
 
     def __init__(self, config: MQConfig, queues: Dict[str, str]):
         """
@@ -70,25 +70,38 @@ class InternalHandler(BaseHandler):
         if incoming_mark != self.incoming_mark:
             return message.requeue()
 
-        if packet_type == self.keepalive_mark:
+        logging.error(f'routing {incoming_mark} {device_type} {packet_type}')
+
+        if packet_type == self.keepalive_packet_mark:
             if message.headers.get("timestamp", 0) + settings.DEVICE_KEEPALIVE_TIMEOUT < get_server_timestamp():
-                self.dispatch(body, [SkabenQueue.CLIENT_UPDATE.value, device_type, device_uuid])
-        elif packet_type == self.state_save_mark:
-            self.dispatch(body["datahold"], [SkabenQueue.STATE_UPDATE.value, device_type, device_uuid, packet_type])
-        elif packet_type == self.client_update_mark:
+                self.dispatch(
+                    data=body,
+                    routing_data=[self.client_update_queue_mark, device_type, device_uuid]
+                )
+            return message.ack()
+
+        if packet_type == self.state_save_packet_mark:
             self.dispatch(
-                body,
-                [SkabenQueue.CLIENT_UPDATE.value, device_type, device_uuid],
-                headers={"external": True},
+                data=body["datahold"],
+                routing_data=[self.state_save_queue_mark, device_type, device_uuid, packet_type]
             )
-        elif packet_type == self.info_mark:
+            return message.ack()
+
+        if packet_type == self.client_update_packet_mark:
+            self.dispatch(
+                data=body,
+                routing_data=[self.client_update_queue_mark, device_type, device_uuid],
+            )
+            return message.ack()
+            
+        if packet_type == self.info_packet_mark:
             body["datahold"].update(
                 {
                     "device_type": device_type,
                     "device_uuid": device_uuid,
                 }
             )
-            self.handle_event("device", body["datahold"])
+            self.handle_event({"event_type": "info"}, body["datahold"])
         else:
             return message.reject()
 

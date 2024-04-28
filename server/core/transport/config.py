@@ -28,17 +28,9 @@ def acquire_pool(func):
     return wrapper
 
 
-class SkabenPackets(Enum):
-    ASK = "ask"
-    CLIENT = "cup"
-    SAVE = "sup"
-    INFO = "info"
-    PING = "ping"
-    PONG = "pong"
-
-
 class SkabenQueue(Enum):
 
+    ASK = "ask" # incoming mqtt packets
     STATE_UPDATE = "state_update"  # update configuration server-side
     CLIENT_UPDATE = "client_update"  # update configuration client-side
     INTERNAL = "internal"  # marking as internal event

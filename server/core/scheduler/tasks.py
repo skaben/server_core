@@ -1,8 +1,8 @@
 from alert.service import AlertService
 from asgiref.sync import sync_to_async
+from core.models.mqtt import DeviceTopic
 from core.transport.packets import PING
 from core.transport.publish import get_interface
-from django.conf import settings
 
 
 class Task:
@@ -39,7 +39,7 @@ class PingerTask(Task):
         Runs the pinger task by sending PING packets for each topic.
         """
         with get_interface() as publisher:
-            for topic in settings.SKABEN_DEVICE_TOPICS.keys():
+            for topic in DeviceTopic.objects.get_topics_active():
                 packet = PING(topic=topic)
                 publisher.send_mqtt(packet)
 

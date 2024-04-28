@@ -1,9 +1,9 @@
-from django.conf import settings
 from django.db import models
+from core.transport.topics import get_topics
 
 __all__ = ("PassiveConfig",)
 
-SIMPLE_DEVICES = [[key, val[0]] for key, val in settings.SKABEN_DEVICE_TOPICS.items() if val[1] == "simple"]
+SIMPLE_DEVICES = [(val, val) for val in get_topics().simple]
 
 
 class PassiveConfig(models.Model):
