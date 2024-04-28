@@ -43,7 +43,7 @@ class AskHandler(BaseHandler):
             message (Message): The message instance.
         """
         routing_key = message.delivery_info.get("routing_key")
-        [routing_type, device_type, device_uuid, packet_type] = routing_key.split(".")
+        [routing_type, device_type, device_uid, packet_type] = routing_key.split(".")
 
         if routing_type != self.incoming_mark:
             message.requeue()
@@ -62,11 +62,11 @@ class AskHandler(BaseHandler):
             if packet_type in self.datahold_packet_mark:
                 payload_data.update(self.parse_datahold(payload_data))
             try:
-                timestamp = self.save_timestamp(device_uuid, get_server_timestamp())
+                timestamp = self.save_timestamp(device_uid, get_server_timestamp())
             except DeviceKeepalive.DoesNotExist:
                 self.dispatch(
                     {"message": "new device active"},
-                    [self.outgoing_mark, device_type, device_uuid, SkabenPacketTypes.INFO],
+                    [self.outgoing_mark, device_type, device_uid, SkabenPacketTypes.INFO],
                 )
         except Exception as e:
             message.reject()
@@ -75,7 +75,7 @@ class AskHandler(BaseHandler):
         message.ack()
         self.dispatch(
             data=payload_data,
-            routing_data=[self.outgoing_mark, device_type, device_uuid, packet_type],
+            routing_data=[self.outgoing_mark, device_type, device_uid, packet_type],
             headers={"timestamp": timestamp},
         )
 

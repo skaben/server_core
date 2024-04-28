@@ -37,7 +37,7 @@ class StateUpdateHandler(BaseHandler):
             message (Message): The message instance.
         """
         routing_data = message.delivery_info.get("routing_key").split(".")
-        [incoming_mark, device_topic, device_uuid, packet_type] = routing_data
+        [incoming_mark, device_topic, device_uid, packet_type] = routing_data
 
         if incoming_mark != self.incoming_mark:
             return message.requeue()
@@ -48,7 +48,7 @@ class StateUpdateHandler(BaseHandler):
                 serializer = get_serializer_by_topic(device_topic)
                 
                 serialized = serializer(
-                    model.objects.get(uid=device_uuid), context=self.context, data=body, partial=True
+                    model.objects.get(uid=device_uid), context=self.context, data=body, partial=True
                 )
                 if serialized.is_valid():
                     serialized.save()

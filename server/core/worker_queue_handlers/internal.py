@@ -49,10 +49,10 @@ class InternalHandler(BaseHandler):
         """
         try:
             if message.headers and message.headers.get("event_type"):
-                # определяем, что сообщение является внутренним событием
-                # пакеты не обладают заголовком event_type
+                # сообщение является событием внутренней очереди и должно быть обработано
                 self.handle_event(message.headers, body)
             else:
+                # пакеты не обладают заголовком event_type и отправляются в метод-роутер
                 self.route_event(body, message)
         except Exception:  # noqa
             logging.exception(f"while handling internal queue message {message.headers} {message}")
@@ -65,7 +65,7 @@ class InternalHandler(BaseHandler):
             message (Message): Экземпляр сообщения.
         """
         routing_data: List[str] = message.delivery_info.get("routing_key").split(".")
-        [incoming_mark, device_type, device_uuid, packet_type] = routing_data
+        [incoming_mark, device_type, device_uid, packet_type] = routing_data
 
         if incoming_mark != self.incoming_mark:
             return message.requeue()
@@ -76,32 +76,33 @@ class InternalHandler(BaseHandler):
             if message.headers.get("timestamp", 0) + settings.DEVICE_KEEPALIVE_TIMEOUT < get_server_timestamp():
                 self.dispatch(
                     data=body,
-                    routing_data=[self.client_update_queue_mark, device_type, device_uuid]
+                    routing_data=[self.client_update_queue_mark, device_type, device_uid]
                 )
             return message.ack()
 
         if packet_type == self.state_save_packet_mark:
             self.dispatch(
                 data=body["datahold"],
-                routing_data=[self.state_save_queue_mark, device_type, device_uuid, packet_type]
+                routing_data=[self.state_save_queue_mark, device_type, device_uid, packet_type]
             )
             return message.ack()
 
         if packet_type == self.client_update_packet_mark:
             self.dispatch(
                 data=body,
-                routing_data=[self.client_update_queue_mark, device_type, device_uuid],
+                routing_data=[self.client_update_queue_mark, device_type, device_uid],
             )
             return message.ack()
-            
+
+        # INFO-пакеты не переадресуются и обрабатываются здесь.
         if packet_type == self.info_packet_mark:
-            body["datahold"].update(
-                {
-                    "device_type": device_type,
-                    "device_uuid": device_uuid,
-                }
-            )
-            self.handle_event({"event_type": "info"}, body["datahold"])
+            # происходит конвертация INFO пакета в событие внутренней очереди.
+            headers = {
+                "event_type": "device",
+                "device_type": device_type,
+                "device_uid": device_uid,
+            }
+            self.handle_event(headers, body["datahold"])
         else:
             return message.reject()
 
@@ -119,7 +120,7 @@ class InternalHandler(BaseHandler):
         """
         alert_handle(event_headers, event_data)
         # применение механики игры через пайплайн
-        # reaction_events.handle(event_type, event_data)
+        reaction_events.handle(event_headers, event_data)
 
     @staticmethod
     def get_instance(model: models.Model, uid: str):
