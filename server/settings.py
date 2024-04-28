@@ -210,19 +210,6 @@ RESPONSE_TIMEOUT = {
 }
 ASK_QUEUE = "ask"
 
-# DEVICE TYPES
-
-SKABEN_DEVICE_TOPICS = {
-    "rgb": ("rgb", "simple"),
-    "scl": ("scl", "simple"),
-    "pwr": ("pwr", "simple"),
-    "box": ("box", "simple"),
-    "lock": ("lock", "smart"),
-    "terminal": ("terminal", "smart"),
-}
-
-SKABEN_SCALE_TOPIC = "scl"
-
 # INGAME SETTINGS
 
 ACCESS_CARD_CODE_LEN = 6

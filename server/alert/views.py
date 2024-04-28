@@ -1,6 +1,5 @@
 from alert import serializers
 from core.views import DynamicAuthMixin
-from django.core.exceptions import ObjectDoesNotExist
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
@@ -10,45 +9,41 @@ from .models import AlertCounter, AlertState
 
 
 class AlertStateViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet, DynamicAuthMixin):
-    """Global alert state viewset
-
-    warn: only partial_update is allowed - see readonly field in serializer
-    """
+    """Global alert state viewset"""
 
     queryset = AlertState.objects.all()
-    serializer_class = serializers.AlertStateSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ["current"]
 
-    def _set_current(self, state):
-        # calling update, passing instance
-        update_data = {"current": True}
-        serializer = serializers.AlertStateSerializer(instance=state, data=update_data)
-        if serializer.is_valid():
-            serializer.update(state, update_data)
-            return Response("state successfully updated", status=status.HTTP_200_OK)
+    def get_serializer_class(self):
+        if self.action == "list":
+            return serializers.AlertStateSerializer
+        if self.action == "set_current":
+            return serializers.AlertStateSetCurrentSerializer
         else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return serializers.AlertStateSerializer
 
-    @action(detail=False, methods=["post"])
-    def set_current_by_name(self, request):
-        try:
-            name = request.data.get("name")
-            if not name:
-                raise ObjectDoesNotExist
-            state = AlertState.objects.filter(name=name).first()
-            return self._set_current(state)
-        except ObjectDoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-    @action(detail=True, methods=["get"])
+    @action(detail=True, methods=["post"])
     def set_current(self, request, pk=None):
         """Set Alert State as current"""
         try:
             state = self.queryset.get(id=pk)
-            return self._set_current(state)
-        except ObjectDoesNotExist:
+            serializer = self.get_serializer_class()(AlertState, data=request.data)
+            if serializer.is_valid():
+                if not serializer.data.get("current"):
+                    return Response(f"state current cannot be unset - only switched to another state")
+                if state.current:
+                    return Response(f"state already set to current")
+                state.current = True
+                state.save()
+                serializer_resp = serializers.AlertStateSerializer(state)
+                return Response(serializer_resp.data)
+            else:
+                return Response(status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+        except AlertState.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
+        except:
+            return Response(status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
 
 class AlertCounterViewSet(

@@ -8,4 +8,7 @@ router = SimpleRouter()
 router.register("lock", views.LockViewSet)
 router.register("terminal", views.TerminalViewSet)
 
-urlpatterns = [path("", include(router.urls)), path("update/", views.update_devices), path("save/", views.save_device)]
+urlpatterns = [
+    path("", include(router.urls)),
+    path("update/", views.UpdateDeviceView.as_view(), name="update-device"),
+]

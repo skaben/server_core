@@ -1,5 +1,7 @@
 from alert.models import AlertState
-from core.helpers import get_server_timestamp
+from core.helpers import get_server_timestamp, format_routing_key, format_mac_address
+from core.transport.config import SkabenQueue
+from core.transport.publish import get_interface
 from django.conf import settings
 from django.db import models
 
@@ -30,3 +32,20 @@ class SkabenDevice(models.Model):
     @property
     def topic(self):
         return NotImplementedError
+
+    def save(self, *args, **kwargs):
+        """Сохранение, отправляющее конфиг устройству, если передан параметр send_update=True."""
+        send_update = False
+
+        if kwargs.get("send_update"):
+            send_update = kwargs.pop("send_update")
+
+        super().save(*args, **kwargs)
+
+        if send_update:
+            with get_interface() as publisher:
+                publisher.publish(
+                    body={},
+                    exchange=publisher.config.exchanges.get("internal"),
+                    routing_key=format_routing_key(SkabenQueue.CLIENT_UPDATE.value, self.mac_addr, "all"),
+                )

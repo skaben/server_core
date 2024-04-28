@@ -19,7 +19,7 @@ class AlertService:
         self.min_alert_value = 1
         self.init_by = init_by
 
-    def get_state_by_alert(self, alert_value: int):
+    def get_state_by_alert(self, alert_value: int) -> Optional[AlertState]:
         """Получает статус тревоги по значению счетчика тревоги"""
         if alert_value < 0:
             return

@@ -1,9 +1,12 @@
 from typing import Dict
 
-from core.devices import get_device_config
-from core.transport.config import MQConfig, SkabenPackets, SkabenQueue
-from core.worker_queue_handlers.base import BaseHandler
 from kombu import Message
+
+from core.models.mqtt import DeviceTopic
+from core.transport.config import MQConfig, SkabenQueue
+from core.transport.packets import SkabenPacketTypes
+from core.worker_queue_handlers.base import BaseHandler
+from peripheral_devices.models.helpers import get_model_by_topic, get_serializer_by_topic
 
 
 class StateUpdateHandler(BaseHandler):
@@ -34,24 +37,23 @@ class StateUpdateHandler(BaseHandler):
             message (Message): The message instance.
         """
         routing_data = message.delivery_info.get("routing_key").split(".")
-        [incoming_mark, device_type, device_uuid, packet_type] = routing_data
+        [incoming_mark, device_topic, device_uid, packet_type] = routing_data
 
         if incoming_mark != self.incoming_mark:
             return message.requeue()
 
-        if packet_type == SkabenPackets.SAVE.value:
-            device_conf = get_device_config()
-            device = device_conf.get_by_topic(device_type)
-            if device.type == "simple":
-                message.ack()
-                return
+        if packet_type == SkabenPacketTypes.SUP:
+            if device_topic in DeviceTopic.objects.get_topics_by_type("smart"):
+                model = get_model_by_topic(device_topic)
+                serializer = get_serializer_by_topic(device_topic)
 
-            serialized = device.schema(
-                device.model.objects.get(uid=device_uuid), context=self.context, data=body, partial=True
-            )
-            if serialized.is_valid():
-                serialized.save()
-            else:
-                return message.reject()
+                serialized = serializer(
+                    model.objects.get(uid=device_uid), context=self.context, data=body, partial=True
+                )
+                if serialized.is_valid():
+                    serialized.save()
+                else:
+                    return message.reject()
 
-        message.ack()
+        if not message.acknowledged:
+            message.ack()

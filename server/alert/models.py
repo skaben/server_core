@@ -5,7 +5,6 @@ from alert.event_types import (
     ALERT_COUNTER,
     ALERT_STATE,
     AlertCounterEvent,
-    AlertEventTypes,
     AlertStateEvent,
 )
 from core.transport.publish import get_interface
@@ -24,6 +23,12 @@ class AlertCounterManager(models.Manager):
         )
         initial_counter.save(context="no_send")
         return initial_counter
+
+    def get_latest(self):
+        latest = self.get_queryset().latest("id")
+        if not latest:
+            latest = self.create_initial()
+        return latest
 
 
 class AlertCounter(models.Model):
@@ -70,6 +75,12 @@ class AlertCounter(models.Model):
 
     def __str__(self):
         return f"{self.value} {self.comment} at {self.timestamp}"
+
+
+class AlertStateManager(models.Manager):
+
+    def get_ingame(self):
+        return self.get_queryset().filter(ingame=True)
 
 
 class AlertState(models.Model):

@@ -2,9 +2,11 @@ import logging
 from datetime import timedelta
 from typing import Dict, List
 
+from core.helpers import format_routing_key
 from core.transport.config import MQConfig, get_connection
 from core.transport.publish import publish
 from django.conf import settings
+
 from kombu import Message
 from kombu.mixins import ConsumerProducerMixin
 from redis_pool import get_redis_client
@@ -56,7 +58,7 @@ class BaseHandler(ConsumerProducerMixin):
         """
         raise NotImplementedError
 
-    def dispatch(self, data: Dict, routing_data: List[str], **kwargs) -> None:
+    def dispatch(self, data, routing_data: List[str], **kwargs) -> None:
         """
         Dispatches message.
 
@@ -64,14 +66,15 @@ class BaseHandler(ConsumerProducerMixin):
             data (dict): The message data.
             routing_data (list): The message routing data.
         """
+        exchange = kwargs.get("exchange", self.config.internal_exchange)
         publish(
             body=data,
-            exchange=self.config.internal_exchange,
-            routing_key=".".join(routing_data),
+            exchange=exchange,
+            routing_key=format_routing_key(*routing_data),
             **kwargs,
         )
 
-    def set_locked(self, key: str, timeout: int = None):
+    def set_locked(self, key: str, timeout: int = 0):
         """
         Sets a lock for the given key using Redis.
 

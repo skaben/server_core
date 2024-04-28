@@ -4,23 +4,24 @@ from typing import Dict, Union
 
 from core.helpers import from_json, get_server_timestamp
 from core.models.base import DeviceKeepalive
-from core.transport.config import MQConfig, SkabenPackets, SkabenQueue
+from core.transport.config import MQConfig, SkabenQueue
+from core.transport.packets import SkabenPacketTypes
 from core.worker_queue_handlers.base import BaseHandler
 from kombu import Message
 
+# TODO: применить здесь систему SkabenEvent
+
 
 class AskHandler(BaseHandler):
-    """Incoming messages from MQTT terminates here.
-    Providing translation into internal format and passing results to internal queue.
-    """
+    """Конвертирует входящие сообщения из MQTT в сообщения внутренней очереди."""
 
     name: str = "mqtt_bridge_ask_handler"
-    incoming_mark: str = SkabenPackets.ASK.value
+    incoming_mark: str = SkabenQueue.ASK.value
     outgoing_mark: str = SkabenQueue.INTERNAL.value
     datahold_packet_mark: list[str] = [
-        SkabenPackets.INFO.value,
-        SkabenPackets.CLIENT.value,
-        SkabenPackets.SAVE.value,
+        SkabenPacketTypes.INFO,
+        SkabenPacketTypes.CUP,
+        SkabenPacketTypes.SUP,
     ]
 
     def __init__(self, config: MQConfig, queues: Dict[str, str]):
@@ -42,7 +43,7 @@ class AskHandler(BaseHandler):
             message (Message): The message instance.
         """
         routing_key = message.delivery_info.get("routing_key")
-        [routing_type, device_type, device_uuid, packet_type] = routing_key.split(".")
+        [routing_type, device_type, device_uid, packet_type] = routing_key.split(".")
 
         if routing_type != self.incoming_mark:
             message.requeue()
@@ -61,11 +62,11 @@ class AskHandler(BaseHandler):
             if packet_type in self.datahold_packet_mark:
                 payload_data.update(self.parse_datahold(payload_data))
             try:
-                timestamp = self.save_timestamp(device_uuid, get_server_timestamp())
+                timestamp = self.save_timestamp(device_uid, get_server_timestamp())
             except DeviceKeepalive.DoesNotExist:
                 self.dispatch(
                     {"message": "new device active"},
-                    [self.outgoing_mark, device_type, device_uuid, SkabenPackets.INFO.value],
+                    [self.outgoing_mark, device_type, device_uid, SkabenPacketTypes.INFO],
                 )
         except Exception as e:
             message.reject()
@@ -73,8 +74,8 @@ class AskHandler(BaseHandler):
 
         message.ack()
         self.dispatch(
-            payload_data,
-            [self.outgoing_mark, device_type, device_uuid, packet_type],
+            data=payload_data,
+            routing_data=[self.outgoing_mark, device_type, device_uid, packet_type],
             headers={"timestamp": timestamp},
         )
 
@@ -87,7 +88,8 @@ class AskHandler(BaseHandler):
             obj.save()
             return obj.previous
         except DeviceKeepalive.DoesNotExist:
-            DeviceKeepalive.objects.create(previous=timestamp, timestamp=timestamp, mac_addr=mac_addr)
+            obj = DeviceKeepalive.objects.create(previous=timestamp, timestamp=timestamp, mac_addr=mac_addr)
+            return obj.timestamp
 
     @staticmethod
     def parse_datahold(data: Union[str, Dict]) -> Dict:

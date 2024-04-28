@@ -2,13 +2,14 @@ from dataclasses import dataclass
 from typing import Optional
 
 from core.helpers import format_routing_key, get_server_timestamp
-from pydantic import BaseModel, Field, computed_field
+from pydantic import BaseModel, Field, computed_field, field_serializer
 
 
 @dataclass(frozen=True)
 class SkabenPacketTypes:
 
     PING: str = "ping"
+    PONG: str = "pong"
     ACK: str = "ack"
     NACK: str = "nack"
     INFO: str = "info"
@@ -27,7 +28,6 @@ class SkabenPacket(BaseModel):
     topic: str = Field(description="Device type")
     command: str = Field(description="Packet type")
     timestamp: int = Field(default_factory=get_server_timestamp)
-    payload: dict = Field(default_factory=dict)
 
     @computed_field(return_type=str)
     @property
@@ -37,7 +37,7 @@ class SkabenPacket(BaseModel):
 
     def encode(self):
         """Подготавливает содержимое для отправки в очередь MQTT."""
-        return self.model_dump_json(exclude=["topic", "uid", "command"], exclude_unset=True)
+        return self.model_dump_json(exclude=["topic", "uid", "command", "routing_key"], exclude_none=True)
 
 
 class PING(SkabenPacket):
@@ -77,9 +77,8 @@ class DataholdPacket(SkabenPacket):
         task_id: Optional[str] = None,
     ):
         super().__init__(topic=topic, timestamp=timestamp, config_hash=config_hash, uid=uid)
-        self.payload.update(datahold=datahold)  # separate datahold namespace
-        if task_id:
-            self.payload.update(task_id=task_id)
+        self.datahold = datahold
+        self.task_id = task_id
 
 
 class INFO(DataholdPacket):
@@ -109,4 +108,4 @@ class CUP(DataholdPacket):
 
     command: str = SkabenPacketTypes.CUP
     task_id: Optional[str] = None
-    config_hash: Optional[str] = None
+    config_hash: Optional[str] = ""
