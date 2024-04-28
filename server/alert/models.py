@@ -77,6 +77,12 @@ class AlertCounter(models.Model):
         return f"{self.value} {self.comment} at {self.timestamp}"
 
 
+class AlertStateManager(models.Manager):
+
+    def get_ingame(self):
+        return self.get_queryset().filter(ingame=True)
+
+
 class AlertState(models.Model):
     """In-game Global Alert State"""
 

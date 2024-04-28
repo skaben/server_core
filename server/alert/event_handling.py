@@ -105,7 +105,6 @@ def handle(event_headers: dict, event_data: dict):
     event_type = event_headers.get("event_type", "")
     event_class = AlertEventTypes.get_by_type(event_type)
     if not event_class:
-        # todo: proper handling of non-existing event types
         return
 
     _data = event_class.decode(event_headers=event_headers, event_data=event_data)
