@@ -17,7 +17,7 @@ class AlertStateSetCurrentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AlertState
-        fields = ("current",)
+        fields = ()
 
 
 class AlertCounterSerializer(serializers.ModelSerializer):
