@@ -6,6 +6,8 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.urls import include, path
+from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
+
 from streams.urls import router as stream_router
 from peripheral_devices.urls import router as device_router
 from rest_framework.routers import DefaultRouter
@@ -30,6 +32,9 @@ urlpatterns = [
     path("api/auth/login/", login_view, name="login"),
     path("api/device/", include("peripheral_devices.urls")),
     path("healthcheck", health_check, name="healthcheck"),
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 urlpatterns += staticfiles_urlpatterns()

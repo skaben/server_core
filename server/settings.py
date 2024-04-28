@@ -52,7 +52,6 @@ CORS_ORIGIN_WHITELIST = [
 # APPLICATIONS
 
 INSTALLED_APPS = [
-    "drf_spectacular",
     "corsheaders",
     "django.contrib.admin",
     "django.contrib.auth",
@@ -67,10 +66,12 @@ INSTALLED_APPS = [
     "alert",
     "assets",
     "core",
-    "events",
+    "streams",
     "peripheral_devices",
     "peripheral_behavior",
     "admin_extended",
+    "drf_spectacular",
+    "drf_spectacular_sidecar",
 ]
 
 MIDDLEWARE = [
@@ -159,15 +160,15 @@ REST_FRAMEWORK = {
         "rest_framework.renderers.JSONRenderer",
         "rest_framework.renderers.BrowsableAPIRenderer",
     ),
-    # 'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
-# SPECTACULAR_SETTINGS = {
-#     'TITLE': 'SKABEN API',
-#     'DESCRIPTION': 'SKABEN Dungeon API',
-#     'VERSION': '1.0.0',
-#     'SERVE_INCLUDE_SCHEMA': False,
-# }
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'SKABEN API',
+    'DESCRIPTION': 'SKABEN Dungeon API',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+}
 
 # LOGGING
 
@@ -229,7 +230,7 @@ ALERT_COOLDOWN = {
 
 if DEBUG:
     ALLOWED_HOSTS = ["*"]
-    REST_FRAMEWORK = {
+    REST_FRAMEWORK = REST_FRAMEWORK | {
         "DEFAULT_AUTHENTICATION_CLASSES": [],
         "DEFAULT_PERMISSION_CLASSES": [],
         "UNAUTHENTICATED_USER": None,
