@@ -9,6 +9,7 @@ class AlertStateCustomAdmin(admin.ModelAdmin):
     list_display = (
         "current",
         "name",
+        "ingame",
         "info",
         "order",
         "threshold",
@@ -28,6 +29,7 @@ class AlertStateCustomAdmin(admin.ModelAdmin):
                 "fields": (
                     ("name", "current"),
                     ("info", "order"),
+                    "ingame",
                     "threshold",
                 ),
             },

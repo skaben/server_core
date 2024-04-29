@@ -10,21 +10,20 @@ class AlertService:
     states: dict
     state_ranges: dict
     min_alert_value: int
+    max_scale_value: int
     init_by: str
 
-    def __init__(self, init_by: Union[Literal[ALERT_COUNTER], Literal[ALERT_STATE], Literal["external"]] = "external"):
-        self.states = {}
-        self.state_ranges = {}
+    def __init__(self, init_by: Union[Literal[ALERT_COUNTER], Literal[ALERT_STATE], Literal["external"]] = "external"):  # type: ignore
+        self.states = dict(enumerate(self.get_ingame_states()))
+        self.state_ranges = self._calc_alert_ranges()
         self.min_alert_value = 1
         self.init_by = init_by
+        self.max_scale_value = self.max_alert_value * 2
 
     def get_state_by_alert(self, alert_value: int) -> Optional[AlertState]:
         """Получает статус тревоги по значению счетчика тревоги"""
         if alert_value < 0:
             return
-
-        if not self.state_ranges:
-            self.state_ranges = self._calc_alert_ranges()
 
         for index, _range in self.state_ranges.items():
             if alert_value in range(*_range):
@@ -49,8 +48,9 @@ class AlertService:
 
         Таким образом переключаются только ingame статусы.
         """
-        new_state = self.get_state_by_alert(value)
         current_state = self.get_state_current()
+        alert_value = value if value < self.max_scale_value else self.max_alert_value
+        new_state = self.get_state_by_alert(alert_value)
 
         if (
             new_state and new_state != current_state and
@@ -103,12 +103,10 @@ class AlertService:
         """Вычисляет начальные и конечные уровни тревоги для каждого статуса"""
         result = {}
         self.state_ranges = dict()
-        self.states = dict(enumerate(self.get_ingame_states()))
-        max_scale_value = self.max_alert_value + int(round(self.max_alert_value * 0.1))
 
         for index, item in self.states.items():
             nxt = self.states.get(index + 1)
-            nxt_threshold = getattr(nxt, "threshold", max_scale_value)
+            nxt_threshold = getattr(nxt, "threshold", self.max_scale_value)
             result.update({index: [item.threshold, nxt_threshold]})
         return result
 
