@@ -15,7 +15,6 @@ class StateUpdateHandler(BaseHandler):
     """
 
     name: str = "state_update"
-    context: Dict[str, bool] = {"no_send": True}
     incoming_mark: str = SkabenQueue.STATE_UPDATE.value
 
     def __init__(self, config: MQConfig, queues: Dict[str, str]):
@@ -44,11 +43,21 @@ class StateUpdateHandler(BaseHandler):
 
         if packet_type == SkabenPacketTypes.SUP:
             if device_topic in DeviceTopic.objects.get_topics_by_type("smart"):
-                model = get_model_by_topic(device_topic)
-                serializer = get_serializer_by_topic(device_topic)
+                try:
+                    model = get_model_by_topic(device_topic)
+                    serializer = get_serializer_by_topic(device_topic)
+                    instance = model.objects.get(uid=device_uid)
+                except model.DoesNotExist:
+                    # todo: dispatch "device_not_found" event
+                    pass
+                except ValueError:
+                    # todo: dispatch "unknown device" event
+                    pass
 
                 serialized = serializer(
-                    model.objects.get(uid=device_uid), context=self.context, data=body, partial=True
+                    instance,
+                    data=body,
+                    partial=True
                 )
                 if serialized.is_valid():
                     serialized.save()

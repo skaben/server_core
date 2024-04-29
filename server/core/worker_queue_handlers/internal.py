@@ -2,14 +2,16 @@ import logging
 from typing import Dict, List
 
 import settings
-from alert.event_handling import handle as alert_handle
+
+from event_handling.alert.context import AlertEventContext as alert_context
+from event_handling.device.context import DeviceEventContext as device_context
+
 from core.helpers import get_server_timestamp
 from core.transport.config import MQConfig, SkabenQueue
 from core.transport.packets import SkabenPacketTypes
 from core.worker_queue_handlers.base import BaseHandler
 from django.db import models
 from kombu import Message
-from reactions import queue_events as reaction_events
 
 # TODO: разделить сущность на роутер и обработчика событий.
 # в текущей реализации нарушается принцип single responsibility
@@ -57,6 +59,9 @@ class InternalHandler(BaseHandler):
         except Exception:  # noqa
             logging.exception(f"while handling internal queue message {message.headers} {message}")
 
+        if not message.acknowledged:
+            message.ack()
+
     def route_event(self, body: Dict, message: Message) -> None:
         """Перенаправляет события в различные очереди, в зависимости от типа пакета.
 
@@ -95,8 +100,9 @@ class InternalHandler(BaseHandler):
             # происходит конвертация INFO пакета в событие внутренней очереди.
             headers = {
                 "event_type": "device",
+                "event_source": "mqtt",
                 "device_type": device_type,
-                "device_uid": device_uid,
+                "device_uid": device_uid or None,
             }
             self.handle_event(headers, body["datahold"])
         else:
@@ -114,9 +120,10 @@ class InternalHandler(BaseHandler):
             headers (dict): Мета-данные события, включающие тип.
             event_data (dict): Полезная нагрузка события.
         """
-        alert_handle(event_headers, event_data)
-        # применение механики игры через пайплайн
-        reaction_events.handle(event_headers, event_data)
+        with alert_context() as context:
+            context.apply(event_headers, event_data)
+        with device_context() as context:
+            context.apply(event_headers, event_data)
 
     @staticmethod
     def get_instance(model: models.Model, uid: str):

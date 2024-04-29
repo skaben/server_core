@@ -1,6 +1,6 @@
 from typing import List, Literal, Optional, Union
 
-from alert.event_types import ALERT_COUNTER, ALERT_STATE
+from event_handling.alert.types import ALERT_COUNTER, ALERT_STATE
 from alert.models import AlertCounter, AlertState
 
 
@@ -45,12 +45,18 @@ class AlertService:
             self.set_state_current(instance)
 
     def set_state_by_alert(self, value: int):
-        """Устанавливает новое значение уровня тревоги по счетчику."""
-        is_new_state = self.get_state_by_alert(value)
+        """Устанавливает новое значение уровня тревоги по счетчику.
+
+        Таким образом переключаются только ingame статусы.
+        """
+        new_state = self.get_state_by_alert(value)
         current_state = self.get_state_current()
 
-        if is_new_state and is_new_state != current_state:
-            self.set_state_current(is_new_state)
+        if (
+            new_state and new_state != current_state and
+            new_state.ingame and current_state.ingame
+        ):
+            self.set_state_current(new_state)
 
     def change_alert_counter(self, value: int, increase: bool, comment: str | None = ""):
         """Уменьшает или увеличивает счетчик тревоги на значение"""

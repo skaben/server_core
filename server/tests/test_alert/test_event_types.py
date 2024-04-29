@@ -1,16 +1,6 @@
 import pytest
-from alert.event_types import AlertCounterEvent, AlertEventTypes, AlertStateEvent
+from event_handling.alert.types import AlertCounterEvent, AlertStateEvent
 from pydantic import ValidationError
-
-
-def test_alert_event_types_get_by_type():
-    assert AlertEventTypes.get_by_type(AlertEventTypes.ALERT_STATE) == AlertStateEvent
-    assert AlertEventTypes.get_by_type(AlertEventTypes.ALERT_COUNTER) == AlertCounterEvent
-
-
-def test_alert_event_types_invalid_type():
-    missing_type = AlertEventTypes.get_by_type("invalid_type")
-    assert not missing_type
 
 
 def test_alert_state_event_valid():
