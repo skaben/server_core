@@ -1,5 +1,6 @@
 import re
 
+import netaddr
 from core.admin import base_site
 from django import forms
 from django.contrib import admin
@@ -7,21 +8,9 @@ from peripheral_behavior.models import PassiveConfig
 from peripheral_devices.models import LockDevice, TerminalDevice
 
 
-class MacAddressFormField(forms.CharField):
-    def to_python(self, value):
-        cleaned_value = re.sub(r"[^a-zA-Z0-9]", "", value)
-        return cleaned_value
-
-    def prepare_value(self, value):
-        if value:
-            unformatted_mac = value.replace(":", "")
-            return unformatted_mac
-        return value
-
-
 class DeviceAdmin(admin.ModelAdmin):
+
     readonly_fields = ("timestamp", "alert_state")
-    mac_addr = MacAddressFormField(max_length=32)
 
 
 admin.site.register(LockDevice, DeviceAdmin, site=base_site)

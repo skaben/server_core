@@ -1,4 +1,5 @@
 from typing import Literal, Optional
+
 from event_handling.events import SkabenEvent
 
 ALERT_STATE: str = "alert_state"

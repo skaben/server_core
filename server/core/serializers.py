@@ -1,5 +1,5 @@
-from rest_framework import serializers
 from core.models.mqtt import DeviceTopic
+from rest_framework import serializers
 
 __all__ = ["DeviceTopicSerializer"]
 

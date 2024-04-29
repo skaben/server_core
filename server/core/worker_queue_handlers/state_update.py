@@ -1,11 +1,10 @@
 from typing import Dict
 
-from kombu import Message
-
 from core.models.mqtt import DeviceTopic
 from core.transport.config import MQConfig, SkabenQueue
 from core.transport.packets import SkabenPacketTypes
 from core.worker_queue_handlers.base import BaseHandler
+from kombu import Message
 from peripheral_devices.models.helpers import get_model_by_topic, get_serializer_by_topic
 
 
@@ -54,11 +53,7 @@ class StateUpdateHandler(BaseHandler):
                     # todo: dispatch "unknown device" event
                     pass
 
-                serialized = serializer(
-                    instance,
-                    data=body,
-                    partial=True
-                )
+                serialized = serializer(instance, data=body, partial=True)
                 if serialized.is_valid():
                     serialized.save()
                 else:

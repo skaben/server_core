@@ -1,16 +1,16 @@
 import logging
 from typing import Optional
 
+from core.transport.publish import get_interface
+from django.core.exceptions import ValidationError
+from django.db import models
+from django.utils import timezone
 from event_handling.alert.types import (
     ALERT_COUNTER,
     ALERT_STATE,
     AlertCounterEvent,
     AlertStateEvent,
 )
-from core.transport.publish import get_interface
-from django.core.exceptions import ValidationError
-from django.db import models
-from django.utils import timezone
 
 
 class AlertCounterManager(models.Manager):
@@ -83,7 +83,7 @@ class AlertStateManager(models.Manager):
         return self.get_queryset().filter(ingame=True)
 
     def get_management_state(self):
-        return self.get_queryset().filter(name='white').get()
+        return self.get_queryset().filter(name="white").get()
 
 
 class AlertState(models.Model):

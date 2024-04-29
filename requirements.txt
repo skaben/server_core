@@ -33,6 +33,7 @@ kombu==5.3.6
 mccabe==0.7.0
 mypy==0.730
 mypy_extensions==0.4.4
+netaddr==1.2.1
 ordered-set==4.1.0
 packaging==24.0
 pathspec==0.12.1

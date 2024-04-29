@@ -1,23 +1,24 @@
 from typing import Dict
 
-from event_handling.events import SkabenEvent, SkabenEventContext
-from event_handling.alert.types import ALERT_COUNTER, ALERT_STATE, AlertCounterEvent, AlertStateEvent
-
 from alert.service import AlertService
 from core.helpers import format_routing_key
+from core.models.mqtt import DeviceTopic
 from core.transport.config import SkabenQueue
 from core.transport.publish import get_interface
 from core.transport.topics import SkabenTopics
-from core.models.mqtt import DeviceTopic
+from event_handling.alert.types import (
+    ALERT_COUNTER,
+    ALERT_STATE,
+    AlertCounterEvent,
+    AlertStateEvent,
+)
+from event_handling.events import SkabenEvent, SkabenEventContext
 
 
 class AlertEventContext(SkabenEventContext):
     """Обрабатывает события, связанные с изменением счетчика и уровня тревоги."""
 
-    event_types: Dict[str, SkabenEvent] = {
-        ALERT_STATE: AlertStateEvent,
-        ALERT_COUNTER: AlertCounterEvent
-    }
+    event_types: Dict[str, SkabenEvent] = {ALERT_STATE: AlertStateEvent, ALERT_COUNTER: AlertCounterEvent}
 
     def _handle_alert_state_event(self, event: AlertCounterEvent | AlertStateEvent):
         """Обработчик события при сохранении нового состояния тревоги.
@@ -59,7 +60,6 @@ class AlertEventContext(SkabenEventContext):
                     routing_key=format_routing_key(SkabenQueue.CLIENT_UPDATE.value, topic, "all"),
                 )
 
-
     def _handle_alert_counter_event(self, event: AlertCounterEvent | AlertStateEvent):
         """Обработчик события при сохранении нового счетчика тревоги
 
@@ -97,7 +97,6 @@ class AlertEventContext(SkabenEventContext):
                     exchange=publisher.config.exchanges.get("internal"),
                     routing_key=format_routing_key(SkabenQueue.CLIENT_UPDATE.value, SkabenTopics.SCL, "all"),
                 )
-
 
     def apply(self, event_headers: dict, event_data: dict):
         """Корневой обработчик событий, связанных с тревогой.

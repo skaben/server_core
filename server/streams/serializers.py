@@ -1,5 +1,5 @@
-from streams.models import StreamRecord
 from rest_framework import serializers
+from streams.models import StreamRecord
 
 
 class StreamRecordSerializer(serializers.ModelSerializer):

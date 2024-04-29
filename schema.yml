@@ -1714,8 +1714,8 @@ components:
           minimum: -2147483648
           title: 'Порог срабатывания '
           description: Нижнее значение счетчика счетчика тревоги для переключения
-            в статус. Чтобы отключить авто-переключение - выставьте отрицательное
-            значение
+            в статус. Чтобы отключить авто-переключение - выставьте значение ingame
+            = False
         current:
           type: boolean
           title: Сейчас активен
@@ -1866,7 +1866,7 @@ components:
           title: IP-адрес
         mac_addr:
           type: string
-          maxLength: 16
+          maxLength: 12
         description:
           type: string
           maxLength: 128
@@ -1974,7 +1974,7 @@ components:
           title: IP-адрес
         mac_addr:
           type: string
-          maxLength: 16
+          maxLength: 12
         description:
           type: string
           maxLength: 128

@@ -1,5 +1,5 @@
-from django.db import models
 from core.transport.topics import get_topics
+from django.db import models
 
 __all__ = ("PassiveConfig",)
 

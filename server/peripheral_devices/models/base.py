@@ -1,5 +1,6 @@
+import netaddr
 from alert.models import AlertState
-from core.helpers import get_server_timestamp, format_routing_key, format_mac_address
+from core.helpers import format_mac_address, format_routing_key, get_server_timestamp
 from core.transport.config import SkabenQueue
 from core.transport.publish import get_interface
 from django.conf import settings
@@ -15,7 +16,7 @@ class SkabenDevice(models.Model):
         abstract = True
 
     ip = models.GenericIPAddressField(null=True, blank=True, verbose_name="IP-адрес")
-    mac_addr = models.CharField(max_length=16, unique=True)
+    mac_addr = models.CharField(max_length=12, unique=True)
     description = models.CharField(max_length=128, default="smart complex device")
     timestamp = models.IntegerField(default=get_server_timestamp)
     override = models.BooleanField(default=False)
@@ -39,6 +40,13 @@ class SkabenDevice(models.Model):
 
         if kwargs.get("send_update"):
             send_update = kwargs.pop("send_update")
+
+        try:
+            if len(self.mac_addr) < 12:
+                raise ValueError
+            self.mac_addr = str(netaddr.EUI(self.mac_addr, dialect=netaddr.mac_bare)).lower()
+        except (netaddr.AddrFormatError, ValueError):
+            raise ValueError(f"Invalid MAC address format: {self.mac_addr}")
 
         super().save(*args, **kwargs)
 
