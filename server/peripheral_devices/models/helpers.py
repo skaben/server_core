@@ -1,4 +1,4 @@
-from peripheral_devices.models import SkabenDevice, TerminalDevice, LockDevice
+from peripheral_devices.models import LockDevice, SkabenDevice, TerminalDevice
 from peripheral_devices.serializers import LockSerializer, TerminalSerializer
 
 

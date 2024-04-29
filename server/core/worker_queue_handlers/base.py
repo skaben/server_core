@@ -6,7 +6,6 @@ from core.helpers import format_routing_key
 from core.transport.config import MQConfig, get_connection
 from core.transport.publish import publish
 from django.conf import settings
-
 from kombu import Message
 from kombu.mixins import ConsumerProducerMixin
 from redis_pool import get_redis_client

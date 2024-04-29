@@ -1,7 +1,7 @@
 from typing import List, Literal, Optional, Union
 
-from event_handling.alert.types import ALERT_COUNTER, ALERT_STATE
 from alert.models import AlertCounter, AlertState
+from event_handling.alert.types import ALERT_COUNTER, ALERT_STATE
 
 
 class AlertService:
@@ -51,10 +51,7 @@ class AlertService:
         current_state = self.get_state_current()
         new_state = self.get_state_by_alert(alert_value)
 
-        if (
-            new_state and new_state != current_state and
-            new_state.ingame and current_state.ingame
-        ):
+        if new_state and new_state != current_state and new_state.ingame and current_state.ingame:
             self.set_state_current(new_state)
 
     def change_alert_counter(self, value: int, increase: bool, comment: str | None = ""):

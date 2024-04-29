@@ -1,20 +1,18 @@
-from typing import Dict, List
-
 import logging
-
-from kombu import Message
-from rest_framework.serializers import ModelSerializer
+from typing import Dict, List
 
 from core.helpers import get_server_timestamp
 from core.models import DeviceTopic
-from core.transport.topics import get_topics
 from core.transport.config import MQConfig, SkabenQueue
+from core.transport.packets import CUP
 from core.transport.publish import get_interface
+from core.transport.topics import get_topics
 from core.worker_queue_handlers.base import BaseHandler
+from kombu import Message
 from peripheral_behavior.helpers import get_passive_config
 from peripheral_devices.models import SkabenDevice
 from peripheral_devices.models.helpers import get_model_by_topic, get_serializer_by_topic
-from core.transport.packets import CUP
+from rest_framework.serializers import ModelSerializer
 
 
 class ClientUpdateHandler(BaseHandler):

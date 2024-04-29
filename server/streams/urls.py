@@ -1,6 +1,6 @@
 from django.urls import include, path
-from streams import views
 from rest_framework.routers import SimpleRouter
+from streams import views
 
 app_name = "events"
 
