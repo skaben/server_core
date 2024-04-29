@@ -14,7 +14,7 @@ def get_passive_config(device_type: str) -> dict:
         if not current:
             return config
         try:
-            if device_type == topics.scale_topic:  # cоздаем конфиг для шкал
+            if device_type == topics.SCL:  # cоздаем конфиг для шкал
                 counter = service.get_last_counter()
                 config = {
                     "level": counter,

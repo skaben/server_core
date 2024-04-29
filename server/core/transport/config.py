@@ -1,6 +1,5 @@
 import logging
 from enum import Enum
-from functools import lru_cache
 
 import kombu
 from django.conf import settings
@@ -118,6 +117,5 @@ class MQConfig:
         )
 
 
-@lru_cache()
 def get_mq_config() -> MQConfig:
     return MQConfig()

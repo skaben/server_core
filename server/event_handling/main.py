@@ -1,8 +1,12 @@
 import logging
-from typing import Any, Dict, Optional, Union
 
+from typing import Any, Dict, Optional, Union, Literal
+
+from pydantic import validator
 from pydantic import BaseModel as PydanticBaseModel
 from pydantic_core import from_json
+
+from core.transport.topics import SkabenTopics
 
 
 class BaseModel(PydanticBaseModel):
@@ -45,14 +49,32 @@ class SkabenEvent(BaseModel):
         if isinstance(event_data, dict):
             _converted_event_data = event_data
         else:
-            try:
-                _converted_event_data = from_json(event_data)
-            except:
-                logging.error(event_data)
-                logging.error(type(event_data))
+            _converted_event_data = from_json(event_data)
 
         return {
             "event_type": event_headers.get("event_type", ""),
             "event_source": event_headers.get("event_source", ""),
             **_converted_event_data,
         }
+
+
+class SkabenDeviceEvent(SkabenEvent):
+
+    event_type: str = 'device'
+    device_type: str
+
+    @validator('device_type')
+    def validate_device_type(cls, v):
+        if v not in SkabenTopics.all:
+            raise ValueError(f"Invalid topic. Allowed values are: {SkabenTopics.all}")
+        return v
+
+
+class SkabenEventContext:
+    """Базовый контекст обработчика событий."""
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        return

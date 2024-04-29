@@ -1,7 +1,6 @@
 from typing import List
 
 from dataclasses import dataclass
-from functools import lru_cache
 
 
 @dataclass(frozen=True)
@@ -28,10 +27,9 @@ class SkabenTopics:
         ]
 
     @property
-    def scale_topic(self) -> str:
-        return self.SCL
+    def all(self) -> List[str]:
+        return self.simple + self.smart
 
 
-@lru_cache
 def get_topics():
     return SkabenTopics()
