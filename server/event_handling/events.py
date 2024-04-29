@@ -73,6 +73,9 @@ class SkabenDeviceEvent(SkabenEvent):
 class SkabenEventContext:
     """Базовый контекст обработчика событий."""
 
+    def apply(self, event_headers: dict, event_data: dict):
+        raise NotImplementedError('abstract class method')
+
     def __enter__(self):
         return self
 

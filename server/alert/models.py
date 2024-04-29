@@ -1,7 +1,7 @@
 import logging
 from typing import Optional
 
-from alert.event_types import (
+from event_handling.alert.types import (
     ALERT_COUNTER,
     ALERT_STATE,
     AlertCounterEvent,

@@ -1,30 +1,14 @@
-from typing import Literal, Optional, Dict
+from typing import Dict
 
-from event_handling.main import SkabenEvent, SkabenEventContext
+from event_handling.events import SkabenEvent, SkabenEventContext
+from event_handling.alert.types import ALERT_COUNTER, ALERT_STATE, AlertCounterEvent, AlertStateEvent
+
 from alert.service import AlertService
 from core.helpers import format_routing_key
 from core.transport.config import SkabenQueue
 from core.transport.publish import get_interface
 from core.transport.topics import SkabenTopics
 from core.models.mqtt import DeviceTopic
-
-ALERT_STATE: str = "alert_state"
-ALERT_COUNTER: str = "alert_counter"
-
-
-class AlertStateEvent(SkabenEvent):
-
-    event_type: str = ALERT_STATE
-    counter_reset: bool = True
-    state: str
-
-
-class AlertCounterEvent(SkabenEvent):
-
-    event_type: str = ALERT_COUNTER
-    value: int
-    change: Literal["increase", "decrease", "set"]
-    comment: Optional[str]
 
 
 class AlertEventContext(SkabenEventContext):
@@ -103,7 +87,9 @@ class AlertEventContext(SkabenEventContext):
                     return service.set_state_current(new_state)  # заканчиваем обработку
 
         # В случае, когда событие инициировано ALERT_STATE апдейт для шкалы уже был отправлен
-        if source != ALERT_STATE:
+        if source == ALERT_COUNTER:
+            with AlertService(init_by=source) as service:
+                service.set_state_by_alert(event.value)
             # при изменениях параметра счетчика апдейт отправляется только шкалам
             with get_interface() as publisher:
                 publisher.publish(

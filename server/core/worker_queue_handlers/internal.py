@@ -3,8 +3,8 @@ from typing import Dict, List
 
 import settings
 
-from event_handling.alert_context import AlertEventContext as alert_context
-from event_handling import device_context
+from event_handling.alert.context import AlertEventContext as alert_context
+from event_handling.device.context import DeviceEventContext as device_context
 
 from core.helpers import get_server_timestamp
 from core.transport.config import MQConfig, SkabenQueue
@@ -58,6 +58,9 @@ class InternalHandler(BaseHandler):
                 self.route_event(body, message)
         except Exception:  # noqa
             logging.exception(f"while handling internal queue message {message.headers} {message}")
+
+        if not message.acknowledged:
+            message.ack()
 
     def route_event(self, body: Dict, message: Message) -> None:
         """Перенаправляет события в различные очереди, в зависимости от типа пакета.
@@ -119,7 +122,8 @@ class InternalHandler(BaseHandler):
         """
         with alert_context() as context:
             context.apply(event_headers, event_data)
-        device_context.apply(event_headers, event_data)
+        with device_context() as context:
+            context.apply(event_headers, event_data)
 
     @staticmethod
     def get_instance(model: models.Model, uid: str):

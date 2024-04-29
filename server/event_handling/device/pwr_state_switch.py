@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from alert.service import AlertService
 from alert.models import AlertState, AlertCounter
-from event_handling.main import SkabenEventContext
+from event_handling.events import SkabenEventContext
 from event_handling.exceptions import StopReactionPipeline
 
 
