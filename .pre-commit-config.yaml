@@ -1,0 +1,9 @@
+repos:
+- repo: https://github.com/pylint/pylint
+  rev: v2.20.0
+  hooks:
+  - id: pylint
+- repo: https://github.com/psf/black
+  rev: 22.3.0
+  hooks:
+  - id: black
