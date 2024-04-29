@@ -18,12 +18,7 @@ class SkabenTopics:
 
     @property
     def simple(self) -> List[str]:
-        return [
-            self.BOX,
-            self.RGB,
-            self.SCL,
-            self.PWR,
-        ]
+        return [self.BOX, self.RGB, self.SCL, self.PWR]
 
     @property
     def all(self) -> List[str]:

@@ -5,9 +5,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ("alert", "0001_initial"),
-    ]
+    dependencies = [("alert", "0001_initial")]
 
     operations = [
         migrations.AlterField(
@@ -18,5 +16,5 @@ class Migration(migrations.Migration):
                 help_text="Нижнее значение счетчика счетчика тревоги для переключения в статус. Чтобы отключить авто-переключение - выставьте значение ingame = False",
                 verbose_name="Порог срабатывания ",
             ),
-        ),
+        )
     ]

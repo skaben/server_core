@@ -11,6 +11,4 @@ router.register("permission", PermissionViewSet)
 router.register("menuitem", MenuItemViewSet)
 router.register("workmode", WorkModeViewSet)
 
-urlpatterns = [
-    path("", include(router.urls)),
-]
+urlpatterns = [path("", include(router.urls))]

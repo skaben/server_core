@@ -16,7 +16,6 @@ class CreateTokenView(ObtainAuthToken):
 
 
 class DynamicAuthMixin:
-
     def get_authenticators(self, request, **kwargs):
         if settings.ENVIRONMENT in ("dev", "DEV"):
             return []

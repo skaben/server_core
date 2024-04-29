@@ -9,70 +9,34 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-        ("alert", "0001_initial"),
-        ("peripheral_devices", "0001_initial"),
-    ]
+    dependencies = [("alert", "0001_initial"), ("peripheral_devices", "0001_initial")]
 
     operations = [
         migrations.CreateModel(
             name="SkabenUser",
             fields=[
-                (
-                    "id",
-                    models.AutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
-                (
-                    "name",
-                    models.CharField(max_length=96, unique=True, verbose_name="Имя"),
-                ),
-                (
-                    "description",
-                    models.CharField(max_length=96, verbose_name="Описание"),
-                ),
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("name", models.CharField(max_length=96, unique=True, verbose_name="Имя")),
+                ("description", models.CharField(max_length=96, verbose_name="Описание")),
             ],
-            options={
-                "verbose_name": "Игровой пользователь",
-                "verbose_name_plural": "Игровые пользователи",
-            },
+            options={"verbose_name": "Игровой пользователь", "verbose_name_plural": "Игровые пользователи"},
         ),
         migrations.CreateModel(
             name="TerminalMenuItem",
             fields=[
                 (
                     "uuid",
-                    models.UUIDField(
-                        default=core.helpers.get_uuid,
-                        editable=False,
-                        primary_key=True,
-                        serialize=False,
-                    ),
+                    models.UUIDField(default=core.helpers.get_uuid, editable=False, primary_key=True, serialize=False),
                 ),
                 ("timer", models.SmallIntegerField(default=0)),
                 ("description", models.CharField(max_length=128)),
             ],
-            options={
-                "verbose_name": "Пункт меню терминала",
-                "verbose_name_plural": "Пункты меню терминала",
-            },
+            options={"verbose_name": "Пункт меню терминала", "verbose_name_plural": "Пункты меню терминала"},
         ),
         migrations.CreateModel(
             name="AccessCode",
             fields=[
-                (
-                    "id",
-                    models.AutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
                 (
                     "code",
                     models.CharField(
@@ -84,48 +48,25 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "user",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
-                        to="peripheral_behavior.skabenuser",
-                    ),
+                    models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="peripheral_behavior.skabenuser"),
                 ),
             ],
-            options={
-                "verbose_name": "Код доступа (ключ-карта)",
-                "verbose_name_plural": "Коды доступа (ключ-карты)",
-            },
+            options={"verbose_name": "Код доступа (ключ-карта)", "verbose_name_plural": "Коды доступа (ключ-карты)"},
         ),
         migrations.CreateModel(
             name="TerminalAccount",
             fields=[
                 (
                     "uuid",
-                    models.UUIDField(
-                        default=core.helpers.get_uuid,
-                        editable=False,
-                        primary_key=True,
-                        serialize=False,
-                    ),
+                    models.UUIDField(default=core.helpers.get_uuid, editable=False, primary_key=True, serialize=False),
                 ),
                 ("header", models.CharField(default="terminal vt40k", max_length=64)),
-                (
-                    "footer",
-                    models.CharField(
-                        default="unauthorized access is strictly prohibited",
-                        max_length=64,
-                    ),
-                ),
+                ("footer", models.CharField(default="unauthorized access is strictly prohibited", max_length=64)),
                 (
                     "user",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
-                        to="peripheral_behavior.skabenuser",
-                    ),
+                    models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="peripheral_behavior.skabenuser"),
                 ),
-                (
-                    "menu_set",
-                    models.ManyToManyField(to="peripheral_behavior.terminalmenuitem"),
-                ),
+                ("menu_set", models.ManyToManyField(to="peripheral_behavior.terminalmenuitem")),
             ],
             options={
                 "verbose_name": "Режим (полное меню) терминала",
@@ -135,31 +76,12 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="PassiveConfig",
             fields=[
-                (
-                    "id",
-                    models.AutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
-                (
-                    "config",
-                    models.JSONField(
-                        default=dict,
-                        help_text="JSON-объект с конфигурацией устройства.",
-                    ),
-                ),
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("config", models.JSONField(default=dict, help_text="JSON-объект с конфигурацией устройства.")),
                 (
                     "topic",
                     models.CharField(
-                        choices=[
-                            ("rgb", "rgb"),
-                            ("scl", "scl"),
-                            ("pwr", "pwr"),
-                            ("box", "box"),
-                        ],
+                        choices=[("rgb", "rgb"), ("scl", "scl"), ("pwr", "pwr"), ("box", "box")],
                         help_text="Канал MQTT.",
                     ),
                 ),
@@ -183,28 +105,14 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="Permission",
             fields=[
-                (
-                    "id",
-                    models.AutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
                 (
                     "card",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
-                        to="peripheral_behavior.accesscode",
-                    ),
+                    models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="peripheral_behavior.accesscode"),
                 ),
                 (
                     "lock",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
-                        to="peripheral_devices.lockdevice",
-                    ),
+                    models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="peripheral_devices.lockdevice"),
                 ),
                 ("state_id", models.ManyToManyField(to="alert.alertstate")),
             ],

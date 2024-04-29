@@ -17,101 +17,49 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="AudioFile",
             fields=[
-                (
-                    "id",
-                    models.AutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
                 ("uuid", models.UUIDField(default=uuid.uuid4, editable=False)),
                 ("name", models.CharField(default="filename", max_length=128)),
                 ("hash", models.CharField(default="", max_length=64)),
                 (
                     "file",
-                    models.FileField(
-                        storage=assets.storages.OverwriteStorage(location="/media/audio"),
-                        upload_to="",
-                    ),
+                    models.FileField(storage=assets.storages.OverwriteStorage(location="/media/audio"), upload_to=""),
                 ),
             ],
-            options={
-                "verbose_name": "Аудио",
-            },
+            options={"verbose_name": "Аудио"},
         ),
         migrations.CreateModel(
             name="HackGame",
             fields=[
-                (
-                    "id",
-                    models.AutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
                 ("attempts", models.IntegerField(default=3)),
                 (
                     "difficulty",
-                    models.IntegerField(
-                        choices=[
-                            (6, "easy"),
-                            (8, "normal"),
-                            (10, "medium"),
-                            (12, "hard"),
-                        ],
-                        default=8,
-                    ),
+                    models.IntegerField(choices=[(6, "easy"), (8, "normal"), (10, "medium"), (12, "hard")], default=8),
                 ),
                 ("wordcount", models.IntegerField(default=15)),
                 ("chance", models.IntegerField(default=15)),
             ],
-            options={
-                "verbose_name": "Настройки мини-игры Fallout Hack",
-            },
+            options={"verbose_name": "Настройки мини-игры Fallout Hack"},
         ),
         migrations.CreateModel(
             name="ImageFile",
             fields=[
-                (
-                    "id",
-                    models.AutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
                 ("uuid", models.UUIDField(default=uuid.uuid4, editable=False)),
                 ("name", models.CharField(default="filename", max_length=128)),
                 ("hash", models.CharField(default="", max_length=64)),
                 (
                     "file",
-                    models.ImageField(
-                        storage=assets.storages.OverwriteStorage(location="/media/image"),
-                        upload_to="",
-                    ),
+                    models.ImageField(storage=assets.storages.OverwriteStorage(location="/media/image"), upload_to=""),
                 ),
             ],
-            options={
-                "verbose_name": "Изображение",
-            },
+            options={"verbose_name": "Изображение"},
         ),
         migrations.CreateModel(
             name="TextFile",
             fields=[
-                (
-                    "id",
-                    models.AutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
                 ("uuid", models.UUIDField(default=uuid.uuid4, editable=False)),
                 ("name", models.CharField(default="game doc", max_length=128)),
                 ("hash", models.CharField(default="", max_length=64)),
@@ -127,39 +75,24 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={
-                "verbose_name": "Текстовый файл",
-            },
+            options={"verbose_name": "Текстовый файл"},
         ),
         migrations.CreateModel(
             name="UserInput",
             fields=[
                 (
                     "uuid",
-                    models.UUIDField(
-                        default=core.helpers.get_uuid,
-                        editable=False,
-                        primary_key=True,
-                        serialize=False,
-                    ),
+                    models.UUIDField(default=core.helpers.get_uuid, editable=False, primary_key=True, serialize=False),
                 ),
                 (
                     "action",
                     models.CharField(
-                        default="action",
-                        max_length=64,
-                        unique=True,
-                        verbose_name="Уникальное имя операции",
+                        default="action", max_length=64, unique=True, verbose_name="Уникальное имя операции"
                     ),
                 ),
                 (
                     "expected",
-                    models.CharField(
-                        blank=True,
-                        default="",
-                        max_length=128,
-                        verbose_name="Ожидаемое значение ввода",
-                    ),
+                    models.CharField(blank=True, default="", max_length=128, verbose_name="Ожидаемое значение ввода"),
                 ),
                 (
                     "message",
@@ -173,10 +106,7 @@ class Migration(migrations.Migration):
                 (
                     "delay",
                     models.IntegerField(
-                        blank=True,
-                        default=0,
-                        null=True,
-                        verbose_name="Задержка интерфейса пользователя",
+                        blank=True, default=0, null=True, verbose_name="Задержка интерфейса пользователя"
                     ),
                 ),
             ],
@@ -188,28 +118,15 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="VideoFile",
             fields=[
-                (
-                    "id",
-                    models.AutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
                 ("uuid", models.UUIDField(default=uuid.uuid4, editable=False)),
                 ("name", models.CharField(default="filename", max_length=128)),
                 ("hash", models.CharField(default="", max_length=64)),
                 (
                     "file",
-                    models.FileField(
-                        storage=assets.storages.OverwriteStorage(location="/media/video"),
-                        upload_to="",
-                    ),
+                    models.FileField(storage=assets.storages.OverwriteStorage(location="/media/video"), upload_to=""),
                 ),
             ],
-            options={
-                "verbose_name": "Видео",
-            },
+            options={"verbose_name": "Видео"},
         ),
     ]

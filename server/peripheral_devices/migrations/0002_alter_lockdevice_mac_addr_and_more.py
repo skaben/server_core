@@ -5,19 +5,13 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ("peripheral_devices", "0001_initial"),
-    ]
+    dependencies = [("peripheral_devices", "0001_initial")]
 
     operations = [
         migrations.AlterField(
-            model_name="lockdevice",
-            name="mac_addr",
-            field=models.CharField(max_length=12, unique=True),
+            model_name="lockdevice", name="mac_addr", field=models.CharField(max_length=12, unique=True)
         ),
         migrations.AlterField(
-            model_name="terminaldevice",
-            name="mac_addr",
-            field=models.CharField(max_length=12, unique=True),
+            model_name="terminaldevice", name="mac_addr", field=models.CharField(max_length=12, unique=True)
         ),
     ]

@@ -7,7 +7,6 @@ from peripheral_devices.models import LockDevice as Lock
 
 
 class LockEventContext:
-
     def create_lock_device(self, mac_addr: str) -> str:
         mgmt_state = AlertState.objects.get_management_state()
         if not mgmt_state.current:

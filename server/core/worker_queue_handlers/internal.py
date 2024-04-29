@@ -87,10 +87,7 @@ class InternalHandler(BaseHandler):
             return message.ack()
 
         if packet_type == self.client_update_packet_mark:
-            self.dispatch(
-                data=body,
-                routing_data=[self.client_update_queue_mark, device_type, device_uid],
-            )
+            self.dispatch(data=body, routing_data=[self.client_update_queue_mark, device_type, device_uid])
             return message.ack()
 
         # INFO-пакеты не переадресуются и обрабатываются здесь.

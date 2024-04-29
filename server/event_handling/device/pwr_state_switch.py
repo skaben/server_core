@@ -19,7 +19,6 @@ class PowerShieldStates:
 
 
 class PowerShieldEventContext(SkabenEventContext):
-
     def apply(self, event_data: dict):
         """Меняет уровень тревоги в зависимости от команды щитка."""
         command = event_data.get("powerstate")

@@ -5,22 +5,13 @@ from core.transport.publish import get_interface
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
-from event_handling.alert.types import (
-    ALERT_COUNTER,
-    ALERT_STATE,
-    AlertCounterEvent,
-    AlertStateEvent,
-)
+from event_handling.alert.types import ALERT_COUNTER, ALERT_STATE, AlertCounterEvent, AlertStateEvent
 
 
 class AlertCounterManager(models.Manager):
-
     def create_initial(self, *args, **kwargs):
         """Создает базовый счетчик."""
-        initial_counter = self.model(
-            value=0,
-            comment="create initial",
-        )
+        initial_counter = self.model(value=0, comment="create initial")
         initial_counter.save(context="no_send")
         return initial_counter
 
@@ -45,15 +36,8 @@ class AlertCounter(models.Model):
         help_text="Счетчик примет указанное значение, уровень тревоги может быть сброшен",
         default=0,
     )
-    comment = models.CharField(
-        verbose_name="Причина изменений",
-        default="reason: changed by admin",
-        max_length=64,
-    )
-    timestamp = models.DateTimeField(
-        verbose_name="Время последнего изменения",
-        default=timezone.now,
-    )
+    comment = models.CharField(verbose_name="Причина изменений", default="reason: changed by admin", max_length=64)
+    timestamp = models.DateTimeField(verbose_name="Время последнего изменения", default=timezone.now)
 
     def save(self, *args, **kwargs):
         """Сохранение, связывающее модели AlertCounter и AlertState."""
@@ -66,10 +50,7 @@ class AlertCounter(models.Model):
         if source != ALERT_STATE:
             with get_interface() as mq_interface:
                 event = AlertCounterEvent(
-                    value=self.value,
-                    event_source=ALERT_COUNTER,
-                    change="set",
-                    comment="self-generated",
+                    value=self.value, event_source=ALERT_COUNTER, change="set", comment="self-generated"
                 )
                 mq_interface.send_event(event)
 
@@ -78,7 +59,6 @@ class AlertCounter(models.Model):
 
 
 class AlertStateManager(models.Manager):
-
     def get_ingame(self):
         return self.get_queryset().filter(ingame=True)
 
@@ -193,11 +173,7 @@ class AlertState(models.Model):
         if source != ALERT_COUNTER:
             if self.__original_state != self.current:
                 with get_interface() as mq_interface:
-                    event = AlertStateEvent(
-                        state=self.name,
-                        event_source=ALERT_STATE,
-                        counter_reset=True,
-                    )
+                    event = AlertStateEvent(state=self.name, event_source=ALERT_STATE, counter_reset=True)
                     mq_interface.send_event(event)
 
         self.__original_state = self.current

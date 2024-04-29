@@ -10,12 +10,7 @@ kombu.disable_insecure_serializers(allowed=["json"])
 
 
 def get_connection():
-    return Connection(
-        settings.AMQP_URI,
-        transport_options={
-            "confirm_publish": True,
-        },
-    )
+    return Connection(settings.AMQP_URI, transport_options={"confirm_publish": True})
 
 
 def acquire_pool(func):
@@ -36,7 +31,6 @@ class SkabenQueue(Enum):
 
 
 class MQFactory:
-
     @staticmethod
     def create_queue(queue_name: str, exchange: Exchange, is_topic: bool = True, **kwargs) -> Queue:
         routing_key = queue_name if not is_topic else f"{queue_name}.#"
@@ -63,11 +57,7 @@ class MQConfig:
         self.exchanges = {}
         self._init_mqtt_exchange()
         filtering_queue = {
-            settings.ASK_QUEUE: MQFactory.create_queue(
-                settings.ASK_QUEUE,
-                self.mqtt_exchange,
-                durable=True,
-            )
+            settings.ASK_QUEUE: MQFactory.create_queue(settings.ASK_QUEUE, self.mqtt_exchange, durable=True)
         }
         transport_queues = {
             e.value: MQFactory.create_queue(e.value, self.internal_exchange, durable=False) for e in SkabenQueue

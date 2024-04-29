@@ -6,10 +6,7 @@ from event_handling.exceptions import StopReactionPipeline
 
 class DeviceEventContext(SkabenEventContext):
 
-    context_dispatcher = {
-        "lock": LockEventContext,
-        "pwr": PowerShieldEventContext,
-    }
+    context_dispatcher = {"lock": LockEventContext, "pwr": PowerShieldEventContext}
 
     def apply(self, event_headers: dict, event_data: dict):
         """Базовый пайплайн обработки эвентов"""

@@ -16,7 +16,6 @@ from rest_framework.views import APIView
 
 
 class UpdateDeviceView(APIView):
-
     def post(self, request):
         """Update devices by provided topics."""
         try:

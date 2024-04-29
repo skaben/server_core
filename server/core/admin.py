@@ -20,7 +20,6 @@ base_site.register(Group)
 
 
 class SystemAdmin(admin.ModelAdmin):
-
     def get_urls(self):
         urls = super().get_urls()
         my_urls = [

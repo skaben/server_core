@@ -16,12 +16,7 @@ class Migration(migrations.Migration):
             fields=[
                 (
                     "uuid",
-                    models.UUIDField(
-                        default=core.helpers.get_uuid,
-                        editable=False,
-                        primary_key=True,
-                        serialize=False,
-                    ),
+                    models.UUIDField(default=core.helpers.get_uuid, editable=False, primary_key=True, serialize=False),
                 ),
                 ("timestamp", models.IntegerField(default=0)),
                 ("level", models.CharField(default="info", max_length=32)),
@@ -29,9 +24,6 @@ class Migration(migrations.Migration):
                 ("source", models.CharField(default="source", max_length=256)),
                 ("message", models.JSONField()),
             ],
-            options={
-                "verbose_name": "Игровое событие",
-                "verbose_name_plural": "Игровые события",
-            },
-        ),
+            options={"verbose_name": "Игровое событие", "verbose_name_plural": "Игровые события"},
+        )
     ]

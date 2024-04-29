@@ -22,7 +22,6 @@ class FileSerializer(serializers.ModelSerializer):
 
 
 class AudioFileSerializer(FileSerializer):
-
     class Meta:
         model = AudioFile
         exclude = ("id",)
@@ -30,7 +29,6 @@ class AudioFileSerializer(FileSerializer):
 
 
 class VideoFileSerializer(FileSerializer):
-
     class Meta:
         model = VideoFile
         exclude = ("id",)
@@ -38,7 +36,6 @@ class VideoFileSerializer(FileSerializer):
 
 
 class ImageFileSerializer(FileSerializer):
-
     class Meta:
         model = ImageFile
         exclude = ("id",)
@@ -46,14 +43,12 @@ class ImageFileSerializer(FileSerializer):
 
 
 class TextFileSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = TextFile
         fields = "__all__"
 
 
 class HackGameSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = HackGame
         exclude = ("id",)

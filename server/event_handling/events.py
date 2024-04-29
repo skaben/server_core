@@ -8,7 +8,6 @@ from pydantic_core import from_json
 
 
 class BaseModel(PydanticBaseModel):
-
     class Config:
         arbitrary_types_allowed = True
 
@@ -34,10 +33,7 @@ class SkabenEvent(BaseModel):
         """Подготавливает данные события для отправки во внутреннюю очередь.
 
         Возвращает тип события для включения в заголовок сообщения очереди и полезную нагрузку события."""
-        headers = {
-            "event_type": self.event_type,
-            "event_source": self.event_source,
-        }
+        headers = {"event_type": self.event_type, "event_source": self.event_source}
         event = EncodedEventType(headers=headers, data=self.model_dump(exclude=["event_type", "event_source"]))
         return event
 

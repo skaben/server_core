@@ -12,7 +12,9 @@ class AlertService:
     min_alert_value: int
     init_by: str
 
-    def __init__(self, init_by: Union[Literal[ALERT_COUNTER], Literal[ALERT_STATE], Literal["external"]] = "external"):  # type: ignore
+    def __init__(
+        self, init_by: Union[Literal[ALERT_COUNTER], Literal[ALERT_STATE], Literal["external"]] = "external"
+    ):  # type: ignore
         self.states = dict(enumerate(self.get_ingame_states()))
         self.state_ranges = self._calc_alert_ranges()
         self.min_alert_value = 1

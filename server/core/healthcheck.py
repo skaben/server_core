@@ -73,7 +73,6 @@ class AlertStateIntegrityCheck(IntegrityCheck):
 
 
 class DeviceIntegrityCheck(IntegrityCheck):
-
     def _check(self):
         try:
             active_topics = DeviceTopic.objects.filter(active=True).values_list("channel", flat=True)
@@ -86,7 +85,6 @@ class DeviceIntegrityCheck(IntegrityCheck):
 
 
 class BrokerIntegrityCheck(IntegrityCheck):
-
     def _check(self):
         config = get_mq_config()
         if not config.internal_exchange or not config.mqtt_exchange:

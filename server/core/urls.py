@@ -14,12 +14,7 @@ from streams.urls import router as stream_router
 # setting up nested router
 core_router = DefaultRouter()
 
-routers = [
-    alert_router,
-    assets_router,
-    stream_router,
-    device_router,
-]
+routers = [alert_router, assets_router, stream_router, device_router]
 
 for router in routers:
     core_router.registry.extend(router.registry)

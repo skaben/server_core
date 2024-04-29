@@ -6,12 +6,7 @@ from core.models.mqtt import DeviceTopic
 from core.transport.config import SkabenQueue
 from core.transport.publish import get_interface
 from core.transport.topics import SkabenTopics
-from event_handling.alert.types import (
-    ALERT_COUNTER,
-    ALERT_STATE,
-    AlertCounterEvent,
-    AlertStateEvent,
-)
+from event_handling.alert.types import ALERT_COUNTER, ALERT_STATE, AlertCounterEvent, AlertStateEvent
 from event_handling.events import SkabenEvent, SkabenEventContext
 
 
@@ -45,10 +40,7 @@ class AlertEventContext(SkabenEventContext):
                 if not state:
                     raise ValueError(f"no state with name {event.state}")
                 # эта операция создаст дополнительное событие типа alert_counter
-                service.set_alert_counter(
-                    value=state.threshold,
-                    comment=f"reset by alert state {event.state}",
-                )
+                service.set_alert_counter(value=state.threshold, comment=f"reset by alert state {event.state}")
 
         # обновление конфигурации устройств при смене уровня тревоги
         # принудительно посылается CUP запрос, в ответ на который сервер пошлет конфигурации

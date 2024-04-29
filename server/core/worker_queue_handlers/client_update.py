@@ -67,19 +67,13 @@ class ClientUpdateHandler(BaseHandler):
 
             if device_topic in DeviceTopic.objects.get_topics_by_type("simple"):
                 address = device_uid or "all"  # 'all' маркирует броадкастовую рассылку
-                self.dispatch(
-                    routing_data=[device_topic, address],
-                    data=get_passive_config(device_topic),
-                )
+                self.dispatch(routing_data=[device_topic, address], data=get_passive_config(device_topic))
                 return message.ack()
 
             if device_topic in DeviceTopic.objects.get_topics_by_type("smart"):
                 if device_uid and device_uid != "all":
                     config = self.get_device_config(device_topic, device_uid, body, message)
-                    self.dispatch(
-                        routing_data=[device_topic, device_uid],
-                        data=config,
-                    )
+                    self.dispatch(routing_data=[device_topic, device_uid], data=config)
 
                 if device_uid == "all":
                     model = get_model_by_topic(device_topic)
@@ -89,10 +83,7 @@ class ClientUpdateHandler(BaseHandler):
                         serialized = serializer(device)
                         if not serialized.is_valid():
                             logging.error(f"Validation error: cannot send config for {device}")
-                        self.send_config(
-                            routing_data=[device_topic, device.mac_addr],
-                            data=serialized.data,
-                        )
+                        self.send_config(routing_data=[device_topic, device.mac_addr], data=serialized.data)
         except Exception:  # noqa
             logging.exception("Exception while handling client update.")
             return message.reject()
@@ -118,12 +109,7 @@ class ClientUpdateHandler(BaseHandler):
     def dispatch(self, data, routing_data: List[str], **kwargs) -> None:
         """Dispatches message to external MQTT."""
         if data:
-            packet = CUP(
-                topic=routing_data[0],
-                uid=routing_data[1],
-                datahold=data,
-                timestamp=get_server_timestamp(),
-            )
+            packet = CUP(topic=routing_data[0], uid=routing_data[1], datahold=data, timestamp=get_server_timestamp())
             if routing_data[0] in DeviceTopic.objects.get_topics_by_type("smart") and data.get("hash"):
                 packet.config_hash = data["hash"]
 

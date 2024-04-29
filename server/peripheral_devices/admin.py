@@ -1,8 +1,4 @@
-import re
-
-import netaddr
 from core.admin import base_site
-from django import forms
 from django.contrib import admin
 from peripheral_behavior.models import PassiveConfig
 from peripheral_devices.models import LockDevice, TerminalDevice

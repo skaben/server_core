@@ -8,6 +8,4 @@ router = SimpleRouter()
 router.register("alert_state", views.AlertStateViewSet)
 router.register("alert_counter", views.AlertCounterViewSet)
 
-urlpatterns = [
-    path("", include((router.urls, "alert"))),
-]
+urlpatterns = [path("", include((router.urls, "alert")))]

@@ -68,11 +68,5 @@ def get_service() -> SchedulerService:
 
     increase_alert = AlertTask(timeout=alert_timeout)
     decrease_alert = AlertTask(timeout=alert_timeout)
-    service = SchedulerService(
-        tasks=[
-            pinger,
-            increase_alert,
-            decrease_alert,
-        ]
-    )
+    service = SchedulerService(tasks=[pinger, increase_alert, decrease_alert])
     return service

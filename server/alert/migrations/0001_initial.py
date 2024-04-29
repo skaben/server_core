@@ -14,15 +14,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="AlertCounter",
             fields=[
-                (
-                    "id",
-                    models.AutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
                 (
                     "value",
                     models.IntegerField(
@@ -34,44 +26,22 @@ class Migration(migrations.Migration):
                 (
                     "comment",
                     models.CharField(
-                        default="reason: changed by admin",
-                        max_length=64,
-                        verbose_name="Причина изменений",
+                        default="reason: changed by admin", max_length=64, verbose_name="Причина изменений"
                     ),
                 ),
                 (
                     "timestamp",
-                    models.DateTimeField(
-                        default=django.utils.timezone.now,
-                        verbose_name="Время последнего изменения",
-                    ),
+                    models.DateTimeField(default=django.utils.timezone.now, verbose_name="Время последнего изменения"),
                 ),
             ],
-            options={
-                "verbose_name": "Тревога: счетчик уровня",
-                "verbose_name_plural": "Тревога: счетчик уровня",
-            },
+            options={"verbose_name": "Тревога: счетчик уровня", "verbose_name_plural": "Тревога: счетчик уровня"},
         ),
         migrations.CreateModel(
             name="AlertState",
             fields=[
-                (
-                    "id",
-                    models.AutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
-                (
-                    "name",
-                    models.CharField(max_length=32, unique=True, verbose_name="Название статуса"),
-                ),
-                (
-                    "info",
-                    models.CharField(max_length=256, verbose_name="Описание статуса"),
-                ),
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("name", models.CharField(max_length=32, unique=True, verbose_name="Название статуса")),
+                ("info", models.CharField(max_length=256, verbose_name="Описание статуса")),
                 (
                     "ingame",
                     models.BooleanField(
@@ -88,10 +58,7 @@ class Migration(migrations.Migration):
                         verbose_name="Порог срабатывания ",
                     ),
                 ),
-                (
-                    "current",
-                    models.BooleanField(default=False, verbose_name="Сейчас активен"),
-                ),
+                ("current", models.BooleanField(default=False, verbose_name="Сейчас активен")),
                 (
                     "order",
                     models.IntegerField(
@@ -133,9 +100,6 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={
-                "verbose_name": "Тревога: именной статус",
-                "verbose_name_plural": "Тревога: именные статусы",
-            },
+            options={"verbose_name": "Тревога: именной статус", "verbose_name_plural": "Тревога: именные статусы"},
         ),
     ]
