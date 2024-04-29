@@ -10,7 +10,6 @@ class AlertService:
     states: dict
     state_ranges: dict
     min_alert_value: int
-    max_scale_value: int
     init_by: str
 
     def __init__(self, init_by: Union[Literal[ALERT_COUNTER], Literal[ALERT_STATE], Literal["external"]] = "external"):  # type: ignore
@@ -18,7 +17,6 @@ class AlertService:
         self.state_ranges = self._calc_alert_ranges()
         self.min_alert_value = 1
         self.init_by = init_by
-        self.max_scale_value = self.max_alert_value * 2
 
     def get_state_by_alert(self, alert_value: int) -> Optional[AlertState]:
         """Получает статус тревоги по значению счетчика тревоги"""
@@ -43,13 +41,14 @@ class AlertService:
         if instance:
             self.set_state_current(instance)
 
-    def set_state_by_alert(self, value: int):
+    def set_state_by_last_counter(self):
         """Устанавливает новое значение уровня тревоги по счетчику.
 
         Таким образом переключаются только ingame статусы.
         """
+        value = self.get_last_counter()
+        alert_value = value if value < self.max_alert_value else self.max_alert_value
         current_state = self.get_state_current()
-        alert_value = value if value < self.max_scale_value else self.max_alert_value
         new_state = self.get_state_by_alert(alert_value)
 
         if (
@@ -106,7 +105,7 @@ class AlertService:
 
         for index, item in self.states.items():
             nxt = self.states.get(index + 1)
-            nxt_threshold = getattr(nxt, "threshold", self.max_scale_value)
+            nxt_threshold = getattr(nxt, "threshold", self.max_alert_value + 1)
             result.update({index: [item.threshold, nxt_threshold]})
         return result
 

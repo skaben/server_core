@@ -196,6 +196,7 @@ class AlertState(models.Model):
                     event = AlertStateEvent(
                         state=self.name,
                         event_source=ALERT_STATE,
+                        counter_reset=True,
                     )
                     mq_interface.send_event(event)
 

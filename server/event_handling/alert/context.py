@@ -89,7 +89,7 @@ class AlertEventContext(SkabenEventContext):
         # В случае, когда событие инициировано ALERT_STATE апдейт для шкалы уже был отправлен
         if source == ALERT_COUNTER:
             with AlertService(init_by=source) as service:
-                service.set_state_by_alert(event.value)
+                service.set_state_by_last_counter()
             # при изменениях параметра счетчика апдейт отправляется только шкалам
             with get_interface() as publisher:
                 publisher.publish(
