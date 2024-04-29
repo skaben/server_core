@@ -5,7 +5,12 @@ from core.transport.publish import get_interface
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
-from event_handling.alert.types import ALERT_COUNTER, ALERT_STATE, AlertCounterEvent, AlertStateEvent
+from event_handling.alert.types import (
+    ALERT_COUNTER,
+    ALERT_STATE,
+    AlertCounterEvent,
+    AlertStateEvent,
+)
 
 
 class AlertCounterManager(models.Manager):

@@ -6,7 +6,12 @@ from core.models.mqtt import DeviceTopic
 from core.transport.config import SkabenQueue
 from core.transport.publish import get_interface
 from core.transport.topics import SkabenTopics
-from event_handling.alert.types import ALERT_COUNTER, ALERT_STATE, AlertCounterEvent, AlertStateEvent
+from event_handling.alert.types import (
+    ALERT_COUNTER,
+    ALERT_STATE,
+    AlertCounterEvent,
+    AlertStateEvent,
+)
 from event_handling.events import SkabenEvent, SkabenEventContext
 
 
