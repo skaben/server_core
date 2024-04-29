@@ -8,4 +8,3 @@ exclude =
   manage.py
   settings
   test_settings.py
-

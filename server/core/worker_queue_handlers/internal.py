@@ -2,15 +2,13 @@ import logging
 from typing import Dict, List
 
 import settings
-
-from event_handling.alert.context import AlertEventContext as alert_context
-from event_handling.device.context import DeviceEventContext as device_context
-
 from core.helpers import get_server_timestamp
 from core.transport.config import MQConfig, SkabenQueue
 from core.transport.packets import SkabenPacketTypes
 from core.worker_queue_handlers.base import BaseHandler
 from django.db import models
+from event_handling.alert.context import AlertEventContext as alert_context
+from event_handling.device.context import DeviceEventContext as device_context
 from kombu import Message
 
 # TODO: разделить сущность на роутер и обработчика событий.

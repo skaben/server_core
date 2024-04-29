@@ -1,5 +1,5 @@
 from alert.models import AlertState
-from core.helpers import get_server_timestamp, format_routing_key, format_mac_address
+from core.helpers import format_mac_address, format_routing_key, get_server_timestamp
 from core.transport.config import SkabenQueue
 from core.transport.publish import get_interface
 from django.conf import settings

@@ -1,15 +1,14 @@
-from django.db import models
 from dataclasses import dataclass
 
-from core.helpers import get_time, get_uuid, get_server_timestamp
+from core.helpers import get_server_timestamp, get_time, get_uuid
+from django.db import models
 
 
 @dataclass(frozen=True)
 class StreamSources:
 
-    SYSTEM: str = 'system'
-    GAME: str = 'game'
-    
+    SYSTEM: str = "system"
+    GAME: str = "game"
 
 
 class StreamRecord(models.Model):
@@ -24,7 +23,7 @@ class StreamRecord(models.Model):
 
     message = models.CharField(help_text="Название события")
     message_data = models.JSONField(blank=True, help_text="Содержимое события")
-    
+
     stream = models.CharField(default=StreamSources.GAME, max_length=256, help_text="Поток события")
     source = models.CharField(default="default", max_length=256, help_text="Источник события")
     mark = models.CharField(blank=True, max_length=32, help_text="Дополнительный маркер события")
