@@ -2,10 +2,7 @@ from core.models.base import BaseModelUUID
 from django.db import models
 from peripheral_behavior.models import SkabenUser
 
-__all__ = (
-    "TerminalMenuItem",
-    "TerminalAccount",
-)
+__all__ = ("TerminalAccount",)
 
 
 class TerminalMenuItem(BaseModelUUID):

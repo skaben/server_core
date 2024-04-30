@@ -2,7 +2,7 @@ import time
 import uuid
 
 from assets import storages
-from core.helpers import get_hash_from
+from core.helpers import get_hash_from, get_server_timestamp
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.db import models
@@ -71,7 +71,7 @@ class TextFile(models.Model):
         return f"{settings.API_URL}{self.file.path}"
 
     def save(self, *args, **kwargs):
-        self.hash = get_hash_from(f"{round(time.time())}{self.uuid}")
+        self.hash = get_hash_from(f"{round(get_server_timestamp())}{self.uuid}")
         file = ContentFile(self.content)
         self.file.save(content=file, name=f"{self.uuid}_{self.name}.txt", save=False)
         super().save(*args, **kwargs)
