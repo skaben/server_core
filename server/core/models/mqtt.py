@@ -15,7 +15,6 @@ SMART = "smart"
 
 
 class DeviceTopicManager(models.Manager):
-
     _special_topics = [ALL, SIMPLE, SMART]
 
     def get_topics_active(self) -> List[str]:
@@ -36,7 +35,6 @@ class DeviceTopicManager(models.Manager):
 
 
 class DeviceTopic(models.Model):
-
     objects = DeviceTopicManager()
 
     class Meta:

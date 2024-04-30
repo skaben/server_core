@@ -6,7 +6,6 @@ from django.db import models
 
 @dataclass(frozen=True)
 class StreamSources:
-
     SYSTEM: str = "system"
     GAME: str = "game"
 

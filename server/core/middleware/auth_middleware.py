@@ -1,8 +1,4 @@
-from django.http import HttpResponse, HttpResponseRedirect
-
-
 class AuthRequiredMiddleware(object):
-
     allowed = ("/auth/login", "/auth/token", "/favicon")
 
     def __init__(self, get_response):

@@ -4,7 +4,15 @@ min_confidence = 80
 sort_by_size = true
 
 [tool.ruff]
-line-length = 1w0
+line-length = 120
+exclude = [
+    ".venv",
+    "*/migrations/*",
+    "docker_build",
+    ".pytest_cache",
+    "static",
+    "templates"
+]
 
 [tool.ruff.format]
 quote-style = "double"

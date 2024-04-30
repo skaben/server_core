@@ -61,7 +61,7 @@ class ClientUpdateHandler(BaseHandler):
             return message.ack()
 
         try:
-            if not device_topic in DeviceTopic.objects.get_topics_permitted():
+            if device_topic not in DeviceTopic.objects.get_topics_permitted():
                 logging.error(f"Client update not handled. Uknown device with device type `{device_topic}`")
                 return message.reject()
 

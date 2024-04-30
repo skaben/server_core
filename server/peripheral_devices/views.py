@@ -1,22 +1,19 @@
 import traceback
 
 from core.helpers import format_routing_key
-from core.models.mqtt import DeviceTopic, DeviceTopicManager
+from core.models import DeviceTopic, DeviceTopicManager
 from core.serializers import DeviceTopicSerializer
 from core.transport.config import SkabenQueue
-from core.transport.packets import SkabenPacketTypes
 from core.transport.publish import get_interface
 from core.views import DynamicAuthMixin
 from peripheral_devices import serializers
 from peripheral_devices.models import LockDevice, TerminalDevice
 from rest_framework import status, viewsets
-from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 
 class UpdateDeviceView(APIView):
-
     def post(self, request):
         """Update devices by provided topics."""
         try:

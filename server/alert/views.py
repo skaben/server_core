@@ -35,7 +35,7 @@ class AlertStateViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewse
             return Response(serializer_resp.data)
         except AlertState.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        except:
+        except Exception:
             return Response(status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
 

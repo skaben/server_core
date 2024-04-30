@@ -1,5 +1,4 @@
 from alert.models import AlertCounter, AlertState
-from alert.service import AlertService
 from rest_framework import serializers
 
 

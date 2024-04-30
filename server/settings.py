@@ -3,7 +3,6 @@ Django settings for SKABEN project
 """
 
 import os
-from collections import namedtuple
 
 from django.core.management.utils import get_random_secret_key
 

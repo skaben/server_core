@@ -31,7 +31,6 @@ class SkabenFile(models.Model):
 
 
 class AudioFile(SkabenFile):
-
     class Meta:
         verbose_name = "Аудио"
 
@@ -39,7 +38,6 @@ class AudioFile(SkabenFile):
 
 
 class VideoFile(SkabenFile):
-
     class Meta:
         verbose_name = "Видео"
 
@@ -47,7 +45,6 @@ class VideoFile(SkabenFile):
 
 
 class ImageFile(SkabenFile):
-
     class Meta:
         verbose_name = "Изображение"
 
@@ -55,7 +52,6 @@ class ImageFile(SkabenFile):
 
 
 class TextFile(models.Model):
-
     class Meta:
         verbose_name = "Текстовый файл"
 

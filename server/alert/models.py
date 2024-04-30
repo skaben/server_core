@@ -1,5 +1,4 @@
 import logging
-from typing import Optional
 
 from core.transport.publish import get_interface
 from django.core.exceptions import ValidationError
@@ -14,7 +13,6 @@ from event_handling.alert.types import (
 
 
 class AlertCounterManager(models.Manager):
-
     def create_initial(self, *args, **kwargs):
         """Создает базовый счетчик."""
         initial_counter = self.model(
@@ -78,7 +76,6 @@ class AlertCounter(models.Model):
 
 
 class AlertStateManager(models.Manager):
-
     def get_ingame(self):
         return self.get_queryset().filter(ingame=True)
 

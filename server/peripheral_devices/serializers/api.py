@@ -2,14 +2,8 @@ from core.helpers import get_hash_from
 from peripheral_devices.models import LockDevice, TerminalDevice
 from rest_framework import serializers
 
-__all__ = (
-    "LockSerializer",
-    "TerminalSerializer",
-)
-
 
 class DeviceSerializer(serializers.ModelSerializer):
-
     topic = ""
     alert_current = serializers.ReadOnlyField()
 

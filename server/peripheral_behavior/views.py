@@ -1,5 +1,5 @@
 from core.views import DynamicAuthMixin
-from rest_framework import status, viewsets
+from rest_framework import viewsets
 
 from .models import AccessCode, MenuItem, Permission, WorkMode
 from .serializers import (

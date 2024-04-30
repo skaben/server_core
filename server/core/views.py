@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.http import HttpResponse, JsonResponse
-from rest_framework import viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework.authtoken.views import ObtainAuthToken
@@ -16,7 +15,6 @@ class CreateTokenView(ObtainAuthToken):
 
 
 class DynamicAuthMixin:
-
     def get_authenticators(self, request, **kwargs):
         if settings.ENVIRONMENT in ("dev", "DEV"):
             return []
