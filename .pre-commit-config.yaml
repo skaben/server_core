@@ -6,6 +6,6 @@ repos:
         args: [ --fix ]
       - id: ruff-format
   - repo: https://github.com/iamthefij/docker-pre-commit
-    rev: master
+    rev: v3.0.1
     hooks:
       - id: docker-compose-check
