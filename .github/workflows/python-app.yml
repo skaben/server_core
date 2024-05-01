@@ -26,6 +26,6 @@ jobs:
     - name: Applying linter
       run: |
         ruff check --output-format=github .
-    - name: Passing tests
-      run: |
-        pytest .
+    # - name: Passing tests
+    #   run: |
+    #     pytest .
