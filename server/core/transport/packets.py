@@ -2,12 +2,11 @@ from dataclasses import dataclass
 from typing import Optional
 
 from core.helpers import format_routing_key, get_server_timestamp
-from pydantic import BaseModel, Field, computed_field, field_serializer
+from pydantic import BaseModel, Field, computed_field
 
 
 @dataclass(frozen=True)
 class SkabenPacketTypes:
-
     PING: str = "ping"
     PONG: str = "pong"
     ACK: str = "ack"

@@ -8,7 +8,6 @@ from event_handling.exceptions import StopReactionPipeline
 
 @dataclass(frozen=True)
 class PowerShieldStates:
-
     POWER_ON = "pwr"
     POWER_AUX = "aux"
     POWER_OFF = "off"
@@ -19,7 +18,6 @@ class PowerShieldStates:
 
 
 class PowerShieldEventContext(SkabenEventContext):
-
     def apply(self, event_data: dict):
         """Меняет уровень тревоги в зависимости от команды щитка."""
         command = event_data.get("powerstate")

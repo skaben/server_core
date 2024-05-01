@@ -5,7 +5,6 @@ from event_handling.exceptions import StopReactionPipeline
 
 
 class DeviceEventContext(SkabenEventContext):
-
     context_dispatcher = {
         "lock": LockEventContext,
         "pwr": PowerShieldEventContext,

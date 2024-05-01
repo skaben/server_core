@@ -6,7 +6,6 @@ from core.transport.publish import get_interface
 
 
 class Task:
-
     def __init__(self, timeout: int):
         """
         Initializes the Task.
@@ -24,7 +23,6 @@ class Task:
 
 
 class PingerTask(Task):
-
     def __init__(self, timeout: int):
         """
         Initializes the PingerTask.
@@ -48,7 +46,6 @@ class PingerTask(Task):
 
 
 class AlertTask(Task):
-
     increase: bool
 
     def __init__(self, timeout: int):

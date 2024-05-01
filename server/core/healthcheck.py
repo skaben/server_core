@@ -14,7 +14,6 @@ ERROR: Literal["ERROR"] = "ERROR"
 
 @dataclass(frozen=True)
 class IntegrationModules:
-
     DATABASE: str = "DATABASE"
     REDIS_CACHE: str = "REDIS_CACHE"
     BROKER_QUEUES: str = "BROKER_QUEUES"
@@ -24,7 +23,6 @@ class IntegrationModules:
 
 
 class IntegrityCheck:
-
     _status = Union[type(OK), type(ERROR)]
     errors: List[str]
     messages: List[str]
@@ -73,20 +71,18 @@ class AlertStateIntegrityCheck(IntegrityCheck):
 
 
 class DeviceIntegrityCheck(IntegrityCheck):
-
     def _check(self):
         try:
             active_topics = DeviceTopic.objects.filter(active=True).values_list("channel", flat=True)
             reaction_count = ControlReaction.objects.count()
             self.messages = [f"Active MQTT topics:\t{list(active_topics)}", f"Custom MQTT reactions:\t{reaction_count}"]
-        except:
+        except Exception:
             raise ConfigException(
                 "Device topics misconfigured, check settings.SKABEN_DEVICE_TOPICS and DB MqttTopics content"
             )
 
 
 class BrokerIntegrityCheck(IntegrityCheck):
-
     def _check(self):
         config = get_mq_config()
         if not config.internal_exchange or not config.mqtt_exchange:

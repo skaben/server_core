@@ -3,11 +3,18 @@ exclude = ["wsgi.py", "static/", "templates/"]
 min_confidence = 80
 sort_by_size = true
 
-[tool.isort]
-profile = "hug"
-src_paths = ["isort", "test"]
-
-[tool.black]
+[tool.ruff]
 line-length = 120
-target-version = ['py37']
-include = '\.pyi?$'
+exclude = [
+    ".venv",
+    "*/migrations/*",
+    "docker_build",
+    ".pytest_cache",
+    "static",
+    "templates"
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+docstring-code-format = true

@@ -3,8 +3,6 @@ import re
 from core.helpers import get_uuid
 from django.db import models
 
-__all__ = ("BaseModelUUID",)
-
 
 class BaseModelUUID(models.Model):
     """Model with UUID PK."""

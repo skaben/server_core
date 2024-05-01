@@ -8,7 +8,6 @@ from streams.models import StreamRecord
 
 
 class BaseSiteAdmin(admin.AdminSite):
-
     site_title = "SKABEN"
     site_header = "Dungeon admin"
     index_title = "Управление системами"
@@ -20,7 +19,6 @@ base_site.register(Group)
 
 
 class SystemAdmin(admin.ModelAdmin):
-
     def get_urls(self):
         urls = super().get_urls()
         my_urls = [

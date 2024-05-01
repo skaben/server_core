@@ -2,7 +2,6 @@ import logging
 
 from alert.service import AlertService
 from core.transport.topics import get_topics
-from django.conf import settings
 from peripheral_behavior.models.passive import PassiveConfig
 
 

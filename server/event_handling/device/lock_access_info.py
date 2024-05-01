@@ -1,5 +1,3 @@
-from typing import Tuple
-
 from alert.models import AlertState
 from django.conf import settings
 from peripheral_behavior.models import AccessCode
@@ -7,7 +5,6 @@ from peripheral_devices.models import LockDevice as Lock
 
 
 class LockEventContext:
-
     def create_lock_device(self, mac_addr: str) -> str:
         mgmt_state = AlertState.objects.get_management_state()
         if not mgmt_state.current:
