@@ -1,5 +1,4 @@
 import logging
-from typing import Optional
 
 from core.transport.publish import get_interface
 from django.core.exceptions import ValidationError

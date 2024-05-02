@@ -1,5 +1,3 @@
-from typing import Tuple
-
 from alert.models import AlertState
 from django.conf import settings
 from peripheral_behavior.models import AccessCode

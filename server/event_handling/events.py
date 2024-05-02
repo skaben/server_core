@@ -1,5 +1,4 @@
-import logging
-from typing import Any, Dict, Literal, Optional, Union
+from typing import Any, Dict, Optional, Union
 
 from core.transport.topics import SkabenTopics
 from pydantic import BaseModel as PydanticBaseModel
@@ -13,7 +12,6 @@ class BaseModel(PydanticBaseModel):
 
 
 class EncodedEventType(BaseModel):
-
     data: Optional[Dict[str, Any]]
     headers: Optional[Dict[str, Any]]
 
@@ -53,7 +51,6 @@ class SkabenEvent(BaseModel):
 
 
 class SkabenDeviceEvent(SkabenEvent):
-
     event_type: str = "device"
     device_type: str
 

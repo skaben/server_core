@@ -23,7 +23,6 @@ def acquire_pool(func):
 
 
 class SkabenQueue(Enum):
-
     ASK = "ask"  # incoming mqtt packets
     STATE_UPDATE = "state_update"  # update configuration server-side
     CLIENT_UPDATE = "client_update"  # update configuration client-side
@@ -45,7 +44,6 @@ class MQFactory:
 
 
 class MQConfig:
-
     exchanges: dict
     queues: dict
 

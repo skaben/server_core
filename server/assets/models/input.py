@@ -3,7 +3,6 @@ from django.db import models
 
 
 class UserInput(models.Model):
-
     uuid = models.UUIDField(primary_key=True, editable=False, default=get_uuid)
 
     action = models.CharField(

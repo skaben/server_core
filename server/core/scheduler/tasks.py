@@ -46,7 +46,6 @@ class PingerTask(Task):
 
 
 class AlertTask(Task):
-
     increase: bool
 
     def __init__(self, timeout: int):

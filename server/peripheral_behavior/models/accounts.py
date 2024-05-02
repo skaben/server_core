@@ -2,8 +2,6 @@ from core.models.base import BaseModelUUID
 from django.db import models
 from peripheral_behavior.models import SkabenUser
 
-__all__ = ("TerminalMenuItem", "TerminalAccount")
-
 
 class TerminalMenuItem(BaseModelUUID):
     class Meta:

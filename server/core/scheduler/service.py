@@ -7,7 +7,6 @@ from server.core.scheduler.tasks import AlertTask, PingerTask, Task
 
 
 class SchedulerService:
-
     tasks: List[Task]
     running: asyncio.Event
 

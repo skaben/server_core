@@ -8,7 +8,6 @@ from event_handling.exceptions import StopReactionPipeline
 
 @dataclass(frozen=True)
 class PowerShieldStates:
-
     POWER_ON = "pwr"
     POWER_AUX = "aux"
     POWER_OFF = "off"

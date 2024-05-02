@@ -8,7 +8,6 @@ from streams.models import StreamRecord
 
 
 class BaseSiteAdmin(admin.AdminSite):
-
     site_title = "SKABEN"
     site_header = "Dungeon admin"
     index_title = "Управление системами"

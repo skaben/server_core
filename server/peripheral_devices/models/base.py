@@ -1,12 +1,10 @@
 import netaddr
 from alert.models import AlertState
-from core.helpers import format_mac_address, format_routing_key, get_server_timestamp
+from core.helpers import format_routing_key, get_server_timestamp
 from core.transport.config import SkabenQueue
 from core.transport.publish import get_interface
 from django.conf import settings
 from django.db import models
-
-__all__ = ("SkabenDevice",)
 
 
 class SkabenDevice(models.Model):

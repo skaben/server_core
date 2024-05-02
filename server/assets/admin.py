@@ -1,5 +1,3 @@
-from assets.models import AudioFile, HackGame, ImageFile, TextFile, UserInput, VideoFile
-from core.admin import base_site
 from django.contrib import admin
 
 

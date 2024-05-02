@@ -1,6 +1,5 @@
 import asyncio
 import time
-from threading import Thread
 
 from asgiref.sync import sync_to_async
 from django.core.management.base import BaseCommand

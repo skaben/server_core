@@ -1,6 +1,5 @@
 import json
 
-import pytest
 from core.transport.packets import CUP
 
 
