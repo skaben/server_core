@@ -27,6 +27,11 @@ class LockDevice(SkabenDevice):
         return acl
 
     @property
+    def get_hash(self):
+        watch_list = ["closed", "blocked", "sound", "acl"]
+        return super()._hash(watch_list)
+
+    @property
     def topic(self):
         """Получает MQTT-топик."""
         return "lock"

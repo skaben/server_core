@@ -5,7 +5,6 @@ from peripheral_devices.models import LockDevice, TerminalDevice
 
 
 class DeviceAdmin(admin.ModelAdmin):
-
     readonly_fields = ("timestamp", "alert_state")
 
 

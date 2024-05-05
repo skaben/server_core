@@ -1,6 +1,6 @@
 import netaddr
 from alert.models import AlertState
-from core.helpers import format_routing_key, get_server_timestamp
+from core.helpers import format_routing_key, get_server_timestamp, get_hash_from
 from core.transport.config import SkabenQueue
 from core.transport.publish import get_interface
 from django.conf import settings
@@ -21,16 +21,20 @@ class SkabenDevice(models.Model):
 
     @property
     def online(self) -> bool:
-        return self.timestamp + settings.DEVICE_KEEPALIVE_TIMEOUT < get_server_timestamp()
+        return self.timestamp + settings.DEVICE_KEEPALIVE_TIMEOUT > get_server_timestamp()
 
     @property
-    def alert_state(self) -> str:
-        state = AlertState.get_current
-        return str(getattr(state, "order", ""))
+    def alert(self) -> str:
+        state = AlertState.objects.get_current()
+        return str(getattr(state, "id", ""))
 
     @property
     def topic(self):
         return NotImplementedError
+
+    @classmethod
+    def _hash(cls, attrs: list[str]) -> str:
+        return get_hash_from({attr: getattr(cls, attr) for attr in attrs})
 
     def save(self, *args, **kwargs):
         """Сохранение, отправляющее конфиг устройству, если передан параметр send_update=True."""
