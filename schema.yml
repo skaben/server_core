@@ -6,10 +6,10 @@ info:
 paths:
   /api/alert_counter/:
     get:
-      operationId: alert_counter_list
+      operationId: api_alert_counter_list
       description: Alert counter viewset
       tags:
-      - alert_counter
+      - api
       responses:
         '200':
           content:
@@ -20,10 +20,10 @@ paths:
                   $ref: '#/components/schemas/AlertCounter'
           description: ''
     post:
-      operationId: alert_counter_create
+      operationId: api_alert_counter_create
       description: Alert counter viewset
       tags:
-      - alert_counter
+      - api
       requestBody:
         content:
           application/json:
@@ -44,7 +44,7 @@ paths:
           description: ''
   /api/alert_counter/{id}/:
     get:
-      operationId: alert_counter_retrieve
+      operationId: api_alert_counter_retrieve
       description: Alert counter viewset
       parameters:
       - in: path
@@ -54,7 +54,7 @@ paths:
         description: 'A unique integer value identifying this Тревога: счетчик уровня.'
         required: true
       tags:
-      - alert_counter
+      - api
       responses:
         '200':
           content:
@@ -64,10 +64,23 @@ paths:
           description: ''
   /api/alert_counter/get_latest/:
     get:
-      operationId: alert_counter_get_latest_retrieve
+      operationId: api_alert_counter_get_latest_retrieve
       description: Alert counter viewset
       tags:
-      - alert_counter
+      - api
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertCounter'
+          description: ''
+  /api/alert_counter/purge_history/:
+    get:
+      operationId: api_alert_counter_purge_history_retrieve
+      description: Alert counter viewset
+      tags:
+      - api
       responses:
         '200':
           content:
@@ -77,7 +90,7 @@ paths:
           description: ''
   /api/alert_state/:
     get:
-      operationId: alert_state_list
+      operationId: api_alert_state_list
       description: Global alert state viewset
       parameters:
       - in: query
@@ -85,7 +98,7 @@ paths:
         schema:
           type: boolean
       tags:
-      - alert_state
+      - api
       responses:
         '200':
           content:
@@ -97,7 +110,7 @@ paths:
           description: ''
   /api/alert_state/{id}/:
     get:
-      operationId: alert_state_retrieve
+      operationId: api_alert_state_retrieve
       description: Global alert state viewset
       parameters:
       - in: path
@@ -107,7 +120,7 @@ paths:
         description: 'A unique integer value identifying this Тревога: именной статус.'
         required: true
       tags:
-      - alert_state
+      - api
       responses:
         '200':
           content:
@@ -117,7 +130,7 @@ paths:
           description: ''
   /api/alert_state/{id}/set_current/:
     post:
-      operationId: alert_state_set_current_create
+      operationId: api_alert_state_set_current_create
       description: Set Alert State as current
       parameters:
       - in: path
@@ -127,16 +140,16 @@ paths:
         description: 'A unique integer value identifying this Тревога: именной статус.'
         required: true
       tags:
-      - alert_state
+      - api
       responses:
         '200':
           description: No response body
   /api/audiofile/:
     get:
-      operationId: audiofile_list
+      operationId: api_audiofile_list
       description: Manage locks in database
       tags:
-      - audiofile
+      - api
       responses:
         '200':
           content:
@@ -147,10 +160,10 @@ paths:
                   $ref: '#/components/schemas/AudioFile'
           description: ''
     post:
-      operationId: audiofile_create
+      operationId: api_audiofile_create
       description: Manage locks in database
       tags:
-      - audiofile
+      - api
       requestBody:
         content:
           application/json:
@@ -171,7 +184,7 @@ paths:
           description: ''
   /api/audiofile/{id}/:
     get:
-      operationId: audiofile_retrieve
+      operationId: api_audiofile_retrieve
       description: Manage locks in database
       parameters:
       - in: path
@@ -181,7 +194,7 @@ paths:
         description: A unique integer value identifying this Аудио.
         required: true
       tags:
-      - audiofile
+      - api
       responses:
         '200':
           content:
@@ -190,7 +203,7 @@ paths:
                 $ref: '#/components/schemas/AudioFile'
           description: ''
     put:
-      operationId: audiofile_update
+      operationId: api_audiofile_update
       description: Manage locks in database
       parameters:
       - in: path
@@ -200,7 +213,7 @@ paths:
         description: A unique integer value identifying this Аудио.
         required: true
       tags:
-      - audiofile
+      - api
       requestBody:
         content:
           application/json:
@@ -220,7 +233,7 @@ paths:
                 $ref: '#/components/schemas/AudioFile'
           description: ''
     patch:
-      operationId: audiofile_partial_update
+      operationId: api_audiofile_partial_update
       description: Manage locks in database
       parameters:
       - in: path
@@ -230,7 +243,7 @@ paths:
         description: A unique integer value identifying this Аудио.
         required: true
       tags:
-      - audiofile
+      - api
       requestBody:
         content:
           application/json:
@@ -250,7 +263,7 @@ paths:
                 $ref: '#/components/schemas/AudioFile'
           description: ''
     delete:
-      operationId: audiofile_destroy
+      operationId: api_audiofile_destroy
       description: Manage locks in database
       parameters:
       - in: path
@@ -260,16 +273,16 @@ paths:
         description: A unique integer value identifying this Аудио.
         required: true
       tags:
-      - audiofile
+      - api
       responses:
         '204':
           description: No response body
   /api/auth/token/:
     post:
-      operationId: auth_token_create
+      operationId: api_auth_token_create
       description: Create a new auth token for user
       tags:
-      - auth
+      - api
       requestBody:
         content:
           application/x-www-form-urlencoded:
@@ -291,10 +304,10 @@ paths:
           description: ''
   /api/device/lock/:
     get:
-      operationId: device_lock_list
+      operationId: api_device_lock_list
       description: Manage locks in database
       tags:
-      - device
+      - api
       responses:
         '200':
           content:
@@ -305,10 +318,10 @@ paths:
                   $ref: '#/components/schemas/Lock'
           description: ''
     post:
-      operationId: device_lock_create
+      operationId: api_device_lock_create
       description: Manage locks in database
       tags:
-      - device
+      - api
       requestBody:
         content:
           application/json:
@@ -330,7 +343,7 @@ paths:
           description: ''
   /api/device/lock/{id}/:
     get:
-      operationId: device_lock_retrieve
+      operationId: api_device_lock_retrieve
       description: Manage locks in database
       parameters:
       - in: path
@@ -340,7 +353,7 @@ paths:
         description: A unique integer value identifying this Лазерная дверь.
         required: true
       tags:
-      - device
+      - api
       responses:
         '200':
           content:
@@ -349,7 +362,7 @@ paths:
                 $ref: '#/components/schemas/Lock'
           description: ''
     put:
-      operationId: device_lock_update
+      operationId: api_device_lock_update
       description: Manage locks in database
       parameters:
       - in: path
@@ -359,7 +372,7 @@ paths:
         description: A unique integer value identifying this Лазерная дверь.
         required: true
       tags:
-      - device
+      - api
       requestBody:
         content:
           application/json:
@@ -380,7 +393,7 @@ paths:
                 $ref: '#/components/schemas/Lock'
           description: ''
     patch:
-      operationId: device_lock_partial_update
+      operationId: api_device_lock_partial_update
       description: Manage locks in database
       parameters:
       - in: path
@@ -390,7 +403,7 @@ paths:
         description: A unique integer value identifying this Лазерная дверь.
         required: true
       tags:
-      - device
+      - api
       requestBody:
         content:
           application/json:
@@ -410,7 +423,7 @@ paths:
                 $ref: '#/components/schemas/Lock'
           description: ''
     delete:
-      operationId: device_lock_destroy
+      operationId: api_device_lock_destroy
       description: Manage locks in database
       parameters:
       - in: path
@@ -420,16 +433,16 @@ paths:
         description: A unique integer value identifying this Лазерная дверь.
         required: true
       tags:
-      - device
+      - api
       responses:
         '204':
           description: No response body
   /api/device/terminal/:
     get:
-      operationId: device_terminal_list
+      operationId: api_device_terminal_list
       description: Manage terminals in database
       tags:
-      - device
+      - api
       responses:
         '200':
           content:
@@ -440,10 +453,10 @@ paths:
                   $ref: '#/components/schemas/Terminal'
           description: ''
     post:
-      operationId: device_terminal_create
+      operationId: api_device_terminal_create
       description: Manage terminals in database
       tags:
-      - device
+      - api
       requestBody:
         content:
           application/json:
@@ -464,7 +477,7 @@ paths:
           description: ''
   /api/device/terminal/{id}/:
     get:
-      operationId: device_terminal_retrieve
+      operationId: api_device_terminal_retrieve
       description: Manage terminals in database
       parameters:
       - in: path
@@ -474,7 +487,7 @@ paths:
         description: A unique integer value identifying this Терминал.
         required: true
       tags:
-      - device
+      - api
       responses:
         '200':
           content:
@@ -483,7 +496,7 @@ paths:
                 $ref: '#/components/schemas/Terminal'
           description: ''
     put:
-      operationId: device_terminal_update
+      operationId: api_device_terminal_update
       description: Manage terminals in database
       parameters:
       - in: path
@@ -493,7 +506,7 @@ paths:
         description: A unique integer value identifying this Терминал.
         required: true
       tags:
-      - device
+      - api
       requestBody:
         content:
           application/json:
@@ -513,7 +526,7 @@ paths:
                 $ref: '#/components/schemas/Terminal'
           description: ''
     patch:
-      operationId: device_terminal_partial_update
+      operationId: api_device_terminal_partial_update
       description: Manage terminals in database
       parameters:
       - in: path
@@ -523,7 +536,7 @@ paths:
         description: A unique integer value identifying this Терминал.
         required: true
       tags:
-      - device
+      - api
       requestBody:
         content:
           application/json:
@@ -543,7 +556,7 @@ paths:
                 $ref: '#/components/schemas/Terminal'
           description: ''
     delete:
-      operationId: device_terminal_destroy
+      operationId: api_device_terminal_destroy
       description: Manage terminals in database
       parameters:
       - in: path
@@ -553,22 +566,13 @@ paths:
         description: A unique integer value identifying this Терминал.
         required: true
       tags:
-      - device
+      - api
       responses:
         '204':
           description: No response body
-  /api/device/update/:
-    post:
-      operationId: device_update_create
-      description: Update devices by provided topics.
-      tags:
-      - device
-      responses:
-        '200':
-          description: No response body
   /api/events/:
     get:
-      operationId: events_list
+      operationId: api_events_list
       description: Events in database
       parameters:
       - name: ordering
@@ -584,7 +588,7 @@ paths:
         schema:
           type: string
       tags:
-      - events
+      - api
       responses:
         '200':
           content:
@@ -595,10 +599,10 @@ paths:
                   $ref: '#/components/schemas/StreamRecord'
           description: ''
     post:
-      operationId: events_create
+      operationId: api_events_create
       description: Events in database
       tags:
-      - events
+      - api
       requestBody:
         content:
           application/json:
@@ -620,7 +624,7 @@ paths:
           description: ''
   /api/events/{uuid}/:
     get:
-      operationId: events_retrieve
+      operationId: api_events_retrieve
       description: Events in database
       parameters:
       - in: path
@@ -631,7 +635,7 @@ paths:
         description: A UUID string identifying this Игровое событие.
         required: true
       tags:
-      - events
+      - api
       responses:
         '200':
           content:
@@ -640,7 +644,7 @@ paths:
                 $ref: '#/components/schemas/StreamRecord'
           description: ''
     put:
-      operationId: events_update
+      operationId: api_events_update
       description: Events in database
       parameters:
       - in: path
@@ -651,7 +655,7 @@ paths:
         description: A UUID string identifying this Игровое событие.
         required: true
       tags:
-      - events
+      - api
       requestBody:
         content:
           application/json:
@@ -672,7 +676,7 @@ paths:
                 $ref: '#/components/schemas/StreamRecord'
           description: ''
     patch:
-      operationId: events_partial_update
+      operationId: api_events_partial_update
       description: Events in database
       parameters:
       - in: path
@@ -683,7 +687,7 @@ paths:
         description: A UUID string identifying this Игровое событие.
         required: true
       tags:
-      - events
+      - api
       requestBody:
         content:
           application/json:
@@ -703,7 +707,7 @@ paths:
                 $ref: '#/components/schemas/StreamRecord'
           description: ''
     delete:
-      operationId: events_destroy
+      operationId: api_events_destroy
       description: Events in database
       parameters:
       - in: path
@@ -714,16 +718,16 @@ paths:
         description: A UUID string identifying this Игровое событие.
         required: true
       tags:
-      - events
+      - api
       responses:
         '204':
           description: No response body
   /api/hackgame/:
     get:
-      operationId: hackgame_list
+      operationId: api_hackgame_list
       description: Manage locks in database
       tags:
-      - hackgame
+      - api
       responses:
         '200':
           content:
@@ -734,10 +738,10 @@ paths:
                   $ref: '#/components/schemas/HackGame'
           description: ''
     post:
-      operationId: hackgame_create
+      operationId: api_hackgame_create
       description: Manage locks in database
       tags:
-      - hackgame
+      - api
       requestBody:
         content:
           application/json:
@@ -758,7 +762,7 @@ paths:
           description: ''
   /api/hackgame/{id}/:
     get:
-      operationId: hackgame_retrieve
+      operationId: api_hackgame_retrieve
       description: Manage locks in database
       parameters:
       - in: path
@@ -769,7 +773,7 @@ paths:
           Hack.
         required: true
       tags:
-      - hackgame
+      - api
       responses:
         '200':
           content:
@@ -778,7 +782,7 @@ paths:
                 $ref: '#/components/schemas/HackGame'
           description: ''
     put:
-      operationId: hackgame_update
+      operationId: api_hackgame_update
       description: Manage locks in database
       parameters:
       - in: path
@@ -789,7 +793,7 @@ paths:
           Hack.
         required: true
       tags:
-      - hackgame
+      - api
       requestBody:
         content:
           application/json:
@@ -809,7 +813,7 @@ paths:
                 $ref: '#/components/schemas/HackGame'
           description: ''
     patch:
-      operationId: hackgame_partial_update
+      operationId: api_hackgame_partial_update
       description: Manage locks in database
       parameters:
       - in: path
@@ -820,7 +824,7 @@ paths:
           Hack.
         required: true
       tags:
-      - hackgame
+      - api
       requestBody:
         content:
           application/json:
@@ -840,7 +844,7 @@ paths:
                 $ref: '#/components/schemas/HackGame'
           description: ''
     delete:
-      operationId: hackgame_destroy
+      operationId: api_hackgame_destroy
       description: Manage locks in database
       parameters:
       - in: path
@@ -851,16 +855,16 @@ paths:
           Hack.
         required: true
       tags:
-      - hackgame
+      - api
       responses:
         '204':
           description: No response body
   /api/imagefile/:
     get:
-      operationId: imagefile_list
+      operationId: api_imagefile_list
       description: Manage locks in database
       tags:
-      - imagefile
+      - api
       responses:
         '200':
           content:
@@ -871,10 +875,10 @@ paths:
                   $ref: '#/components/schemas/ImageFile'
           description: ''
     post:
-      operationId: imagefile_create
+      operationId: api_imagefile_create
       description: Manage locks in database
       tags:
-      - imagefile
+      - api
       requestBody:
         content:
           application/json:
@@ -895,7 +899,7 @@ paths:
           description: ''
   /api/imagefile/{id}/:
     get:
-      operationId: imagefile_retrieve
+      operationId: api_imagefile_retrieve
       description: Manage locks in database
       parameters:
       - in: path
@@ -905,7 +909,7 @@ paths:
         description: A unique integer value identifying this Изображение.
         required: true
       tags:
-      - imagefile
+      - api
       responses:
         '200':
           content:
@@ -914,7 +918,7 @@ paths:
                 $ref: '#/components/schemas/ImageFile'
           description: ''
     put:
-      operationId: imagefile_update
+      operationId: api_imagefile_update
       description: Manage locks in database
       parameters:
       - in: path
@@ -924,7 +928,7 @@ paths:
         description: A unique integer value identifying this Изображение.
         required: true
       tags:
-      - imagefile
+      - api
       requestBody:
         content:
           application/json:
@@ -944,7 +948,7 @@ paths:
                 $ref: '#/components/schemas/ImageFile'
           description: ''
     patch:
-      operationId: imagefile_partial_update
+      operationId: api_imagefile_partial_update
       description: Manage locks in database
       parameters:
       - in: path
@@ -954,7 +958,7 @@ paths:
         description: A unique integer value identifying this Изображение.
         required: true
       tags:
-      - imagefile
+      - api
       requestBody:
         content:
           application/json:
@@ -974,7 +978,7 @@ paths:
                 $ref: '#/components/schemas/ImageFile'
           description: ''
     delete:
-      operationId: imagefile_destroy
+      operationId: api_imagefile_destroy
       description: Manage locks in database
       parameters:
       - in: path
@@ -984,16 +988,16 @@ paths:
         description: A unique integer value identifying this Изображение.
         required: true
       tags:
-      - imagefile
+      - api
       responses:
         '204':
           description: No response body
   /api/lock/:
     get:
-      operationId: lock_list
+      operationId: api_lock_list
       description: Manage locks in database
       tags:
-      - lock
+      - api
       responses:
         '200':
           content:
@@ -1004,10 +1008,10 @@ paths:
                   $ref: '#/components/schemas/Lock'
           description: ''
     post:
-      operationId: lock_create
+      operationId: api_lock_create
       description: Manage locks in database
       tags:
-      - lock
+      - api
       requestBody:
         content:
           application/json:
@@ -1029,7 +1033,7 @@ paths:
           description: ''
   /api/lock/{id}/:
     get:
-      operationId: lock_retrieve
+      operationId: api_lock_retrieve
       description: Manage locks in database
       parameters:
       - in: path
@@ -1039,7 +1043,7 @@ paths:
         description: A unique integer value identifying this Лазерная дверь.
         required: true
       tags:
-      - lock
+      - api
       responses:
         '200':
           content:
@@ -1048,7 +1052,7 @@ paths:
                 $ref: '#/components/schemas/Lock'
           description: ''
     put:
-      operationId: lock_update
+      operationId: api_lock_update
       description: Manage locks in database
       parameters:
       - in: path
@@ -1058,7 +1062,7 @@ paths:
         description: A unique integer value identifying this Лазерная дверь.
         required: true
       tags:
-      - lock
+      - api
       requestBody:
         content:
           application/json:
@@ -1079,7 +1083,7 @@ paths:
                 $ref: '#/components/schemas/Lock'
           description: ''
     patch:
-      operationId: lock_partial_update
+      operationId: api_lock_partial_update
       description: Manage locks in database
       parameters:
       - in: path
@@ -1089,7 +1093,7 @@ paths:
         description: A unique integer value identifying this Лазерная дверь.
         required: true
       tags:
-      - lock
+      - api
       requestBody:
         content:
           application/json:
@@ -1109,7 +1113,7 @@ paths:
                 $ref: '#/components/schemas/Lock'
           description: ''
     delete:
-      operationId: lock_destroy
+      operationId: api_lock_destroy
       description: Manage locks in database
       parameters:
       - in: path
@@ -1119,16 +1123,16 @@ paths:
         description: A unique integer value identifying this Лазерная дверь.
         required: true
       tags:
-      - lock
+      - api
       responses:
         '204':
           description: No response body
   /api/terminal/:
     get:
-      operationId: terminal_list
+      operationId: api_terminal_list
       description: Manage terminals in database
       tags:
-      - terminal
+      - api
       responses:
         '200':
           content:
@@ -1139,10 +1143,10 @@ paths:
                   $ref: '#/components/schemas/Terminal'
           description: ''
     post:
-      operationId: terminal_create
+      operationId: api_terminal_create
       description: Manage terminals in database
       tags:
-      - terminal
+      - api
       requestBody:
         content:
           application/json:
@@ -1163,7 +1167,7 @@ paths:
           description: ''
   /api/terminal/{id}/:
     get:
-      operationId: terminal_retrieve
+      operationId: api_terminal_retrieve
       description: Manage terminals in database
       parameters:
       - in: path
@@ -1173,7 +1177,7 @@ paths:
         description: A unique integer value identifying this Терминал.
         required: true
       tags:
-      - terminal
+      - api
       responses:
         '200':
           content:
@@ -1182,7 +1186,7 @@ paths:
                 $ref: '#/components/schemas/Terminal'
           description: ''
     put:
-      operationId: terminal_update
+      operationId: api_terminal_update
       description: Manage terminals in database
       parameters:
       - in: path
@@ -1192,7 +1196,7 @@ paths:
         description: A unique integer value identifying this Терминал.
         required: true
       tags:
-      - terminal
+      - api
       requestBody:
         content:
           application/json:
@@ -1212,7 +1216,7 @@ paths:
                 $ref: '#/components/schemas/Terminal'
           description: ''
     patch:
-      operationId: terminal_partial_update
+      operationId: api_terminal_partial_update
       description: Manage terminals in database
       parameters:
       - in: path
@@ -1222,7 +1226,7 @@ paths:
         description: A unique integer value identifying this Терминал.
         required: true
       tags:
-      - terminal
+      - api
       requestBody:
         content:
           application/json:
@@ -1242,7 +1246,7 @@ paths:
                 $ref: '#/components/schemas/Terminal'
           description: ''
     delete:
-      operationId: terminal_destroy
+      operationId: api_terminal_destroy
       description: Manage terminals in database
       parameters:
       - in: path
@@ -1252,16 +1256,16 @@ paths:
         description: A unique integer value identifying this Терминал.
         required: true
       tags:
-      - terminal
+      - api
       responses:
         '204':
           description: No response body
   /api/textfile/:
     get:
-      operationId: textfile_list
+      operationId: api_textfile_list
       description: Manage locks in database
       tags:
-      - textfile
+      - api
       responses:
         '200':
           content:
@@ -1272,10 +1276,10 @@ paths:
                   $ref: '#/components/schemas/TextFile'
           description: ''
     post:
-      operationId: textfile_create
+      operationId: api_textfile_create
       description: Manage locks in database
       tags:
-      - textfile
+      - api
       requestBody:
         content:
           application/json:
@@ -1297,7 +1301,7 @@ paths:
           description: ''
   /api/textfile/{id}/:
     get:
-      operationId: textfile_retrieve
+      operationId: api_textfile_retrieve
       description: Manage locks in database
       parameters:
       - in: path
@@ -1307,7 +1311,7 @@ paths:
         description: A unique integer value identifying this Текстовый файл.
         required: true
       tags:
-      - textfile
+      - api
       responses:
         '200':
           content:
@@ -1316,7 +1320,7 @@ paths:
                 $ref: '#/components/schemas/TextFile'
           description: ''
     put:
-      operationId: textfile_update
+      operationId: api_textfile_update
       description: Manage locks in database
       parameters:
       - in: path
@@ -1326,7 +1330,7 @@ paths:
         description: A unique integer value identifying this Текстовый файл.
         required: true
       tags:
-      - textfile
+      - api
       requestBody:
         content:
           application/json:
@@ -1347,7 +1351,7 @@ paths:
                 $ref: '#/components/schemas/TextFile'
           description: ''
     patch:
-      operationId: textfile_partial_update
+      operationId: api_textfile_partial_update
       description: Manage locks in database
       parameters:
       - in: path
@@ -1357,7 +1361,7 @@ paths:
         description: A unique integer value identifying this Текстовый файл.
         required: true
       tags:
-      - textfile
+      - api
       requestBody:
         content:
           application/json:
@@ -1377,7 +1381,7 @@ paths:
                 $ref: '#/components/schemas/TextFile'
           description: ''
     delete:
-      operationId: textfile_destroy
+      operationId: api_textfile_destroy
       description: Manage locks in database
       parameters:
       - in: path
@@ -1387,16 +1391,16 @@ paths:
         description: A unique integer value identifying this Текстовый файл.
         required: true
       tags:
-      - textfile
+      - api
       responses:
         '204':
           description: No response body
   /api/userinput/:
     get:
-      operationId: userinput_list
+      operationId: api_userinput_list
       description: Manage user input actions in database
       tags:
-      - userinput
+      - api
       responses:
         '200':
           content:
@@ -1407,10 +1411,10 @@ paths:
                   $ref: '#/components/schemas/UserInput'
           description: ''
     post:
-      operationId: userinput_create
+      operationId: api_userinput_create
       description: Manage user input actions in database
       tags:
-      - userinput
+      - api
       requestBody:
         content:
           application/json:
@@ -1431,7 +1435,7 @@ paths:
           description: ''
   /api/userinput/{uuid}/:
     get:
-      operationId: userinput_retrieve
+      operationId: api_userinput_retrieve
       description: Manage user input actions in database
       parameters:
       - in: path
@@ -1442,7 +1446,7 @@ paths:
         description: A UUID string identifying this Пользовательский интерфейс ввода.
         required: true
       tags:
-      - userinput
+      - api
       responses:
         '200':
           content:
@@ -1451,7 +1455,7 @@ paths:
                 $ref: '#/components/schemas/UserInput'
           description: ''
     put:
-      operationId: userinput_update
+      operationId: api_userinput_update
       description: Manage user input actions in database
       parameters:
       - in: path
@@ -1462,7 +1466,7 @@ paths:
         description: A UUID string identifying this Пользовательский интерфейс ввода.
         required: true
       tags:
-      - userinput
+      - api
       requestBody:
         content:
           application/json:
@@ -1482,7 +1486,7 @@ paths:
                 $ref: '#/components/schemas/UserInput'
           description: ''
     patch:
-      operationId: userinput_partial_update
+      operationId: api_userinput_partial_update
       description: Manage user input actions in database
       parameters:
       - in: path
@@ -1493,7 +1497,7 @@ paths:
         description: A UUID string identifying this Пользовательский интерфейс ввода.
         required: true
       tags:
-      - userinput
+      - api
       requestBody:
         content:
           application/json:
@@ -1513,7 +1517,7 @@ paths:
                 $ref: '#/components/schemas/UserInput'
           description: ''
     delete:
-      operationId: userinput_destroy
+      operationId: api_userinput_destroy
       description: Manage user input actions in database
       parameters:
       - in: path
@@ -1524,16 +1528,16 @@ paths:
         description: A UUID string identifying this Пользовательский интерфейс ввода.
         required: true
       tags:
-      - userinput
+      - api
       responses:
         '204':
           description: No response body
   /api/videofile/:
     get:
-      operationId: videofile_list
+      operationId: api_videofile_list
       description: Manage locks in database
       tags:
-      - videofile
+      - api
       responses:
         '200':
           content:
@@ -1544,10 +1548,10 @@ paths:
                   $ref: '#/components/schemas/VideoFile'
           description: ''
     post:
-      operationId: videofile_create
+      operationId: api_videofile_create
       description: Manage locks in database
       tags:
-      - videofile
+      - api
       requestBody:
         content:
           application/json:
@@ -1568,7 +1572,7 @@ paths:
           description: ''
   /api/videofile/{id}/:
     get:
-      operationId: videofile_retrieve
+      operationId: api_videofile_retrieve
       description: Manage locks in database
       parameters:
       - in: path
@@ -1578,7 +1582,7 @@ paths:
         description: A unique integer value identifying this Видео.
         required: true
       tags:
-      - videofile
+      - api
       responses:
         '200':
           content:
@@ -1587,7 +1591,7 @@ paths:
                 $ref: '#/components/schemas/VideoFile'
           description: ''
     put:
-      operationId: videofile_update
+      operationId: api_videofile_update
       description: Manage locks in database
       parameters:
       - in: path
@@ -1597,7 +1601,7 @@ paths:
         description: A unique integer value identifying this Видео.
         required: true
       tags:
-      - videofile
+      - api
       requestBody:
         content:
           application/json:
@@ -1617,7 +1621,7 @@ paths:
                 $ref: '#/components/schemas/VideoFile'
           description: ''
     patch:
-      operationId: videofile_partial_update
+      operationId: api_videofile_partial_update
       description: Manage locks in database
       parameters:
       - in: path
@@ -1627,7 +1631,7 @@ paths:
         description: A unique integer value identifying this Видео.
         required: true
       tags:
-      - videofile
+      - api
       requestBody:
         content:
           application/json:
@@ -1647,7 +1651,7 @@ paths:
                 $ref: '#/components/schemas/VideoFile'
           description: ''
     delete:
-      operationId: videofile_destroy
+      operationId: api_videofile_destroy
       description: Manage locks in database
       parameters:
       - in: path
@@ -1657,9 +1661,26 @@ paths:
         description: A unique integer value identifying this Видео.
         required: true
       tags:
-      - videofile
+      - api
       responses:
         '204':
+          description: No response body
+  /ops/healthcheck/:
+    get:
+      operationId: ops_healthcheck_retrieve
+      tags:
+      - ops
+      responses:
+        '200':
+          description: No response body
+  /ops/update-devices/:
+    post:
+      operationId: ops_update_devices_create
+      description: Update devices by provided topics.
+      tags:
+      - ops
+      responses:
+        '200':
           description: No response body
 components:
   schemas:
@@ -1726,28 +1747,40 @@ components:
           title: Цифровой id статуса
           description: используется для идентификации и упорядочивания статуса без
             привязки к id в БД
-        auto_increase:
-          type: boolean
-          title: Авто-увеличение тревоги
-          description: Включить автоматическое повышение тревоги со временем
-        auto_decrease:
-          type: boolean
-          title: Авто-уменьшение тревоги
-          description: Включить автоматическое повышение тревоги со временем
+        auto_change:
+          allOf:
+          - $ref: '#/components/schemas/AutoChangeEnum'
+          title: Авто-изменение
+          description: |-
+            Включить автоматическое повышение или понижение тревоги со временем
+
+            * `increase` - Увеличивать
+            * `decrease` - Уменьшать
+        auto_level:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          title: Значение авто-изменения
+          description: На сколько изменится уровень тревоги при авто-повышении или
+            авто-понижении
+        auto_timeout:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          title: Таймаут авто-изменения
+          description: Частота срабатывания авто-изменения уровня в секундах
         counter_increase:
           type: integer
           maximum: 2147483647
           minimum: -2147483648
-          title: На сколько увеличить уровень тревоги
-          description: Цена ошибки. Также определяет на сколько увеличится уровень
-            со временем (settings.ALERT_COOLDOWN) автоматически.
+          title: Значение увеличения
+          description: На сколько повысится уровень тревоги при ошибке игрока.
         counter_decrease:
           type: integer
           maximum: 2147483647
           minimum: -2147483648
-          title: На сколько уменьшить уровень тревоги
-          description: Насколько снизится уровень тревоги при действии. Также определяет,
-            на сколько уменьшится уровень со временем (settings.ALERT_COOLDOWN) автоматически.
+          title: Значение уменьшения
+          description: На сколько снизится уровень тревоги при удачном действии игрока.
       required:
       - id
       - info
@@ -1789,6 +1822,14 @@ components:
       - password
       - token
       - username
+    AutoChangeEnum:
+      enum:
+      - increase
+      - decrease
+      type: string
+      description: |-
+        * `increase` - Увеличивать
+        * `decrease` - Уменьшать
     DifficultyEnum:
       enum:
       - 6
