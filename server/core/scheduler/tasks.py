@@ -1,41 +1,35 @@
-from alert.service import AlertService
+import asyncio
+from django.conf import settings
 from asgiref.sync import sync_to_async
 from core.models.mqtt import DeviceTopic
 from core.transport.packets import PING
 from core.transport.publish import get_interface
+from event_contexts.alert.utils import create_alert_auto_event
 
 
-class Task:
-    def __init__(self, timeout: int):
-        """
-        Initializes the Task.
+class SkabenTask:
+    """Абстрактный класс задач для Планировщика."""
 
-        Args:
-            timeout: Timeout value for the task.
-        """
+    timeout: int
+    requeue: bool
+    task_queue: asyncio.Queue
+
+    def __init__(self, timeout: int, task_queue: asyncio.Queue, requeue: bool = False):
         self.timeout = timeout
+        self.task_queue = task_queue
+        self.requeue = requeue
 
     async def run(self) -> None:
-        """
-        Starts the task.
-        """
         raise NotImplementedError("Subclasses must implement the run() method.")
 
 
-class PingerTask(Task):
-    def __init__(self, timeout: int):
-        """
-        Initializes the PingerTask.
+class PingerTask(SkabenTask):
+    """Отправляет пакеты PING в каждый активный MQTT топик."""
 
-        Args:
-            timeout: Timeout value for the task.
-        """
-        super().__init__(timeout)
+    def __init__(self, timeout: int, task_queue: asyncio.Queue, requeue: bool = False):
+        super().__init__(timeout, task_queue, requeue)
 
     def _run(self) -> None:
-        """
-        Runs the pinger task by sending PING packets for each topic.
-        """
         with get_interface() as publisher:
             for topic in DeviceTopic.objects.get_topics_active():
                 packet = PING(topic=topic)
@@ -43,35 +37,33 @@ class PingerTask(Task):
 
     async def run(self) -> None:
         await sync_to_async(self._run)()
+        await asyncio.sleep(self.timeout)
+        if self.requeue:
+            await self.task_queue.put(PingerTask(self.timeout, self.task_queue, requeue=True))
 
 
-class AlertTask(Task):
-    increase: bool
+class AlertTask(SkabenTask):
+    """Отслеживает состояние уровня тревоги и изменяет счетчик тревоги."""
 
-    def __init__(self, timeout: int):
-        """Инициализация авто-изменения уровня тревоги.
+    def __init__(self, timeout: int, task_queue: asyncio.Queue, requeue: bool = False):
+        super().__init__(timeout, task_queue, requeue)
 
-        Args:
-            timeout: регулярность запуска задачи
-        """
-        super().__init__(timeout)
-
-    def _run(self) -> None:
-        with AlertService() as service:
-            current = service.get_state_current()
-
-            if not current.ingame:
-                return
-
-            if current.auto_decrease and current.counter_decrease > 0:
-                service.change_alert_counter(
-                    current.counter_decrease, increase=False, comment=f"auto decrease by {current.counter_decrease}"
-                )
-
-            if current.auto_increase and current.counter_increase > 0:
-                service.change_alert_counter(
-                    current.counter_increase, increase=True, comment=f"auto increase by {current.counter_increase}"
-                )
+    def _run(self) -> int:
+        try:
+            auto_event = create_alert_auto_event()
+            if auto_event:
+                event, timeout = auto_event
+                with get_interface() as publisher:
+                    publisher.send_event(event)
+                self.timeout = timeout
+            else:
+                self.timeout = settings.SCHEDULER_TASK_TIMEOUT
+        except Exception:  # noqa
+            self.timeout = settings.SCHEDULER_TASK_TIMEOUT
+        return self.timeout
 
     async def run(self) -> None:
-        await sync_to_async(self._run)()
+        timeout = await sync_to_async(self._run)()
+        await asyncio.sleep(timeout)
+        if self.requeue:
+            await self.task_queue.put(AlertTask(timeout, self.task_queue, requeue=True))
