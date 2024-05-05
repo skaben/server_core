@@ -1,4 +1,4 @@
-from event_handling.events import EncodedEventType, SkabenEvent
+from core.transport.events import EncodedEventType, SkabenEvent
 
 
 def test_skaben_event_init():

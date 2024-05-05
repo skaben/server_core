@@ -1,5 +1,5 @@
 import pytest
-from event_handling.alert.types import AlertCounterEvent, AlertStateEvent
+from event_contexts.alert.events import AlertCounterEvent, AlertStateEvent
 from pydantic import ValidationError
 
 
