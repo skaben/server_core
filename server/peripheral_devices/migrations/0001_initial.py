@@ -14,81 +14,32 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="LockDevice",
             fields=[
-                (
-                    "id",
-                    models.AutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
-                (
-                    "ip",
-                    models.GenericIPAddressField(blank=True, null=True, verbose_name="IP-адрес"),
-                ),
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("ip", models.GenericIPAddressField(blank=True, null=True, verbose_name="IP-адрес")),
                 ("mac_addr", models.CharField(max_length=16, unique=True)),
-                (
-                    "description",
-                    models.CharField(default="smart complex device", max_length=128),
-                ),
-                (
-                    "timestamp",
-                    models.IntegerField(default=core.helpers.get_server_timestamp),
-                ),
+                ("description", models.CharField(default="smart complex device", max_length=128)),
+                ("timestamp", models.IntegerField(default=core.helpers.get_server_timestamp)),
                 ("override", models.BooleanField(default=False)),
-                (
-                    "sound",
-                    models.BooleanField(default=False, verbose_name="Звук замка"),
-                ),
+                ("sound", models.BooleanField(default=False, verbose_name="Звук замка")),
                 ("closed", models.BooleanField(default=True, verbose_name="Закрыт")),
-                (
-                    "blocked",
-                    models.BooleanField(default=False, verbose_name="Заблокирован"),
-                ),
-                (
-                    "timer",
-                    models.IntegerField(default=10, verbose_name="Время автоматического закрытия"),
-                ),
+                ("blocked", models.BooleanField(default=False, verbose_name="Заблокирован")),
+                ("timer", models.IntegerField(default=10, verbose_name="Время автоматического закрытия")),
             ],
-            options={
-                "verbose_name": "Лазерная дверь",
-                "verbose_name_plural": "Лазерные двери",
-            },
+            options={"verbose_name": "Лазерная дверь", "verbose_name_plural": "Лазерные двери"},
         ),
         migrations.CreateModel(
             name="TerminalDevice",
             fields=[
-                (
-                    "id",
-                    models.AutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
-                (
-                    "ip",
-                    models.GenericIPAddressField(blank=True, null=True, verbose_name="IP-адрес"),
-                ),
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("ip", models.GenericIPAddressField(blank=True, null=True, verbose_name="IP-адрес")),
                 ("mac_addr", models.CharField(max_length=16, unique=True)),
-                (
-                    "description",
-                    models.CharField(default="smart complex device", max_length=128),
-                ),
-                (
-                    "timestamp",
-                    models.IntegerField(default=core.helpers.get_server_timestamp),
-                ),
+                ("description", models.CharField(default="smart complex device", max_length=128)),
+                ("timestamp", models.IntegerField(default=core.helpers.get_server_timestamp)),
                 ("override", models.BooleanField(default=False)),
                 ("powered", models.BooleanField(default=False)),
                 ("blocked", models.BooleanField(default=False)),
                 ("hacked", models.BooleanField(default=False)),
             ],
-            options={
-                "verbose_name": "Терминал",
-                "verbose_name_plural": "Терминалы",
-            },
+            options={"verbose_name": "Терминал", "verbose_name_plural": "Терминалы"},
         ),
     ]

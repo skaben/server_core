@@ -99,7 +99,7 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
             ],
         },
-    },
+    }
 ]
 
 WSGI_APPLICATION = "wsgi.application"
@@ -120,18 +120,10 @@ DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 # AUTHENTICATION
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
-    },
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
 # TIMEZONE + I18
@@ -144,12 +136,7 @@ USE_TZ = True
 
 # CACHE
 
-CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
-        "LOCATION": "django_cache_table",
-    }
-}
+CACHES = {"default": {"BACKEND": "django.core.cache.backends.db.DatabaseCache", "LOCATION": "django_cache_table"}}
 
 # DRF
 
@@ -169,6 +156,8 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
 }
 
+MACADDRESS_DEFAULT_DIALECT = "netaddr.mac_eui48"
+
 # LOGGING
 
 LOGGING = {
@@ -180,12 +169,8 @@ LOGGING = {
         },
         "simple": {"format": "%(levelname)s %(message)s"},
     },
-    "queue_handlers": {
-        "console": {"level": "DEBUG", "class": "logging.StreamHandler", "formatter": "verbose"},
-    },
-    "loggers": {
-        "django": {"queue_handlers": ["console"], "level": "INFO", "propagate": True},
-    },
+    "queue_handlers": {"console": {"level": "DEBUG", "class": "logging.StreamHandler", "formatter": "verbose"}},
+    "loggers": {"django": {"queue_handlers": ["console"], "level": "INFO", "propagate": True}},
 }
 
 # REDIS
@@ -203,27 +188,21 @@ AMQP_URI = f"pyamqp://{RABBITMQ_USER}:{RABBITMQ_PASS}@rabbitmq:5672"
 AMQP_TIMEOUT = 10
 EXCHANGE_CHOICES = [("mqtt", "mqtt"), ("internal", "internal")]
 MAX_CHANNEL_NAME_LEN = 64
-RESPONSE_TIMEOUT = {
-    "ask": 10,
-    "ping": 10,
-    "client_update": 30,
-}
+RESPONSE_TIMEOUT = {"ask": 10, "ping": 10, "client_update": 30}
 ASK_QUEUE = "ask"
+
+# SCHEDULER
+
+SCHEDULER_TASK_TIMEOUT = 10
 
 # INGAME SETTINGS
 
 ACCESS_CARD_CODE_LEN = 6
 DEVICE_KEEPALIVE_TIMEOUT = 60
 
-PWR_STATE_DISPATCH_TABLE = {
-    "aux": "cyan",
-    "on": "green",
-}
+PWR_STATE_DISPATCH_TABLE = {"aux": "cyan", "on": "green"}
 
-ALERT_COOLDOWN = {
-    "increase": 60,
-    "decrease": 120,
-}
+ALERT_COOLDOWN = {"increase": 60, "decrease": 120}
 
 # DEBUG
 

@@ -15,11 +15,7 @@ def get_passive_config(device_type: str) -> dict:
         try:
             if device_type == topics.SCL:  # cоздаем конфиг для шкал
                 counter = service.get_last_counter()
-                config = {
-                    "level": counter,
-                    "state": current.name,
-                    "borders": service.split_thresholds(count=3),
-                }
+                config = {"level": counter, "state": current.name, "borders": service.split_thresholds(count=3)}
             else:
                 cfg = PassiveConfig.objects.get(topic=device_type, state=current)
                 config = cfg.config

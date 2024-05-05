@@ -12,6 +12,4 @@ router.register("videofile", views.VideoFileViewSet)
 router.register("hackgame", views.HackGameViewSet)
 router.register("userinput", views.UserInputViewSet)
 
-urlpatterns = [
-    path("", include(router.urls)),
-]
+urlpatterns = [path("", include(router.urls))]

@@ -1,5 +1,9 @@
+from typing import List
+
 import logging
 from enum import Enum
+
+from dataclasses import dataclass
 
 import kombu
 from django.conf import settings
@@ -10,12 +14,7 @@ kombu.disable_insecure_serializers(allowed=["json"])
 
 
 def get_connection():
-    return Connection(
-        settings.AMQP_URI,
-        transport_options={
-            "confirm_publish": True,
-        },
-    )
+    return Connection(settings.AMQP_URI, transport_options={"confirm_publish": True})
 
 
 def acquire_pool(func):
@@ -27,11 +26,22 @@ def acquire_pool(func):
     return wrapper
 
 
+# todo: rewrite as dataclass
 class SkabenQueue(Enum):
-    ASK = "ask"  # incoming mqtt packets
+    ASK = "ask"  # incoming mqtt packets (todo: check is it correct place for 'ask' queue? it is not internal)
     STATE_UPDATE = "state_update"  # update configuration server-side
     CLIENT_UPDATE = "client_update"  # update configuration client-side
     INTERNAL = "internal"  # marking as internal event
+
+
+@dataclass(frozen=True)
+class SkabenRecurrentTasks:
+    PING: str = "ping"
+    ALERT_CHANGE: str = "alert_change"
+
+    @property
+    def allowed(self) -> List[str]:
+        return [self.PING, self.ALERT_CHANGE]
 
 
 class MQFactory:
@@ -44,7 +54,6 @@ class MQFactory:
     def create_exchange(channel, name: str, routing_type: str):
         exchange = Exchange(name, routing_type)
         bound_exchange = exchange(channel)
-        # bound_exchange.declare()
         return bound_exchange
 
 
@@ -60,11 +69,7 @@ class MQConfig:
         self.exchanges = {}
         self._init_mqtt_exchange()
         filtering_queue = {
-            settings.ASK_QUEUE: MQFactory.create_queue(
-                settings.ASK_QUEUE,
-                self.mqtt_exchange,
-                durable=True,
-            )
+            settings.ASK_QUEUE: MQFactory.create_queue(settings.ASK_QUEUE, self.mqtt_exchange, durable=True)
         }
         transport_queues = {
             e.value: MQFactory.create_queue(e.value, self.internal_exchange, durable=False) for e in SkabenQueue

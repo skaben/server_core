@@ -1,4 +1,4 @@
-from core.healthcheck import ERROR, INTEGRATION_MODULE_MAP, OK
+from core.healthcheck import INTEGRATION_MODULE_MAP
 from django.core.management.base import BaseCommand, CommandError
 
 
@@ -18,14 +18,14 @@ class Command(BaseCommand):
                 for message in integrity_check.messages:
                     self.stdout.write(self.style.WARNING(message))
 
-            if integrity_check.status == OK:
-                self.stdout.write(self.style.SUCCESS(f"[{OK}]\t{key}"))
+            if integrity_check.ok:
+                self.stdout.write(self.style.SUCCESS(f"[OK]\t{key}"))
             else:
-                self.stdout.write(self.style.ERROR(f"[{ERROR}]\t{key}"))
+                self.stdout.write(self.style.ERROR(f"[ERROR]\t{key}"))
                 self.stderr.write(self.style.ERROR(f'{"".join(integrity_check.errors)}'))
                 has_errors = True
 
         if not has_errors:
-            self.stdout.write(self.style.SUCCESS(f"\n[{OK}]\tSYSTEM INTEGRITY STATUS"))
+            self.stdout.write(self.style.SUCCESS("\n[OK]\tSYSTEM INTEGRITY STATUS"))
         else:
             raise CommandError("System integrity checks failed")

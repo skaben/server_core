@@ -66,12 +66,7 @@ class BaseHandler(ConsumerProducerMixin):
             routing_data (list): The message routing data.
         """
         exchange = kwargs.get("exchange", self.config.internal_exchange)
-        publish(
-            body=data,
-            exchange=exchange,
-            routing_key=format_routing_key(*routing_data),
-            **kwargs,
-        )
+        publish(body=data, exchange=exchange, routing_key=format_routing_key(*routing_data), **kwargs)
 
     def set_locked(self, key: str, timeout: int = 0):
         """

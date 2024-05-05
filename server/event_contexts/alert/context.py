@@ -6,21 +6,24 @@ from core.models.mqtt import DeviceTopic
 from core.transport.config import SkabenQueue
 from core.transport.publish import get_interface
 from core.transport.topics import SkabenTopics
-from event_handling.alert.types import (
+from core.transport.events import SkabenEventContext, ContextEventLevels
+from event_contexts.alert.events import (
     ALERT_COUNTER,
     ALERT_STATE,
     AlertCounterEvent,
     AlertStateEvent,
 )
-from event_handling.events import SkabenEvent, SkabenEventContext
 
 
 class AlertEventContext(SkabenEventContext):
     """Обрабатывает события, связанные с изменением счетчика и уровня тревоги."""
 
-    event_types: Dict[str, SkabenEvent] = {ALERT_STATE: AlertStateEvent, ALERT_COUNTER: AlertCounterEvent}
+    event_types: Dict[str, AlertStateEvent | AlertCounterEvent] = {
+        ALERT_STATE: AlertStateEvent,
+        ALERT_COUNTER: AlertCounterEvent,
+    }
 
-    def _handle_alert_state_event(self, event: AlertCounterEvent | AlertStateEvent):
+    def _handle_alert_state_event(self, event: AlertStateEvent):
         """Обработчик события при сохранении нового состояния тревоги.
 
         Посылает сообщения для апдейта счетчика тревоги.
@@ -36,7 +39,8 @@ class AlertEventContext(SkabenEventContext):
                 current = service.get_state_current()
                 if current and current.name != event.state:
                     # Эта операция создаст новое событие типа alert_state
-                    return service.set_state_by_name(event.state)
+                    service.set_state_by_name(event.state)
+                    return self.add_event(f"alert state switched to {event.state}", level=ContextEventLevels.LOG)
 
         # Если операция не инициирована счетчиком тревоги и необходимо сбросить этот счетчик
         if source != ALERT_COUNTER and event.counter_reset:
@@ -45,10 +49,8 @@ class AlertEventContext(SkabenEventContext):
                 if not state:
                     raise ValueError(f"no state with name {event.state}")
                 # эта операция создаст дополнительное событие типа alert_counter
-                service.set_alert_counter(
-                    value=state.threshold,
-                    comment=f"reset by alert state {event.state}",
-                )
+                service.set_alert_counter(value=state.threshold, comment=f"reset by alert state {event.state}")
+                self.add_event(f"alert counter reset to {event.state} threshold", level=ContextEventLevels.LOG)
 
         # обновление конфигурации устройств при смене уровня тревоги
         # принудительно посылается CUP запрос, в ответ на который сервер пошлет конфигурации
@@ -60,7 +62,7 @@ class AlertEventContext(SkabenEventContext):
                     routing_key=format_routing_key(SkabenQueue.CLIENT_UPDATE.value, topic, "all"),
                 )
 
-    def _handle_alert_counter_event(self, event: AlertCounterEvent | AlertStateEvent):
+    def _handle_alert_counter_event(self, event: AlertCounterEvent):
         """Обработчик события при сохранении нового счетчика тревоги
 
         Отправляет апдейт конфигурации для шкал.
@@ -73,23 +75,35 @@ class AlertEventContext(SkabenEventContext):
         if source != ALERT_COUNTER:
             with AlertService(init_by=source) as service:
                 _new_counter_value = event.value
-                if event.change == "set":
-                    service.set_alert_counter(value=event.value, comment=event.comment)
-                else:
-                    is_increased = event.change != "decrease"
-                    service.change_alert_counter(value=event.value, increase=is_increased, comment=event.comment)
-                    _new_counter_value = service.get_last_counter()
+                if event.value != service.get_last_counter():
+                    if event.change == "set":
+                        service.set_alert_counter(value=event.value, comment=event.comment)
+                    else:
+                        is_increased = event.change != "decrease"
+                        service.change_alert_counter(value=event.value, increase=is_increased, comment=event.comment)
+                        _new_counter_value = service.get_last_counter()
                 # изменяем уровень тревоги, если счетчик попадает в диапазон срабатывания
                 new_state = service.get_state_by_alert(_new_counter_value)
-                if new_state and new_state != service.get_state_current():
+                old_state = service.get_state_current()
+                if new_state and new_state != old_state:
                     # новое ALERT_STATE событие, которое отправит конфиги,
                     # будет создано моделью AlertState при сохранении в этой процедуре
-                    return service.set_state_current(new_state)  # заканчиваем обработку
+                    service.set_state_current(new_state)  # заканчиваем обработку
+                    self.add_event(
+                        f"alert state switched from {old_state} to {new_state} by counter",
+                        level=ContextEventLevels.LOG,
+                    )
 
         # В случае, когда событие инициировано ALERT_STATE апдейт для шкалы уже был отправлен
         if source == ALERT_COUNTER:
             with AlertService(init_by=source) as service:
+                old_state = service.get_state_current()
                 service.set_state_by_last_counter()
+                new_state = service.get_state_current()
+                if old_state != new_state:
+                    self.add_event(
+                        f"alert state switched from {old_state} to {new_state} by counter", level=ContextEventLevels.LOG
+                    )
             # при изменениях параметра счетчика апдейт отправляется только шкалам
             with get_interface() as publisher:
                 publisher.publish(

@@ -4,10 +4,7 @@ from core.helpers import get_uuid
 from django.conf import settings
 from django.db import models
 
-__all__ = (
-    "DeviceTopic",
-    "ControlReaction",
-)
+__all__ = ("DeviceTopic", "ControlReaction")
 
 ALL = "all"
 SIMPLE = "simple"
@@ -15,13 +12,13 @@ SMART = "smart"
 
 
 class DeviceTopicManager(models.Manager):
-    _special_topics = [ALL, SIMPLE, SMART]
+    special_topics = [ALL, SIMPLE, SMART]
 
     def get_topics_active(self) -> List[str]:
         return list(self.get_queryset().filter(active=True).values_list("channel", flat=True))
 
     def get_topics_permitted(self) -> Set[str]:
-        return set(list(self.get_queryset().values_list("channel", flat=True)) + self._special_topics)
+        return set(list(self.get_queryset().values_list("channel", flat=True)) + self.special_topics)
 
     def get_topics_by_type(self, _type: str) -> List[str]:
         permitted = self.get_topics_permitted()
@@ -65,17 +62,10 @@ class ControlReaction(models.Model):
     uuid = models.UUIDField(primary_key=True, default=get_uuid, editable=False)
 
     name = models.CharField(
-        verbose_name="Название команды",
-        help_text="Должно быть уникальным",
-        max_length=128,
-        unique=True,
+        verbose_name="Название команды", help_text="Должно быть уникальным", max_length=128, unique=True
     )
 
-    payload = models.JSONField(
-        verbose_name="Полезная нагрузка",
-        help_text="Указывайте просто dict",
-        default=dict,
-    )
+    payload = models.JSONField(verbose_name="Полезная нагрузка", help_text="Указывайте просто dict", default=dict)
 
     channel = models.ForeignKey(DeviceTopic, blank=True, null=True, on_delete=models.CASCADE)
 

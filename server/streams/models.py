@@ -5,9 +5,9 @@ from django.db import models
 
 
 @dataclass(frozen=True)
-class StreamSources:
-    SYSTEM: str = "system"
+class StreamTypes:
     GAME: str = "game"
+    LOG: str = "log"
 
 
 class StreamRecord(models.Model):
@@ -23,7 +23,7 @@ class StreamRecord(models.Model):
     message = models.CharField(help_text="Название события")
     message_data = models.JSONField(blank=True, help_text="Содержимое события")
 
-    stream = models.CharField(default=StreamSources.GAME, max_length=256, help_text="Поток события")
+    stream = models.CharField(default=StreamTypes.GAME, max_length=256, help_text="Поток события")
     source = models.CharField(default="default", max_length=256, help_text="Источник события")
     mark = models.CharField(blank=True, max_length=32, help_text="Дополнительный маркер события")
 

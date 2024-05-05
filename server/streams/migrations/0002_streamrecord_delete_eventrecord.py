@@ -6,9 +6,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ("streams", "0001_initial"),
-    ]
+    dependencies = [("streams", "0001_initial")]
 
     operations = [
         migrations.CreateModel(
@@ -25,12 +23,7 @@ class Migration(migrations.Migration):
                 ("source", models.CharField(default="default", help_text="Источник события", max_length=256)),
                 ("mark", models.CharField(blank=True, help_text="Дополнительный маркер события", max_length=32)),
             ],
-            options={
-                "verbose_name": "Игровое событие",
-                "verbose_name_plural": "Игровые события",
-            },
+            options={"verbose_name": "Игровое событие", "verbose_name_plural": "Игровые события"},
         ),
-        migrations.DeleteModel(
-            name="EventRecord",
-        ),
+        migrations.DeleteModel(name="EventRecord"),
     ]

@@ -1,10 +1,6 @@
 from django.db import models
 
-__all__ = [
-    "SkabenUser",
-    "AccessCode",
-    "Permission",
-]
+__all__ = ["SkabenUser", "AccessCode", "Permission"]
 
 
 MAX_USER_LENGTH = 96
@@ -18,15 +14,8 @@ class SkabenUser(models.Model):
         verbose_name = "Игровой пользователь"
         verbose_name_plural = "Игровые пользователи"
 
-    name = models.CharField(
-        unique=True,
-        verbose_name="Имя",
-        max_length=MAX_USER_LENGTH,
-    )
-    description = models.CharField(
-        verbose_name="Описание",
-        max_length=MAX_USER_LENGTH,
-    )
+    name = models.CharField(unique=True, verbose_name="Имя", max_length=MAX_USER_LENGTH)
+    description = models.CharField(verbose_name="Описание", max_length=MAX_USER_LENGTH)
 
     def __str__(self):
         return f"User<{self.name}>"

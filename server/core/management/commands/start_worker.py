@@ -1,21 +1,10 @@
 from core.transport.config import get_mq_config
-from core.worker_queue_handlers import (
-    AskHandler,
-    BaseHandler,
-    ClientUpdateHandler,
-    InternalHandler,
-    StateUpdateHandler,
-)
+from core.worker_queue_handlers import AskHandler, BaseHandler, ClientUpdateHandler, InternalHandler, StateUpdateHandler
 from django.core.management.base import BaseCommand
 
 config = get_mq_config()
 
-HANDLERS = {
-    "mqtt": AskHandler,
-    "internal": InternalHandler,
-    "state": StateUpdateHandler,
-    "client": ClientUpdateHandler,
-}
+HANDLERS = {"mqtt": AskHandler, "internal": InternalHandler, "state": StateUpdateHandler, "client": ClientUpdateHandler}
 
 _handlers_help = f'[{"|".join(HANDLERS.keys())}]'
 

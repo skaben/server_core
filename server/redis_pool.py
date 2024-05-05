@@ -1,5 +1,3 @@
-from functools import lru_cache
-
 import redis
 from django.conf import settings
 from redis import ConnectionPool
@@ -9,7 +7,6 @@ _pool = ConnectionPool(
 )
 
 
-@lru_cache(maxsize=128)
 def get_redis_client():
     """
     Returns a Redis client object using the shared connection pool.

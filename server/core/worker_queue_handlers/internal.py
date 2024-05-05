@@ -2,13 +2,18 @@ import logging
 from typing import Dict, List
 
 import settings
+
+from pydantic import ValidationError
 from core.helpers import get_server_timestamp
+from core.transport.events import SkabenEvent
 from core.transport.config import MQConfig, SkabenQueue
 from core.transport.packets import SkabenPacketTypes
+from event_contexts.device.events import SkabenDeviceEvent
+from streams.models import StreamRecord, StreamTypes
 from core.worker_queue_handlers.base import BaseHandler
 from django.db import models
-from event_handling.alert.context import AlertEventContext as alert_context
-from event_handling.device.context import DeviceEventContext as device_context
+from event_contexts.alert.context import AlertEventContext as alert_context
+from event_contexts.device.context import DeviceEventContext as device_context
 from kombu import Message
 
 # TODO: разделить сущность на роутер и обработчика событий.
@@ -31,13 +36,6 @@ class InternalHandler(BaseHandler):
     keepalive_packet_mark: str = SkabenPacketTypes.PONG
 
     def __init__(self, config: MQConfig, queues: Dict[str, str]):
-        """
-        Initializes the InternalHandler.
-
-        Args:
-            config (MQConfig): The message queue configuration.
-            queues (dict): The queues for the handler.
-        """
         super().__init__(config, queues)
 
     def handle_message(self, body: Dict, message: Message) -> None:
@@ -53,58 +51,9 @@ class InternalHandler(BaseHandler):
                 self.handle_event(message.headers, body)
             else:
                 # пакеты не обладают заголовком event_type и отправляются в метод-роутер
-                self.route_event(body, message)
+                self.route_message(body, message)
         except Exception:  # noqa
             logging.exception(f"while handling internal queue message {message.headers} {message}")
-
-        if not message.acknowledged:
-            message.ack()
-
-    def route_event(self, body: Dict, message: Message) -> None:
-        """Перенаправляет события в различные очереди, в зависимости от типа пакета.
-
-        Args:
-            body (dict): Тело сообщения.
-            message (Message): Экземпляр сообщения.
-        """
-        routing_data: List[str] = message.delivery_info.get("routing_key").split(".")
-        [incoming_mark, device_type, device_uid, packet_type] = routing_data
-
-        if incoming_mark != self.incoming_mark:
-            return message.requeue()
-
-        logging.error(f"routing {incoming_mark} {device_type} {packet_type}")
-
-        if packet_type == self.keepalive_packet_mark:
-            if message.headers.get("timestamp", 0) + settings.DEVICE_KEEPALIVE_TIMEOUT < get_server_timestamp():
-                self.dispatch(data=body, routing_data=[self.client_update_queue_mark, device_type, device_uid])
-            return message.ack()
-
-        if packet_type == self.state_save_packet_mark:
-            self.dispatch(
-                data=body["datahold"], routing_data=[self.state_save_queue_mark, device_type, device_uid, packet_type]
-            )
-            return message.ack()
-
-        if packet_type == self.client_update_packet_mark:
-            self.dispatch(
-                data=body,
-                routing_data=[self.client_update_queue_mark, device_type, device_uid],
-            )
-            return message.ack()
-
-        # INFO-пакеты не переадресуются и обрабатываются здесь.
-        if packet_type == self.info_packet_mark:
-            # происходит конвертация INFO пакета в событие внутренней очереди.
-            headers = {
-                "event_type": "device",
-                "event_source": "mqtt",
-                "device_type": device_type,
-                "device_uid": device_uid or None,
-            }
-            self.handle_event(headers, body["datahold"])
-        else:
-            return message.reject()
 
         if not message.acknowledged:
             message.ack()
@@ -118,10 +67,91 @@ class InternalHandler(BaseHandler):
             headers (dict): Мета-данные события, включающие тип.
             event_data (dict): Полезная нагрузка события.
         """
+        context_events = []
         with alert_context() as context:
             context.apply(event_headers, event_data)
+            context_events.extend(context.events)
         with device_context() as context:
             context.apply(event_headers, event_data)
+            context_events.extend(context.events)
+        self.handle_context_events(context_events)
+
+    def handle_context_events(self, events: List[SkabenEvent]):
+        """Обработка событий, возникших в процессе выполнения контекста.
+
+        Все события с типом log отправляются в выделенный stream RabbitMQ.
+        Все события иных типов - повторно добавляются в очередь internal для обработки.
+        """
+        save_as_records = []
+        for event in events:
+            if event.event_type != "log":
+                encoded = event.encode()
+                self.dispatch(
+                    data=encoded.data,
+                    headers=encoded.headers,
+                    routing_data=[f"{SkabenQueue.INTERNAL.value}"],
+                    exchange=self.config.exchanges.get("internal"),
+                )
+            else:
+                record = StreamRecord(
+                    message=event.message,
+                    message_data=event.message_data,
+                    stream=StreamTypes.LOG,
+                    source=event.event_source,
+                    mark=event.level,
+                )
+                save_as_records.append(record)
+        StreamRecord.objects.bulk_create(save_as_records)
+
+    def route_message(self, body: Dict, message: Message) -> None:
+        """Перенаправляет события в различные очереди, в зависимости от типа пакета.
+
+        Args:
+            body (dict): Тело сообщения.
+            message (Message): Экземпляр сообщения.
+        """
+        routing_data: List[str] = message.delivery_info.get("routing_key").split(".")
+        [incoming_mark, device_type, device_uid, packet_type] = routing_data
+
+        if incoming_mark != self.incoming_mark:
+            return message.requeue()
+
+        if packet_type == self.keepalive_packet_mark:
+            if message.headers.get("timestamp", 0) + settings.DEVICE_KEEPALIVE_TIMEOUT < get_server_timestamp():
+                self.dispatch(data=body, routing_data=[self.client_update_queue_mark, device_type, device_uid])
+            return message.ack()
+
+        if packet_type == self.state_save_packet_mark:
+            self.dispatch(
+                data=body["datahold"], routing_data=[self.state_save_queue_mark, device_type, device_uid, packet_type]
+            )
+            return message.ack()
+
+        if packet_type == self.client_update_packet_mark:
+            self.dispatch(data=body, routing_data=[self.client_update_queue_mark, device_type, device_uid])
+            return message.ack()
+
+        # INFO-пакеты не переадресуются и обрабатываются здесь.
+        if packet_type == self.info_packet_mark:
+            # происходит конвертация INFO пакета в событие внутренней очереди.
+            try:
+                internal_event = SkabenDeviceEvent(
+                    event_type="device",
+                    event_source="mqtt",
+                    device_type=device_type,
+                    device_uid=device_uid,
+                    payload=body.get("datahold", {}),
+                )
+                encoded = internal_event.encode()
+                self.handle_event(encoded.headers, encoded.data)
+            except ValidationError:
+                logging.exception("While validating INFO message from device:")
+                return message.reject()
+        else:
+            return message.reject()
+
+        if not message.acknowledged:
+            return message.ack()
 
     @staticmethod
     def get_instance(model: models.Model, uid: str):

@@ -6,42 +6,27 @@ from django.contrib import admin
 class AlertStateCustomAdmin(admin.ModelAdmin):
     """Админка статусов тревоги."""
 
-    list_display = (
-        "current",
-        "name",
-        "ingame",
-        "info",
-        "order",
-        "threshold",
-        "counter_increase",
-        "counter_decrease",
-    )
+    list_display = ("current", "name", "ingame", "info", "order", "threshold", "counter_increase", "counter_decrease")
 
-    list_filter = [
-        "current",
-    ]
+    list_filter = ["current"]
 
     fieldsets = (
         (
             "Параметры уровня тревоги",
+            {"classes": ("none",), "fields": (("name", "current"), ("info", "order"), "ingame", "threshold")},
+        ),
+        (
+            "Реакции на действие игроков",
             {
                 "classes": ("none",),
-                "fields": (
-                    ("name", "current"),
-                    ("info", "order"),
-                    "ingame",
-                    "threshold",
-                ),
+                "fields": ("counter_increase", "counter_decrease"),
             },
         ),
         (
             "Автоматическое изменение уровня",
             {
                 "classes": ("none",),
-                "fields": (
-                    ("counter_increase", "auto_increase"),
-                    ("counter_decrease", "auto_decrease"),
-                ),
+                "fields": ("auto_change", "auto_level", "auto_timeout"),
             },
         ),
     )

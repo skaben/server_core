@@ -2,7 +2,7 @@ import logging
 
 from core.transport.config import MQConfig, SkabenQueue, get_connection, get_mq_config
 from core.transport.packets import SkabenPacket
-from event_handling.events import SkabenEvent
+from core.transport.events import SkabenEvent
 from kombu.pools import producers
 
 
@@ -12,12 +12,7 @@ def publish(body, exchange, routing_key, **kwargs):
     try:
         with producers[conn].acquire(block=True) as prod:
             prod.publish(
-                body=body,
-                exchange=exchange,
-                declare=[exchange],
-                routing_key=routing_key,
-                retry=True,
-                **kwargs,
+                body=body, exchange=exchange, declare=[exchange], routing_key=routing_key, retry=True, **kwargs
             )
     except Exception as e:
         logging.error(f"[sync] exception occurred when sending packet to {routing_key}: {e}")
@@ -31,11 +26,7 @@ class MQPublisher(object):
 
     def send_mqtt(self, packet: SkabenPacket):
         """Отправить SKABEN пакет через MQTT"""
-        return publish(
-            body=packet.encode(),
-            exchange=self.config.exchanges.get("mqtt"),
-            routing_key=packet.routing_key,
-        )
+        return publish(body=packet.encode(), exchange=self.config.exchanges.get("mqtt"), routing_key=packet.routing_key)
 
     def send_event(self, event: SkabenEvent):
         """Отправляет событие с заголовками."""

@@ -1,5 +1,5 @@
 import pytest
-from event_handling.alert.types import AlertCounterEvent, AlertStateEvent
+from event_contexts.alert.events import AlertCounterEvent, AlertStateEvent
 from pydantic import ValidationError
 
 
@@ -9,10 +9,7 @@ def test_alert_state_event_valid():
 
     assert event.event_type == "alert_state"
     assert event.state == "active"
-    assert encoded.headers == {
-        "event_type": "alert_state",
-        "event_source": "test",
-    }
+    assert encoded.headers == {"event_type": "alert_state", "event_source": "test"}
     assert encoded.data == {"state": "active", "counter_reset": True}
 
 
@@ -31,8 +28,4 @@ def test_alert_counter_event_valid():
 
 def test_alert_counter_event_invalid_change():
     with pytest.raises(ValidationError):
-        AlertCounterEvent(
-            event_type="alert_counter",
-            value=10,
-            change="invalid_change",
-        )
+        AlertCounterEvent(event_type="alert_counter", value=10, change="invalid_change")

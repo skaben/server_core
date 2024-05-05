@@ -12,12 +12,7 @@ class HackGame(models.Model):
     medium = 10
     hard = 12
 
-    difficulty_choices = (
-        (easy, "easy"),
-        (normal, "normal"),
-        (medium, "medium"),
-        (hard, "hard"),
-    )
+    difficulty_choices = ((easy, "easy"), (normal, "normal"), (medium, "medium"), (hard, "hard"))
 
     class Meta:
         verbose_name = "Настройки мини-игры Fallout Hack"

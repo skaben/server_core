@@ -2,12 +2,7 @@ from core.views import DynamicAuthMixin
 from rest_framework import viewsets
 
 from .models import AccessCode, MenuItem, Permission, WorkMode
-from .serializers import (
-    AccessCodeSerializer,
-    MenuItemSerializer,
-    PermissionSerializer,
-    WorkModeSerializer,
-)
+from .serializers import AccessCodeSerializer, MenuItemSerializer, PermissionSerializer, WorkModeSerializer
 
 
 class AccessCodeViewSet(viewsets.ModelViewSet, DynamicAuthMixin):

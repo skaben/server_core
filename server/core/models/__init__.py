@@ -1,5 +1,5 @@
 from core.models.base import BaseModelUUID, DeviceKeepalive
-from core.models.mqtt import DeviceTopic, DeviceTopicManager
+from core.models.mqtt import DeviceTopic, DeviceTopicManager, ControlReaction
 from core.models.system import System
 
 __all__ = (
@@ -7,5 +7,6 @@ __all__ = (
     "DeviceKeepalive",
     "DeviceTopic",
     "DeviceTopicManager",
+    "ControlReaction",
     "System",
 )

@@ -15,15 +15,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="DeviceKeepalive",
             fields=[
-                (
-                    "id",
-                    models.AutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
                 ("mac_addr", models.CharField(max_length=32)),
                 ("timestamp", models.PositiveIntegerField()),
                 ("previous", models.PositiveIntegerField()),
@@ -32,19 +24,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="DeviceTopic",
             fields=[
-                (
-                    "id",
-                    models.AutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
-                (
-                    "channel",
-                    models.CharField(max_length=64, unique=True, verbose_name="Канал MQTT"),
-                ),
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("channel", models.CharField(max_length=64, unique=True, verbose_name="Канал MQTT")),
                 (
                     "type",
                     models.CharField(
@@ -62,32 +43,15 @@ class Migration(migrations.Migration):
                         verbose_name="Активный топик",
                     ),
                 ),
-                (
-                    "comment",
-                    models.TextField(blank=True, null=True, verbose_name="Комментарий"),
-                ),
+                ("comment", models.TextField(blank=True, null=True, verbose_name="Комментарий")),
             ],
-            options={
-                "verbose_name": "MQTT устройство",
-                "verbose_name_plural": "MQTT устройства",
-            },
+            options={"verbose_name": "MQTT устройство", "verbose_name_plural": "MQTT устройства"},
         ),
         migrations.CreateModel(
             name="System",
             fields=[
-                (
-                    "id",
-                    models.AutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
-                (
-                    "ping_timeout",
-                    models.IntegerField(default=10, verbose_name="Задержка посыла PING в канал"),
-                ),
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("ping_timeout", models.IntegerField(default=10, verbose_name="Задержка посыла PING в канал")),
                 (
                     "keep_alive",
                     models.IntegerField(
@@ -103,34 +67,21 @@ class Migration(migrations.Migration):
             fields=[
                 (
                     "uuid",
-                    models.UUIDField(
-                        default=core.helpers.get_uuid,
-                        editable=False,
-                        primary_key=True,
-                        serialize=False,
-                    ),
+                    models.UUIDField(default=core.helpers.get_uuid, editable=False, primary_key=True, serialize=False),
                 ),
                 (
                     "name",
                     models.CharField(
-                        help_text="Должно быть уникальным",
-                        max_length=128,
-                        unique=True,
-                        verbose_name="Название команды",
+                        help_text="Должно быть уникальным", max_length=128, unique=True, verbose_name="Название команды"
                     ),
                 ),
                 (
                     "payload",
                     models.JSONField(
-                        default=dict,
-                        help_text="Указывайте просто dict",
-                        verbose_name="Полезная нагрузка",
+                        default=dict, help_text="Указывайте просто dict", verbose_name="Полезная нагрузка"
                     ),
                 ),
-                (
-                    "comment",
-                    models.TextField(blank=True, default="", verbose_name="Комментарий"),
-                ),
+                ("comment", models.TextField(blank=True, default="", verbose_name="Комментарий")),
                 (
                     "routing",
                     models.CharField(
@@ -154,16 +105,10 @@ class Migration(migrations.Migration):
                 (
                     "channel",
                     models.ForeignKey(
-                        blank=True,
-                        null=True,
-                        on_delete=django.db.models.deletion.CASCADE,
-                        to="core.devicetopic",
+                        blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to="core.devicetopic"
                     ),
                 ),
             ],
-            options={
-                "verbose_name": "MQTT: Реакция на команду",
-                "verbose_name_plural": "MQTT: Реакции на команду",
-            },
+            options={"verbose_name": "MQTT: Реакция на команду", "verbose_name_plural": "MQTT: Реакции на команду"},
         ),
     ]

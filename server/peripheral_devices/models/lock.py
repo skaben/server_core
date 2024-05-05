@@ -11,22 +11,10 @@ class LockDevice(SkabenDevice):
         verbose_name = "Лазерная дверь"
         verbose_name_plural = "Лазерные двери"
 
-    sound = models.BooleanField(
-        verbose_name="Звук замка",
-        default=False,
-    )
-    closed = models.BooleanField(
-        verbose_name="Закрыт",
-        default=True,
-    )
-    blocked = models.BooleanField(
-        verbose_name="Заблокирован",
-        default=False,
-    )
-    timer = models.IntegerField(
-        verbose_name="Время автоматического закрытия",
-        default=10,
-    )
+    sound = models.BooleanField(verbose_name="Звук замка", default=False)
+    closed = models.BooleanField(verbose_name="Закрыт", default=True)
+    blocked = models.BooleanField(verbose_name="Заблокирован", default=False)
+    timer = models.IntegerField(verbose_name="Время автоматического закрытия", default=10)
 
     @property
     def acl(self) -> dict:

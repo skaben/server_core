@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Literal, Union
+from typing import List, Literal
 
 from alert.models import AlertState
 from alert.service import AlertService
@@ -7,9 +7,6 @@ from core.exceptions import ConfigException
 from core.models import ControlReaction, DeviceTopic
 from core.transport.config import SkabenQueue, get_mq_config
 from django.conf import settings
-
-OK: Literal["OK"] = "OK"
-ERROR: Literal["ERROR"] = "ERROR"
 
 
 @dataclass(frozen=True)
@@ -23,7 +20,7 @@ class IntegrationModules:
 
 
 class IntegrityCheck:
-    _status = Union[type(OK), type(ERROR)]
+    _status = Literal["ok", "error"]
     errors: List[str]
     messages: List[str]
 
@@ -32,10 +29,10 @@ class IntegrityCheck:
         self.messages = []
 
     @property
-    def status(self):
+    def ok(self):
         if self.errors and len(self.errors) > 0:
-            return ERROR
-        return OK
+            return False
+        return True
 
     def run(self):
         try:
@@ -66,7 +63,7 @@ class AlertStateIntegrityCheck(IntegrityCheck):
             except AlertState.DoesNotExist:
                 existing_states = AlertState.objects.all().order_by("order")
                 if existing_states.count() == 0:
-                    raise ConfigException("Alert States not configured, load initial_data.json to fix it")
+                    raise ConfigException("Alert States not configured, load initial data from .json to fix it")
                 service.set_state_current(existing_states[0])
 
 
@@ -93,7 +90,6 @@ class BrokerIntegrityCheck(IntegrityCheck):
 
 
 INTEGRATION_MODULE_MAP = {
-    IntegrationModules.BROKER_QUEUES: BrokerIntegrityCheck,
     IntegrationModules.ALERT_STATE: AlertStateIntegrityCheck,
     IntegrationModules.ALERT_COUNTER: AlertCounterIntegrityCheck,
     IntegrationModules.DEVICE_CHANNELS: DeviceIntegrityCheck,

@@ -18,11 +18,7 @@ class AskHandler(BaseHandler):
     name: str = "mqtt_bridge_ask_handler"
     incoming_mark: str = SkabenQueue.ASK.value
     outgoing_mark: str = SkabenQueue.INTERNAL.value
-    datahold_packet_mark: list[str] = [
-        SkabenPacketTypes.INFO,
-        SkabenPacketTypes.CUP,
-        SkabenPacketTypes.SUP,
-    ]
+    datahold_packet_mark: list[str] = [SkabenPacketTypes.INFO, SkabenPacketTypes.CUP, SkabenPacketTypes.SUP]
 
     def __init__(self, config: MQConfig, queues: Dict[str, str]):
         """

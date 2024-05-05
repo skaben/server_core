@@ -7,6 +7,4 @@ app_name = "events"
 router = SimpleRouter()
 router.register("events", views.EventViewSet)
 
-urlpatterns = [
-    path("", include(router.urls)),
-]
+urlpatterns = [path("", include(router.urls))]

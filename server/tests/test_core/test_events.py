@@ -1,4 +1,4 @@
-from event_handling.events import EncodedEventType, SkabenEvent
+from core.transport.events import EncodedEventType, SkabenEvent
 
 
 def test_skaben_event_init():
@@ -10,10 +10,7 @@ def test_skaben_event_init():
 def test_skaben_event_encode():
     event = SkabenEvent(event_type="test_event", event_source="test_source")
     encoded_event = event.encode()
-    assert encoded_event.headers == {
-        "event_type": "test_event",
-        "event_source": "test_source",
-    }
+    assert encoded_event.headers == {"event_type": "test_event", "event_source": "test_source"}
 
 
 def test_skaben_event_decode():

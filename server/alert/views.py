@@ -5,7 +5,7 @@ from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from .models import AlertCounter, AlertState
+from .models import AlertCounter, AlertState, ALERT_COUNTER
 from .service import AlertService
 
 
@@ -16,10 +16,10 @@ class AlertStateViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewse
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ["current"]
 
-    def get_serializer_class(self):
-        if self.action == "list":
+    def get_serializer_class(cls):
+        if cls.action == "list":
             return serializers.AlertStateSerializer
-        if self.action == "set_current":
+        if cls.action == "set_current":
             return serializers.AlertStateSetCurrentSerializer
         else:
             return serializers.AlertStateSerializer
@@ -49,12 +49,19 @@ class AlertCounterViewSet(
     queryset = AlertCounter.objects.all()
     serializer_class = serializers.AlertCounterSerializer
 
+    @staticmethod
+    def _get_latest():
+        with AlertService(init_by=ALERT_COUNTER) as service:
+            state = service.get_state_current()
+            return service.get_last_counter(backup_value=state.threshold)
+
     @action(detail=False)
     def get_latest(self, *args, **kwargs):
-        try:
-            latest = AlertCounter.objects.latest("id")
-        except AlertCounter.DoesNotExist:
-            latest = AlertCounter.objects.create_initial()
-
+        latest = self._get_latest()
         serializer = self.get_serializer(latest)
         return Response(serializer.data)
+
+    @action(detail=False, description="Удаление истории счетчиков")
+    def purge_history(self, request):
+        latest = self._get_latest()
+        AlertCounter.objects.exclude(id=latest.id)

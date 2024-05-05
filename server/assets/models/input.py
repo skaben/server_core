@@ -9,12 +9,7 @@ class UserInput(models.Model):
         default="action", blank=False, unique=True, max_length=64, verbose_name="Уникальное имя операции"
     )
 
-    expected = models.CharField(
-        default="",
-        max_length=128,
-        blank=True,
-        verbose_name="Ожидаемое значение ввода",
-    )
+    expected = models.CharField(default="", max_length=128, blank=True, verbose_name="Ожидаемое значение ввода")
 
     message = models.TextField(
         default="required input", verbose_name="Сообщение для пользователя на экране ввода", blank=True, null=True
