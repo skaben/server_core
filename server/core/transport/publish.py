@@ -2,7 +2,7 @@ import logging
 
 from core.transport.config import MQConfig, SkabenQueue, get_connection, get_mq_config
 from core.transport.packets import SkabenPacket
-from event_handling.events import SkabenEvent
+from core.transport.events import SkabenEvent
 from kombu.pools import producers
 
 

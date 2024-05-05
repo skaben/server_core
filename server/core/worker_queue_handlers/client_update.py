@@ -38,13 +38,7 @@ class ClientUpdateHandler(BaseHandler):
         self.all_topics = get_topics()
 
     def handle_message(self, body: Dict, message: Message) -> None:
-        """
-        Handles incoming client update messages.
-
-        Args:
-            body (dict): The message body.
-            message (Message): The message instance.
-        """
+        """Обрабатывает входящее сообщение."""
         routing_key = message.delivery_info.get("routing_key")
         routing_data = routing_key.split(".")
         incoming_mark = routing_data[0]
@@ -83,7 +77,10 @@ class ClientUpdateHandler(BaseHandler):
                         serialized = serializer(device)
                         if not serialized.is_valid():
                             logging.error(f"Validation error: cannot send config for {device}")
-                        self.send_config(routing_data=[device_topic, device.mac_addr], data=serialized.data)
+                        self.dispatch(
+                            data=serialized.data,
+                            routing_data=[device_topic, device.mac_addr],
+                        )
         except Exception:  # noqa
             logging.exception("Exception while handling client update.")
             return message.reject()
@@ -92,6 +89,7 @@ class ClientUpdateHandler(BaseHandler):
             return message.ack()
 
     def get_device_config(self, device_topic, device_uid: str, body: dict, message: Message):
+        """Получает актуальную конфигурацию устройства."""
         model = get_model_by_topic(device_topic)
         serializer = get_serializer_by_topic(device_topic)
         try:
@@ -107,7 +105,7 @@ class ClientUpdateHandler(BaseHandler):
             logging.error(f"device of type {device_topic} with MAC {device_uid} not found in DB")
 
     def dispatch(self, data, routing_data: List[str], **kwargs) -> None:
-        """Dispatches message to external MQTT."""
+        """Отправляет сообщение типа CUP в очередь MQTT."""
         if data:
             packet = CUP(topic=routing_data[0], uid=routing_data[1], datahold=data, timestamp=get_server_timestamp())
             if routing_data[0] in DeviceTopic.objects.get_topics_by_type("smart") and data.get("hash"):
@@ -118,16 +116,6 @@ class ClientUpdateHandler(BaseHandler):
 
     @staticmethod
     def get_instance_data(model: SkabenDevice, serializer: ModelSerializer, mac_id: str) -> Dict:
-        """
-        Returns instance data as a dictionary.
-
-        Args:
-            device: The device.
-            mac_id: The device's MAC ID.
-
-        Returns:
-            dict: The instance data as a dictionary.
-        """
         instance = model.objects.get(mac_addr=mac_id)
         serializer = serializer(instance=instance)
         return serializer.data

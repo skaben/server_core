@@ -16,10 +16,17 @@ class AlertStateCustomAdmin(admin.ModelAdmin):
             {"classes": ("none",), "fields": (("name", "current"), ("info", "order"), "ingame", "threshold")},
         ),
         (
+            "Реакции на действие игроков",
+            {
+                "classes": ("none",),
+                "fields": ("counter_increase", "counter_decrease"),
+            },
+        ),
+        (
             "Автоматическое изменение уровня",
             {
                 "classes": ("none",),
-                "fields": (("counter_increase", "auto_increase"), ("counter_decrease", "auto_decrease")),
+                "fields": ("auto_change", "auto_level", "auto_timeout"),
             },
         ),
     )

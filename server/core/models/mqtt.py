@@ -12,13 +12,13 @@ SMART = "smart"
 
 
 class DeviceTopicManager(models.Manager):
-    _special_topics = [ALL, SIMPLE, SMART]
+    special_topics = [ALL, SIMPLE, SMART]
 
     def get_topics_active(self) -> List[str]:
         return list(self.get_queryset().filter(active=True).values_list("channel", flat=True))
 
     def get_topics_permitted(self) -> Set[str]:
-        return set(list(self.get_queryset().values_list("channel", flat=True)) + self._special_topics)
+        return set(list(self.get_queryset().values_list("channel", flat=True)) + self.special_topics)
 
     def get_topics_by_type(self, _type: str) -> List[str]:
         permitted = self.get_topics_permitted()

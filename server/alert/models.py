@@ -1,10 +1,11 @@
 import logging
 
+from core.exceptions import ConfigException
 from core.transport.publish import get_interface
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
-from event_handling.alert.types import (
+from event_contexts.alert.events import (
     ALERT_COUNTER,
     ALERT_STATE,
     AlertCounterEvent,
@@ -14,7 +15,6 @@ from event_handling.alert.types import (
 
 class AlertCounterManager(models.Manager):
     def create_initial(self, *args, **kwargs):
-        """Создает базовый счетчик."""
         initial_counter = self.model(value=0, comment="create initial")
         initial_counter.save(context="no_send")
         return initial_counter
@@ -27,7 +27,11 @@ class AlertCounterManager(models.Manager):
 
 
 class AlertCounter(models.Model):
-    """In-game Global Alert State counter"""
+    """Числовой счетчик уровня тревоги.
+
+    При изменении до определенного уровня может вызывать переключения AlertState.
+    Отображается на устройствах типа "шкала".
+    """
 
     objects = AlertCounterManager()
 
@@ -63,15 +67,40 @@ class AlertCounter(models.Model):
 
 
 class AlertStateManager(models.Manager):
+    def get_current(self):
+        try:
+            return self.get_queryset().filter(current=True).get()
+        except AlertState.DoesNotExist:
+            raise ConfigException("current state is not set in DB")
+
     def get_ingame(self):
         return self.get_queryset().filter(ingame=True)
 
     def get_management_state(self):
-        return self.get_queryset().filter(name="white").get()
+        try:
+            return self.get_queryset().filter(name="white").get()
+        except AlertState.DoesNotExist:
+            raise ConfigException("management (`white`) state is not configured in DB")
+
+
+ALERT_INCREASE = "increase"
+ALERT_DECREASE = "decrease"
 
 
 class AlertState(models.Model):
-    """In-game Global Alert State"""
+    """Внутриигровой уровень тревоги.
+
+    Управление уровнями тревоги переключает глобальное состояние системы.
+    Отображается состоянием ламп\сирен (устройство типа "люстра").
+    Может быть игровым и не-игровым, в игровом состоянии переключается изменением AlertCounter.
+    """
+
+    objects = AlertStateManager()
+
+    AUTO_CHANGE_CHOICES = (
+        (ALERT_INCREASE, "Увеличивать"),
+        (ALERT_DECREASE, "Уменьшать"),
+    )
 
     __original_state = None
 
@@ -105,33 +134,34 @@ class AlertState(models.Model):
         unique=True,
     )
 
-    auto_increase = models.BooleanField(
-        verbose_name="Авто-увеличение тревоги",
-        help_text=("Включить автоматическое повышение тревоги со временем"),
+    auto_change = models.CharField(
+        choices=AUTO_CHANGE_CHOICES,
+        verbose_name="Авто-изменение",
+        help_text="Включить автоматическое повышение или понижение тревоги со временем",
         default=False,
     )
 
-    auto_decrease = models.BooleanField(
-        verbose_name="Авто-уменьшение тревоги",
-        help_text=("Включить автоматическое повышение тревоги со временем"),
-        default=False,
+    auto_level = models.IntegerField(
+        verbose_name="Значение авто-изменения",
+        help_text="На сколько изменится уровень тревоги при авто-повышении или авто-понижении",
+        default=0,
+    )
+
+    auto_timeout = models.IntegerField(
+        verbose_name="Таймаут авто-изменения",
+        help_text="Частота срабатывания авто-изменения уровня в секундах",
+        default=0,
     )
 
     counter_increase = models.IntegerField(
-        verbose_name="На сколько увеличить уровень тревоги",
-        help_text=(
-            "Цена ошибки. Также определяет на сколько увеличится уровень "
-            "со временем (settings.ALERT_COOLDOWN) автоматически."
-        ),
+        verbose_name="Значение увеличения",
+        help_text="На сколько повысится уровень тревоги при ошибке игрока.",
         default=0,
     )
 
     counter_decrease = models.IntegerField(
-        verbose_name="На сколько уменьшить уровень тревоги",
-        help_text=(
-            "Насколько снизится уровень тревоги при действии. Также определяет, на сколько уменьшится уровень "
-            "со временем (settings.ALERT_COOLDOWN) автоматически."
-        ),
+        verbose_name="Значение уменьшения",
+        help_text="На сколько снизится уровень тревоги при удачном действии игрока.",
         default=0,
     )
 
@@ -175,9 +205,10 @@ class AlertState(models.Model):
         logging.debug(f"alert state changed to {self.name} [{self.order}]")
 
         if source != ALERT_COUNTER:
+            counter_reset = source == ALERT_STATE
             if self.__original_state != self.current:
                 with get_interface() as mq_interface:
-                    event = AlertStateEvent(state=self.name, event_source=ALERT_STATE, counter_reset=True)
+                    event = AlertStateEvent(state=self.name, event_source=ALERT_STATE, counter_reset=counter_reset)
                     mq_interface.send_event(event)
 
         self.__original_state = self.current

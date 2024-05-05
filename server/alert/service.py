@@ -1,7 +1,6 @@
-from typing import List, Literal, Optional, Union
+from typing import List, Optional
 
 from alert.models import AlertCounter, AlertState
-from event_handling.alert.types import ALERT_COUNTER, ALERT_STATE
 
 
 class AlertService:
@@ -12,9 +11,7 @@ class AlertService:
     min_alert_value: int
     init_by: str
 
-    def __init__(
-        self, init_by: Union[Literal[ALERT_COUNTER], Literal[ALERT_STATE], Literal["external"]] = "external"
-    ):  # type: ignore
+    def __init__(self, init_by: str = "external"):
         self.states = dict(enumerate(self.get_ingame_states()))
         self.state_ranges = self._calc_alert_ranges()
         self.min_alert_value = 1
@@ -28,12 +25,6 @@ class AlertService:
         for index, _range in self.state_ranges.items():
             if alert_value in range(*_range):
                 return self.states.get(index)
-
-    def get_state_by_name(self, name: str):
-        """Получает статус тревоги по названию"""
-        if not name:
-            raise ValueError("alert state name not provided")
-        return AlertState.objects.filter(name=name).first()
 
     def set_state_by_name(self, name: str):
         """Устанавливает статус тревоги по названию"""
@@ -115,17 +106,36 @@ class AlertService:
         return max(states) if states else self.min_alert_value
 
     @staticmethod
-    def get_state_current() -> AlertState:
-        """Получает текущий статус тревоги."""
-        return AlertState.objects.filter(current=True).get()
+    def get_state_next(state: AlertState) -> Optional[AlertState]:
+        """Получает следующий по порядку статус тревоги."""
+        next_order = state.order + 1
+        return AlertState.objects.filter(order=next_order).first()
 
     @staticmethod
-    def get_last_counter() -> int:
+    def get_state_prev(state: AlertState) -> Optional[AlertState]:
+        """Получает следующий по порядку статус тревоги."""
+        prev_order = state.order - 1
+        return AlertState.objects.filter(order=prev_order).first()
+
+    @staticmethod
+    def get_state_by_name(name: str):
+        """Получает статус тревоги по названию"""
+        if not name:
+            raise ValueError("alert state name not provided")
+        return AlertState.objects.filter(name=name).first()
+
+    @staticmethod
+    def get_state_current() -> AlertState:
+        """Получает текущий статус тревоги."""
+        return AlertState.objects.get_current()
+
+    @staticmethod
+    def get_last_counter(backup_value: Optional[int] = 0) -> int:
         """Получает последний счетчик тревоги."""
         try:
             counter = AlertCounter.objects.latest("id")
         except AlertCounter.DoesNotExist:
-            counter = AlertCounter(value=0, comment="initial counter set by AlertService")
+            counter = AlertCounter(value=backup_value, comment="initial counter set by AlertService")
             counter.save()
         return counter.value
 

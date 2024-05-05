@@ -1,6 +1,6 @@
 from typing import Literal, Optional
 
-from event_handling.events import SkabenEvent
+from core.transport.events import SkabenEvent
 
 ALERT_STATE: str = "alert_state"
 ALERT_COUNTER: str = "alert_counter"
