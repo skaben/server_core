@@ -1,8 +1,10 @@
-from peripheral_devices.models import LockDevice, SkabenDevice, TerminalDevice
+from typing import Type
+
+from peripheral_devices.models import LockDevice, TerminalDevice
 from peripheral_devices.serializers import LockSerializer, TerminalSerializer
 
 
-def get_model_by_topic(topic: str) -> SkabenDevice:
+def get_model_by_topic(topic: str) -> Type[LockDevice | TerminalDevice]:
     table = {"lock": LockDevice, "terminal": TerminalDevice}
     result = table.get(topic)
     if not result:
@@ -10,7 +12,7 @@ def get_model_by_topic(topic: str) -> SkabenDevice:
     return result
 
 
-def get_serializer_by_topic(topic: str) -> LockSerializer | TerminalSerializer:
+def get_serializer_by_topic(topic: str) -> Type[LockSerializer | TerminalSerializer]:
     table = {"lock": LockSerializer, "terminal": TerminalSerializer}
     result = table.get(topic)
     if not result:

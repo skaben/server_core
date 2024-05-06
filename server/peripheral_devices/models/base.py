@@ -14,27 +14,35 @@ class SkabenDevice(models.Model):
         abstract = True
 
     ip = models.GenericIPAddressField(null=True, blank=True, verbose_name="IP-адрес")
-    mac_addr = models.CharField(max_length=12, unique=True)
-    description = models.CharField(max_length=128, default="smart complex device")
-    timestamp = models.IntegerField(default=get_server_timestamp)
-    override = models.BooleanField(default=False)
+    mac_addr = models.CharField(max_length=12, unique=True, verbose_name="MAC")
+    description = models.CharField(max_length=128, default="smart complex device", verbose_name="Описание")
+    timestamp = models.IntegerField(default=get_server_timestamp, verbose_name="Время последнего ответа")
+    override = models.BooleanField(default=False, verbose_name="Отключить авто-обновление")
 
     @property
     def online(self) -> bool:
         return self.timestamp + settings.DEVICE_KEEPALIVE_TIMEOUT > get_server_timestamp()
+
+    online.fget.short_description = "Онлайн"
 
     @property
     def alert(self) -> str:
         state = AlertState.objects.get_current()
         return str(getattr(state, "id", ""))
 
+    alert.fget.short_description = "Уровень тревоги"
+
     @property
     def topic(self):
-        return NotImplementedError
+        raise NotImplementedError("abstract class property")
 
-    @classmethod
-    def _hash(cls, attrs: list[str]) -> str:
-        return get_hash_from({attr: getattr(cls, attr) for attr in attrs})
+    topic.fget.short_description = "MQTT-топик"
+
+    def _hash(self, attrs: list[str]) -> str:
+        return get_hash_from({attr: getattr(self, attr) for attr in attrs})
+
+    def get_hash(self) -> str:
+        raise NotImplementedError("abstract class method")
 
     def save(self, *args, **kwargs):
         """Сохранение, отправляющее конфиг устройству, если передан параметр send_update=True."""

@@ -75,8 +75,6 @@ class ClientUpdateHandler(BaseHandler):
                     list_of_devices = model.objects.exclude(override=True)
                     for device in list_of_devices:
                         serialized = serializer(device)
-                        if not serialized.is_valid():
-                            logging.error(f"Validation error: cannot send config for {device}")
                         self.dispatch(
                             data=serialized.data,
                             routing_data=[device_topic, device.mac_addr],
@@ -88,7 +86,7 @@ class ClientUpdateHandler(BaseHandler):
         if not message.acknowledged:
             return message.ack()
 
-    def get_device_config(self, device_topic, device_uid: str, body: dict, message: Message):
+    def get_device_config(self, device_topic: str, device_uid: str, body: dict, message: Message):
         """Получает актуальную конфигурацию устройства."""
         model = get_model_by_topic(device_topic)
         serializer = get_serializer_by_topic(device_topic)
@@ -117,5 +115,5 @@ class ClientUpdateHandler(BaseHandler):
     @staticmethod
     def get_instance_data(model: SkabenDevice, serializer: ModelSerializer, mac_id: str) -> Dict:
         instance = model.objects.get(mac_addr=mac_id)
-        serializer = serializer(instance=instance)
+        serializer = serializer(instance)
         return serializer.data

@@ -21,7 +21,7 @@ class StreamRecord(models.Model):
     timestamp = models.IntegerField(default=get_server_timestamp)
 
     message = models.CharField(help_text="Название события")
-    message_data = models.JSONField(blank=True, help_text="Содержимое события")
+    message_data = models.JSONField(blank=True, null=True, help_text="Содержимое события")
 
     stream = models.CharField(default=StreamTypes.GAME, max_length=256, help_text="Поток события")
     source = models.CharField(default="default", max_length=256, help_text="Источник события")

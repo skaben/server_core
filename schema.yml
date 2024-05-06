@@ -333,7 +333,6 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/Lock'
-        required: true
       responses:
         '201':
           content:
@@ -384,7 +383,6 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/Lock'
-        required: true
       responses:
         '200':
           content:
@@ -1023,7 +1021,6 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/Lock'
-        required: true
       responses:
         '201':
           content:
@@ -1074,7 +1071,6 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/Lock'
-        required: true
       responses:
         '200':
           content:
@@ -1889,7 +1885,13 @@ components:
         id:
           type: integer
           readOnly: true
-        alert_current:
+        topic:
+          type: string
+          readOnly: true
+        hash:
+          type: string
+          readOnly: true
+        alert:
           type: string
           readOnly: true
         online:
@@ -1898,16 +1900,13 @@ components:
         acl:
           type: string
           readOnly: true
-        hash:
-          type: string
-          readOnly: true
         ip:
           type: string
           nullable: true
           title: IP-адрес
         mac_addr:
           type: string
-          maxLength: 12
+          readOnly: true
         description:
           type: string
           maxLength: 128
@@ -1932,12 +1931,13 @@ components:
           title: Время автоматического закрытия
       required:
       - acl
-      - alert_current
+      - alert
       - hash
       - id
       - mac_addr
       - online
       - timestamp
+      - topic
     PatchedAudioFile:
       type: object
       properties:
@@ -1997,7 +1997,13 @@ components:
         id:
           type: integer
           readOnly: true
-        alert_current:
+        topic:
+          type: string
+          readOnly: true
+        hash:
+          type: string
+          readOnly: true
+        alert:
           type: string
           readOnly: true
         online:
@@ -2006,16 +2012,13 @@ components:
         acl:
           type: string
           readOnly: true
-        hash:
-          type: string
-          readOnly: true
         ip:
           type: string
           nullable: true
           title: IP-адрес
         mac_addr:
           type: string
-          maxLength: 12
+          readOnly: true
         description:
           type: string
           maxLength: 128
@@ -2073,16 +2076,13 @@ components:
         id:
           type: integer
           readOnly: true
-        alert_current:
-          type: string
-          readOnly: true
-        online:
-          type: boolean
-          readOnly: true
-        acl:
+        topic:
           type: string
           readOnly: true
         hash:
+          type: string
+          readOnly: true
+        alert:
           type: string
           readOnly: true
         ip:
@@ -2207,16 +2207,13 @@ components:
         id:
           type: integer
           readOnly: true
-        alert_current:
-          type: string
-          readOnly: true
-        online:
-          type: boolean
-          readOnly: true
-        acl:
+        topic:
           type: string
           readOnly: true
         hash:
+          type: string
+          readOnly: true
+        alert:
           type: string
           readOnly: true
         ip:
@@ -2241,13 +2238,12 @@ components:
         hacked:
           type: boolean
       required:
-      - acl
-      - alert_current
+      - alert
       - hash
       - id
       - mac_addr
-      - online
       - timestamp
+      - topic
     TextFile:
       type: object
       properties:
