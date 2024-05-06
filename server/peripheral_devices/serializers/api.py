@@ -5,7 +5,7 @@ from rest_framework import serializers
 class DeviceSerializer(serializers.ModelSerializer):
     topic = serializers.ReadOnlyField()
     hash = serializers.SerializerMethodField()
-    alert = serializers.ReadOnlyField()
+    alert_state = serializers.ReadOnlyField()
 
     class Meta:
         read_only_fields = ("id", "mac_addr", "hash")
@@ -24,6 +24,11 @@ class LockSerializer(DeviceSerializer):
     @staticmethod
     def get_acl(lock):
         return lock.permissions()
+
+    @property
+    def get_hash(self):
+        watch_list = ["alert_state", "closed", "blocked", "sound", "acl"]
+        return super()._hash(self, watch_list)
 
     class Meta:
         model = LockDevice
