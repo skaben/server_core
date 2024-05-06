@@ -1,7 +1,12 @@
 from core.admin import base_site
 from django.contrib import admin
-from peripheral_behavior.models import PassiveConfig
+from peripheral_behavior.models import PassiveConfig, Permission
 from peripheral_devices.models import LockDevice, TerminalDevice
+
+
+class PermissionInline(admin.TabularInline):
+    model = Permission
+    extra = 1
 
 
 class DeviceAdmin(admin.ModelAdmin):
@@ -33,14 +38,23 @@ class DeviceAdmin(admin.ModelAdmin):
 
 
 class LockAdmin(DeviceAdmin):
+    inlines = [PermissionInline]
+
     fieldsets = DeviceAdmin.fieldsets + (
         (
-            "Настройки доступа",
+            "Настройки замка",
             {
                 "classes": ("none",),
-                "fields": ("permissions",),
+                "fields": ("closed", "blocked", "sound", "timer"),
             },
         ),
+        # (
+        #     "Настройки доступа",
+        #     {
+        #         "classes": ("none",),
+        #         "fields": ("",),
+        #     },
+        # ),
     )
 
 
