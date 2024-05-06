@@ -1891,7 +1891,7 @@ components:
         hash:
           type: string
           readOnly: true
-        alert:
+        alert_state:
           type: string
           readOnly: true
         online:
@@ -1907,14 +1907,18 @@ components:
         mac_addr:
           type: string
           readOnly: true
+          title: MAC
         description:
           type: string
+          title: Описание
           maxLength: 128
         timestamp:
           type: integer
           readOnly: true
+          title: Время последнего ответа
         override:
           type: boolean
+          title: Отключить авто-обновление
         sound:
           type: boolean
           title: Звук замка
@@ -1931,7 +1935,7 @@ components:
           title: Время автоматического закрытия
       required:
       - acl
-      - alert
+      - alert_state
       - hash
       - id
       - mac_addr
@@ -2003,7 +2007,7 @@ components:
         hash:
           type: string
           readOnly: true
-        alert:
+        alert_state:
           type: string
           readOnly: true
         online:
@@ -2019,14 +2023,18 @@ components:
         mac_addr:
           type: string
           readOnly: true
+          title: MAC
         description:
           type: string
+          title: Описание
           maxLength: 128
         timestamp:
           type: integer
           readOnly: true
+          title: Время последнего ответа
         override:
           type: boolean
+          title: Отключить авто-обновление
         sound:
           type: boolean
           title: Звук замка
@@ -2056,6 +2064,7 @@ components:
           type: string
           description: Название события
         message_data:
+          nullable: true
           description: Содержимое события
         stream:
           type: string
@@ -2082,7 +2091,7 @@ components:
         hash:
           type: string
           readOnly: true
-        alert:
+        alert_state:
           type: string
           readOnly: true
         ip:
@@ -2092,14 +2101,18 @@ components:
         mac_addr:
           type: string
           readOnly: true
+          title: MAC
         description:
           type: string
+          title: Описание
           maxLength: 128
         timestamp:
           type: integer
           readOnly: true
+          title: Время последнего ответа
         override:
           type: boolean
+          title: Отключить авто-обновление
         powered:
           type: boolean
         blocked:
@@ -2184,6 +2197,7 @@ components:
           type: string
           description: Название события
         message_data:
+          nullable: true
           description: Содержимое события
         stream:
           type: string
@@ -2213,7 +2227,7 @@ components:
         hash:
           type: string
           readOnly: true
-        alert:
+        alert_state:
           type: string
           readOnly: true
         ip:
@@ -2223,14 +2237,18 @@ components:
         mac_addr:
           type: string
           readOnly: true
+          title: MAC
         description:
           type: string
+          title: Описание
           maxLength: 128
         timestamp:
           type: integer
           readOnly: true
+          title: Время последнего ответа
         override:
           type: boolean
+          title: Отключить авто-обновление
         powered:
           type: boolean
         blocked:
@@ -2238,7 +2256,7 @@ components:
         hacked:
           type: boolean
       required:
-      - alert
+      - alert_state
       - hash
       - id
       - mac_addr
