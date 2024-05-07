@@ -48,13 +48,6 @@ class LockAdmin(DeviceAdmin):
                 "fields": ("closed", "blocked", "sound", "timer"),
             },
         ),
-        # (
-        #     "Настройки доступа",
-        #     {
-        #         "classes": ("none",),
-        #         "fields": ("",),
-        #     },
-        # ),
     )
 
 
