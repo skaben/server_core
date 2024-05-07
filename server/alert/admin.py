@@ -6,7 +6,7 @@ from django.contrib import admin
 class AlertStateCustomAdmin(admin.ModelAdmin):
     """Админка статусов тревоги."""
 
-    list_display = ("current", "name", "ingame", "info", "order", "threshold", "counter_increase", "counter_decrease")
+    list_display = ("name", "current", "ingame", "info", "order", "threshold", "counter_increase", "counter_decrease")
 
     list_filter = ["current"]
 

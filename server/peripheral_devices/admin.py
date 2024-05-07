@@ -11,6 +11,12 @@ class PermissionInline(admin.TabularInline):
 
 class DeviceAdmin(admin.ModelAdmin):
     readonly_fields = ("timestamp", "alert", "online")
+    list_display = (
+        "description",
+        "online",
+        "ip",
+        "mac_addr",
+    )
 
     fieldsets = (
         (
@@ -39,7 +45,9 @@ class DeviceAdmin(admin.ModelAdmin):
 
 class LockAdmin(DeviceAdmin):
     inlines = [PermissionInline]
-
+    list_display = DeviceAdmin.list_display + ("closed", "blocked", "sound")
+    list_filter = DeviceAdmin.list_filter + ("closed", "blocked", "sound")
+    list_editable = DeviceAdmin.list_editable + ("closed", "blocked", "sound")
     fieldsets = DeviceAdmin.fieldsets + (
         (
             "Настройки замка",

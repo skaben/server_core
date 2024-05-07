@@ -25,10 +25,9 @@ class LockSerializer(DeviceSerializer):
     def get_acl(lock):
         return lock.permissions()
 
-    @property
-    def get_hash(self):
-        watch_list = ["alert_state", "closed", "blocked", "sound", "acl"]
-        return super()._hash(self, watch_list)
+    @staticmethod
+    def get_hash(lock):
+        return lock.get_hash()
 
     class Meta:
         model = LockDevice

@@ -27,7 +27,7 @@ class LockDevice(SkabenDevice):
 
     def get_hash(self) -> str:
         watch_list = ["closed", "blocked", "sound"]
-        return super()._hash(watch_list)
+        return super().hash_from_attrs(watch_list)
 
     @property
     def topic(self):
@@ -36,4 +36,4 @@ class LockDevice(SkabenDevice):
 
     def __str__(self):
         """Строковое представление модели."""
-        return f"LOCK [ip: {self.ip}] {self.description[:10]}"
+        return f"LOCK [ip: {self.ip}] {self.description}"

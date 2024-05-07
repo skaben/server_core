@@ -38,11 +38,11 @@ class SkabenDevice(models.Model):
 
     topic.fget.short_description = "MQTT-топик"
 
-    def _hash(self, attrs: list[str]) -> str:
+    def hash_from_attrs(self, attrs: list[str]) -> str:
         return get_hash_from({attr: getattr(self, attr) for attr in attrs})
 
     def get_hash(self) -> str:
-        raise NotImplementedError("abstract class method")
+        return get_hash_from(list(self.__dict__.keys()))
 
     def save(self, *args, **kwargs):
         """Сохранение, отправляющее конфиг устройству, если передан параметр send_update=True."""

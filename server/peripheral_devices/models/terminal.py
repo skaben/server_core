@@ -17,4 +17,4 @@ class TerminalDevice(SkabenDevice):
 
     def get_hash(self) -> str:
         watch_list = ["alert", "closed", "blocked", "sound"]
-        return super()._hash(watch_list)
+        return super().hash_from_attrs(watch_list)
