@@ -36,7 +36,7 @@ class SkabenPacket(BaseModel):
 
     def encode(self):
         """Подготавливает содержимое для отправки в очередь MQTT."""
-        return self.model_dump_json(exclude=["topic", "uid", "command", "routing_key"], exclude_none=True)
+        return self.model_dump_json(exclude={"topic", "uid", "command", "routing_key"}, exclude_none=True)
 
 
 class PING(SkabenPacket):
@@ -46,7 +46,7 @@ class PING(SkabenPacket):
 
     def encode(self):
         """Подготавливает содержимое для отправки в очередь MQTT."""
-        return self.model_dump_json(include="timestamp")
+        return self.model_dump_json(include={"timestamp"})
 
 
 class ACK(SkabenPacket):

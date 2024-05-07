@@ -16,15 +16,18 @@ class LockDevice(SkabenDevice):
     blocked = models.BooleanField(verbose_name="Заблокирован", default=False)
     timer = models.IntegerField(verbose_name="Время автоматического закрытия", default=10)
 
-    @property
-    def acl(self) -> dict:
+    def permissions(self) -> dict:
         """Получает словарь связанных карт-кодов и статусов тревоги, в которых они открывают замок."""
-        # unload list of Card codes for lock end-device
         acl = {}
-        for perm in self.permission_set.filter(lock_id=self.id):
+        permission_set = self.permission_set.prefetch_related("card", "state_id").filter(lock_id=self.id)
+        for perm in permission_set:
             state_list = [state.id for state in perm.state_id.all()]
             acl[f"{perm.card.code}"] = state_list
         return acl
+
+    def get_hash(self) -> str:
+        watch_list = ["closed", "blocked", "sound"]
+        return super().hash_from_attrs(watch_list)
 
     @property
     def topic(self):
@@ -33,4 +36,4 @@ class LockDevice(SkabenDevice):
 
     def __str__(self):
         """Строковое представление модели."""
-        return f"LOCK [ip: {self.ip}] {self.description[:10]}"
+        return f"LOCK [ip: {self.ip}] {self.description}"

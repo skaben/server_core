@@ -1,63 +1,44 @@
-from core.helpers import get_hash_from
 from peripheral_devices.models import LockDevice, TerminalDevice
 from rest_framework import serializers
 
 
 class DeviceSerializer(serializers.ModelSerializer):
-    topic = ""
-    alert_current = serializers.ReadOnlyField()
+    topic = serializers.ReadOnlyField()
+    hash = serializers.SerializerMethodField()
+    alert_state = serializers.ReadOnlyField()
 
     class Meta:
-        read_only_fields = ("id", "mac_addr")
+        read_only_fields = ("id", "mac_addr", "hash")
 
     @staticmethod
-    def _hash(obj: object, attrs: list[str]) -> str:
-        return get_hash_from({attr: getattr(obj, attr) for attr in attrs})
+    def get_hash(obj):
+        return obj.get_hash()
 
 
 class LockSerializer(DeviceSerializer):
     """Lock serializer."""
 
-    topic = "lock"
-
     online = serializers.ReadOnlyField()
     acl = serializers.SerializerMethodField()
-    hash = serializers.SerializerMethodField()
 
     @staticmethod
     def get_acl(lock):
-        return lock.acl
+        return lock.permissions()
 
-    @property
-    def get_hash(self):
-        watch_list = ["alert", "closed", "blocked", "sound", "acl"]
-        return super()._hash(self, watch_list)
+    @staticmethod
+    def get_hash(lock):
+        return lock.get_hash()
 
     class Meta:
         model = LockDevice
         fields = "__all__"
-        read_only_fields = ("id", "uid", "timestamp", "alert", "acl", "online")
+        read_only_fields = ("id", "mac_addr", "timestamp", "online", "acl")
 
 
 class TerminalSerializer(DeviceSerializer):
     """Lock serializer."""
 
-    topic = "terminal"
-
-    online = serializers.ReadOnlyField()
-    acl = serializers.SerializerMethodField()
-    hash = serializers.SerializerMethodField()
-
-    @staticmethod
-    def get_acl(lock):
-        return lock.acl
-
-    @property
-    def get_hash(self):
-        watch_list = ["alert", "closed", "blocked", "sound", "acl"]
-        return super()._hash(self, watch_list)
-
     class Meta:
         model = TerminalDevice
         fields = "__all__"
-        read_only_fields = ("id", "mac_addr", "timestamp", "alert", "acl", "online")
+        read_only_fields = ("id", "mac_addr", "timestamp", "alert", "online")

@@ -1,4 +1,4 @@
-from event_handling.events import SkabenEvent
+from core.transport.events import SkabenEvent
 
 
 class DeviceNotFoundEvent(SkabenEvent):

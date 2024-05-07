@@ -14,3 +14,7 @@ class TerminalDevice(SkabenDevice):
     powered = models.BooleanField(default=False)
     blocked = models.BooleanField(default=False)
     hacked = models.BooleanField(default=False)
+
+    def get_hash(self) -> str:
+        watch_list = ["alert", "closed", "blocked", "sound"]
+        return super().hash_from_attrs(watch_list)

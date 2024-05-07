@@ -1,6 +1,6 @@
 import netaddr
 from alert.models import AlertState
-from core.helpers import format_routing_key, get_server_timestamp
+from core.helpers import format_routing_key, get_server_timestamp, get_hash_from
 from core.transport.config import SkabenQueue
 from core.transport.publish import get_interface
 from django.conf import settings
@@ -14,23 +14,35 @@ class SkabenDevice(models.Model):
         abstract = True
 
     ip = models.GenericIPAddressField(null=True, blank=True, verbose_name="IP-адрес")
-    mac_addr = models.CharField(max_length=12, unique=True)
-    description = models.CharField(max_length=128, default="smart complex device")
-    timestamp = models.IntegerField(default=get_server_timestamp)
-    override = models.BooleanField(default=False)
+    mac_addr = models.CharField(max_length=12, unique=True, verbose_name="MAC")
+    description = models.CharField(max_length=128, default="smart complex device", verbose_name="Описание")
+    timestamp = models.IntegerField(default=get_server_timestamp, verbose_name="Время последнего ответа")
+    override = models.BooleanField(default=False, verbose_name="Отключить авто-обновление")
 
     @property
     def online(self) -> bool:
-        return self.timestamp + settings.DEVICE_KEEPALIVE_TIMEOUT < get_server_timestamp()
+        return self.timestamp + settings.DEVICE_KEEPALIVE_TIMEOUT > get_server_timestamp()
+
+    online.fget.short_description = "Онлайн"
 
     @property
-    def alert_state(self) -> str:
-        state = AlertState.get_current
-        return str(getattr(state, "order", ""))
+    def alert(self) -> str:
+        state = AlertState.objects.get_current()
+        return str(getattr(state, "id", ""))
+
+    alert.fget.short_description = "Уровень тревоги"
 
     @property
     def topic(self):
-        return NotImplementedError
+        raise NotImplementedError("abstract class property")
+
+    topic.fget.short_description = "MQTT-топик"
+
+    def hash_from_attrs(self, attrs: list[str]) -> str:
+        return get_hash_from({attr: getattr(self, attr) for attr in attrs})
+
+    def get_hash(self) -> str:
+        return get_hash_from(list(self.__dict__.keys()))
 
     def save(self, *args, **kwargs):
         """Сохранение, отправляющее конфиг устройству, если передан параметр send_update=True."""
