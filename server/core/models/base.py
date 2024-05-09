@@ -1,7 +1,15 @@
 import re
 
+from polymorphic.models import PolymorphicModel
 from core.helpers import get_uuid
 from django.db import models
+
+
+class BaseModelPolymorphic(PolymorphicModel):
+    class Meta:
+        abstract = True
+
+    uuid = models.UUIDField(primary_key=True, default=get_uuid, editable=False)
 
 
 class BaseModelUUID(models.Model):
