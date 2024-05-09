@@ -1,10 +1,10 @@
 from assets import views
 from django.urls import include, path
-from rest_framework.routers import SimpleRouter
+from rest_framework.routers import DefaultRouter
 
 app_name = "assets"
 
-router = SimpleRouter()
+router = DefaultRouter()
 router.register("textfile", views.TextFileViewSet)
 router.register("imagefile", views.ImageFileViewSet)
 router.register("audiofile", views.AudioFileViewSet)
