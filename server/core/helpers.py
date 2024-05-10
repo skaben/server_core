@@ -1,3 +1,5 @@
+from typing import Optional
+
 import base64
 import hashlib
 import json
@@ -34,12 +36,12 @@ def get_task_id() -> str:
     return base64.urlsafe_b64encode(hasher.digest()).decode("utf-8")
 
 
-def get_hash_from(data: list | dict | str) -> str:
+def get_hash_from(data: list | dict | str, encoding: Optional[str] = "utf-8") -> str:
     """Simple hashing function"""
     if isinstance(data, dict) or isinstance(data, list):
-        dump = json.dumps(data).encode("utf-8")
+        dump = json.dumps(data).encode(encoding)
     elif isinstance(data, str):
-        dump = bytes(data)
+        dump = bytes(data, encoding=encoding)
     else:
         raise TypeError(f"{type(data)} not supported, provide `dict`, `list` or `str` instead")
     return hashlib.md5(dump).hexdigest()
