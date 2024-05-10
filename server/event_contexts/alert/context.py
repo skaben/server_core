@@ -97,10 +97,10 @@ class AlertEventContext(SkabenEventContext):
         # В случае, когда событие инициировано ALERT_STATE апдейт для шкалы уже был отправлен
         if source == ALERT_COUNTER:
             with AlertService(init_by=source) as service:
-                old_state = service.get_state_current()
-                service.set_state_by_last_counter()
-                new_state = service.get_state_current()
-                if old_state != new_state:
+                current_state = service.get_state_current()
+                new_state = service.get_state_by_alert(event.value)
+                if new_state != current_state:
+                    service.set_state_current(new_state)
                     self.add_event(
                         f"alert state switched from {old_state} to {new_state} by counter", level=ContextEventLevels.LOG
                     )

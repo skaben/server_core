@@ -49,7 +49,7 @@ class AlertCounter(models.Model):
 
     def save(self, *args, **kwargs):
         """Сохранение, связывающее модели AlertCounter и AlertState."""
-        source = ""
+        source = ALERT_COUNTER
 
         if kwargs.get("event_source"):
             source = kwargs.pop("event_source")
@@ -196,7 +196,7 @@ class AlertState(models.Model):
             other_states = AlertState.objects.all().exclude(pk=self.id)
             other_states.update(current=False)
 
-        source = ""
+        source = ALERT_STATE
 
         if kwargs.get("event_source"):
             source = kwargs.pop("event_source")

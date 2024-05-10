@@ -30,10 +30,10 @@ def create_alert_auto_event() -> Optional[Tuple[AlertCounterEvent, int]]:
         state = service.get_state_current()
         counter = service.get_last_counter()
         expected_state = service.get_state_by_alert(counter)
-        if expected_state != state:
-            logging.error("Current AlertCounter is not in current AlertState range.")
+        if expected_state.ingame and state.ingame and expected_state != state:
+            logging.warning("Current AlertCounter is not in current AlertState range.")
 
-        if state.auto_level == 0 or state.auto_timeout == 0 or not state.ingame:
+        if state.auto_level == 0 or state.auto_timeout == 0:
             return
 
         message = ""
