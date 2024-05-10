@@ -1,4 +1,4 @@
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Union
 from pydantic import ValidationError, field_validator
 
 from core.transport.topics import SkabenTopics
@@ -14,7 +14,7 @@ class SkabenDeviceEvent(SkabenEvent):
     event_type: str = "device"
     device_type: str
     device_uid: Optional[str]
-    payload: Optional[Dict[str, any]] = {}
+    payload: Optional[Dict[str, Union[str, int, bool, dict, list]]] = {}
 
     @property
     def headers(self) -> List[str]:
