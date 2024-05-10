@@ -22,6 +22,7 @@ class SkabenDeviceEvent(SkabenEvent):
 
     @field_validator("device_type")
     def validate_device_type(cls, v):
-        if v not in SkabenTopics.all:  # todo: get from DeviceTopics model
-            raise ValidationError(f"Invalid topic. Allowed values are: {SkabenTopics.all}")
+        topics = SkabenTopics()
+        if v not in topics.all:  # todo: get from DeviceTopics model
+            raise ValidationError(f"Invalid topic. Allowed values are: {topics.all}")
         return v
