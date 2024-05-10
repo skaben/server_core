@@ -93,14 +93,18 @@ class InternalHandler(BaseHandler):
                     exchange=self.config.exchanges.get("internal"),
                 )
             else:
-                record = StreamRecord(
-                    message=event.message,
-                    message_data=event.message_data,
-                    stream=StreamTypes.LOG,
-                    source=event.event_source,
-                    mark=event.level,
-                )
-                save_as_records.append(record)
+                try:
+                    record = StreamRecord(
+                        message=event.message,
+                        message_data=event.message_data,
+                        stream=StreamTypes.LOG,
+                        source=event.event_source,
+                        mark=event.level,
+                    )
+                    save_as_records.append(record)
+                except Exception:  # noqa
+                    logging.exception("cannot create stream record:")
+                    continue
         StreamRecord.objects.bulk_create(save_as_records)
 
     def route_message(self, body: Dict, message: Message) -> None:

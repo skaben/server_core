@@ -31,7 +31,6 @@ class Command(BaseCommand):
         loop = asyncio.get_event_loop()
         while True:
             try:
-                self.stdout.write(self.style.SUCCESS("Starting scheduler..."))
                 loop.run_until_complete(self.run_scheduler())
             except asyncio.CancelledError:
                 self.stdout.write(self.style.WARNING("Scheduler stopped. Restarting..."))

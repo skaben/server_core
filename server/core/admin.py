@@ -35,7 +35,12 @@ class ControlCommandAdmin(admin.ModelAdmin):
     )
 
 
+class DeviceTopicAdmin(admin.ModelAdmin):
+    list_editable = ("active",)
+    list_display = ("channel", "type", "active", "comment")
+
+
 admin.site.register(ControlReaction, ControlCommandAdmin, site=base_site)
 admin.site.register(System, SystemAdmin, site=base_site)
-admin.site.register(DeviceTopic, SystemAdmin, site=base_site)
+admin.site.register(DeviceTopic, DeviceTopicAdmin, site=base_site)
 admin.site.register(StreamRecord, site=base_site)

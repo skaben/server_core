@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, Union, List, Literal
+from typing import Dict, Optional, Union, List, Literal
 
 from dataclasses import dataclass
 
@@ -15,7 +15,7 @@ class EncodedEvent(BaseModel):
     """Событие, готовое к отправке во внутреннюю очередь."""
 
     headers: Optional[Dict[str, str | int | bool]]
-    data: Optional[Dict[str, Any]]
+    data: Optional[Dict[str, Union[str, int, bool, dict, list]]]
 
 
 class SkabenEvent(BaseModel):
@@ -74,7 +74,7 @@ class InternalLogEvent(SkabenEvent):
     event_type: str = "log"
     level: Literal["error", "log", "info"] = ContextEventLevels.INFO
     message: str
-    message_data: Optional[Dict[str, Any]]
+    message_data: Optional[Dict[str, Union[str, int, bool, dict, list]]]
     save: bool = True
 
     @property
@@ -97,7 +97,7 @@ class SkabenEventContext:
         self,
         message: str,
         level: Literal["error", "log", "info"] = ContextEventLevels.INFO,
-        message_data: Optional[Dict[str, Any]] = None,
+        message_data: Optional[Dict[str, Union[str, int, bool, dict, list]]] = None,
     ) -> List[SkabenEvent]:
         event = InternalLogEvent(
             message=message,

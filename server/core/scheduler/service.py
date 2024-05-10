@@ -1,4 +1,5 @@
 import asyncio
+import logging
 
 from typing import List
 
@@ -27,7 +28,11 @@ class SchedulerService:
 
     async def run_task(self, task: SkabenTask) -> None:
         while self.running.is_set():
-            await task.run()
+            try:
+                await task.run()
+            except Exception:  # noqa
+                logging.exception("Task failed")
+                continue
 
     async def run(self) -> None:
         for task in self.tasks_initial:
