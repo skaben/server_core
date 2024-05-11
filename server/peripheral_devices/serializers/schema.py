@@ -13,3 +13,8 @@ class LockDeviceSchema(BaseDeviceSchema):
     blocked: bool
     timer: int
     permissions: Dict[str, List[int]]
+
+
+class TerminalDeviceSchema(BaseDeviceSchema):
+    powered: bool
+    blocked: bool

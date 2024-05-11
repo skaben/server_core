@@ -1,6 +1,6 @@
 from core.admin import base_site
 from django.contrib import admin
-from peripheral_behavior.models import Permission
+from peripheral_behavior.models import Permission, TerminalMenuSet
 from peripheral_devices.models.lock import LockDevice
 from peripheral_devices.models.terminal import TerminalDevice
 from peripheral_devices.models.passive import PassiveConfig
@@ -8,6 +8,11 @@ from peripheral_devices.models.passive import PassiveConfig
 
 class PermissionInline(admin.StackedInline):
     model = Permission
+    extra = 1
+
+
+class TerminalMenuSetInline(admin.StackedInline):
+    model = TerminalMenuSet
     extra = 1
 
 
@@ -79,6 +84,7 @@ class LockAdmin(DeviceAdmin):
 
 
 class TerminalAdmin(DeviceAdmin):
+    inlines = [TerminalMenuSetInline]
     list_display = DeviceAdmin.list_display + ("blocked", "powered")
     list_editable = DeviceAdmin.list_editable + ("blocked", "powered")
     fieldsets = DeviceAdmin.fieldsets + (
@@ -89,13 +95,14 @@ class TerminalAdmin(DeviceAdmin):
                 "fields": ("powered", "blocked"),
             },
         ),
-        (
-            "Настройки аккаунтов",
-            {
-                "classes": ("none",),
-                "fields": ("account_set",),
-            },
-        ),
+        # (
+        #     "Список аккаунтов",
+        #     {
+        #         "classes": ("none",),
+        #         "fields": ("account_set",),
+        #         "description": "Список аккаунтов, доступных в различных режимах"
+        #     },
+        # ),
     )
 
 

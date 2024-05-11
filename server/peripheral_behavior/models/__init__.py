@@ -1,4 +1,4 @@
-from peripheral_behavior.models.access import SkabenUser, AccessCode, Permission
+from peripheral_behavior.models.access import SkabenUser, AccessCode, Permission, TerminalMenuSet
 from peripheral_devices.models.passive import PassiveConfig
 from peripheral_behavior.models.menu import (
     TerminalAccount,
@@ -15,6 +15,7 @@ __all__ = (
     "AccessCode",
     "Permission",
     "PassiveConfig",
+    "TerminalMenuSet",
     "TerminalAccount",
     "MenuItem",
     "MenuItemAudio",

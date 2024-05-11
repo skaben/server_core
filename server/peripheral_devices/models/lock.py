@@ -49,4 +49,4 @@ class LockDevice(SkabenDevice):
 
     def __str__(self):
         """Строковое представление модели."""
-        return f"LOCK [ip: {self.ip}] {self.description}"
+        return f"Замок <{self.mac_addr}> [ip: {self.ip}] {self.description}"
