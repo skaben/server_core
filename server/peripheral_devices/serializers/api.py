@@ -1,11 +1,13 @@
-from peripheral_devices.models import LockDevice, TerminalDevice
 from rest_framework import serializers
+
+from peripheral_devices.models.lock import LockDevice
+from peripheral_devices.models.terminal import TerminalDevice
 
 
 class DeviceSerializer(serializers.ModelSerializer):
     topic = serializers.ReadOnlyField()
     hash = serializers.SerializerMethodField()
-    alert_state = serializers.ReadOnlyField()
+    alert = serializers.ReadOnlyField()
 
     class Meta:
         read_only_fields = ("id", "mac_addr", "hash")

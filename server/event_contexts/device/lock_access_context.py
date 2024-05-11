@@ -3,7 +3,7 @@ from django.conf import settings
 from core.transport.events import SkabenEventContext, ContextEventLevels
 from event_contexts.exceptions import StopContextError
 from peripheral_behavior.models import AccessCode
-from peripheral_devices.models import LockDevice as Lock
+from peripheral_devices.models.lock import LockDevice as Lock
 
 
 class LockEventContext(SkabenEventContext):
@@ -26,8 +26,7 @@ class LockEventContext(SkabenEventContext):
 
     @staticmethod
     def create_new_access_record(lock_name: str, access_code: str) -> str:
-        card_len = settings.ACCESS_CODE_CARD_LEN
-        if card_len + 1 > len(str(access_code)) < card_len:
+        if str(access_code) != settings.ACCESS_CODE_CARD_LEN:
             raise StopContextError(f"Код не является картой и его нет в базе - {access_code}")
         mgmt_state = AlertState.objects.get_management_state()
         if not mgmt_state.current:

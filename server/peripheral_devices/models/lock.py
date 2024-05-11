@@ -1,5 +1,6 @@
 from django.db import models
 from peripheral_devices.models.base import SkabenDevice
+from peripheral_devices.serializers.schema import LockDeviceSchema
 
 __all__ = ("LockDevice",)
 
@@ -26,8 +27,20 @@ class LockDevice(SkabenDevice):
         return acl
 
     def get_hash(self) -> str:
-        watch_list = ["closed", "blocked", "sound"]
+        watch_list = ["closed", "blocked", "sound", "alert", "override"]
         return super().hash_from_attrs(watch_list)
+
+    def to_mqtt_config(self):
+        validated_base = super().to_mqtt_config()
+        to_be_validated = dict(
+            sound=self.sound,
+            timer=self.timer,
+            closed=self.closed,
+            blocked=self.blocked,
+            permissions=self.permissions(),
+        )
+        schema = LockDeviceSchema.model_validate(validated_base | to_be_validated)
+        return schema.dict()
 
     @property
     def topic(self):

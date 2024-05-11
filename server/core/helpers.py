@@ -55,7 +55,9 @@ def get_time(timestamp: int) -> str:
     """Convert unix timestamp to local time."""
     utc_time = datetime.utcfromtimestamp(timestamp)
     local = (
-        pytz.utc.localize(utc_time, is_dst=None).astimezone(pytz.timezone(settings.TIM)).strftime("%Y-%m-%d %H:%M:%S")
+        pytz.utc.localize(utc_time, is_dst=None)
+        .astimezone(pytz.timezone(settings.TIME_ZONE))
+        .strftime("%Y-%m-%d %H:%M:%S")
     )
     return local
 

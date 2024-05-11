@@ -2565,7 +2565,7 @@ components:
           type: integer
           maximum: 2147483647
           minimum: -2147483648
-          title: Цифровой id статуса
+          title: Порядок
           description: используется для идентификации и упорядочивания статуса без
             привязки к id в БД
         auto_change:
@@ -2716,7 +2716,7 @@ components:
         hash:
           type: string
           readOnly: true
-        alert_state:
+        alert:
           type: string
           readOnly: true
         online:
@@ -2760,7 +2760,7 @@ components:
           title: Время автоматического закрытия
       required:
       - acl
-      - alert_state
+      - alert
       - hash
       - id
       - mac_addr
@@ -2916,7 +2916,7 @@ components:
         hash:
           type: string
           readOnly: true
-        alert_state:
+        alert:
           type: string
           readOnly: true
         online:
@@ -3070,7 +3070,7 @@ components:
         hash:
           type: string
           readOnly: true
-        alert_state:
+        alert:
           type: string
           readOnly: true
         ip:
@@ -3206,7 +3206,7 @@ components:
         hash:
           type: string
           readOnly: true
-        alert_state:
+        alert:
           type: string
           readOnly: true
         ip:
@@ -3235,7 +3235,7 @@ components:
         hacked:
           type: boolean
       required:
-      - alert_state
+      - alert
       - hash
       - id
       - mac_addr

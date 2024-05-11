@@ -2,9 +2,6 @@ from django.conf import settings
 from django.http import HttpResponse
 import traceback
 
-from core.helpers import format_routing_key
-from core.transport.config import SkabenQueue
-from core.transport.publish import get_interface
 from rest_framework import status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.serializers import AuthTokenSerializer
@@ -16,8 +13,8 @@ from rest_framework.views import APIView
 from rest_framework.renderers import JSONRenderer
 from rest_framework.decorators import api_view, renderer_classes
 from core.serializers import DeviceTopicSerializer
-from core.models import DeviceTopic, DeviceTopicManager
 from core.healthcheck import INTEGRATION_MODULE_MAP
+from core.tasks import update_devices
 
 
 class CreateTokenView(ObtainAuthToken):
@@ -62,21 +59,9 @@ class UpdateDeviceView(APIView):
             if not serializer.is_valid():
                 return Response(serializer.errors, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
-            _topics = serializer.data.get("topics", [])
-            send_to = _topics[:]
-
-            for special in DeviceTopicManager.special_topics:
-                if special in _topics:
-                    send_to.extend(DeviceTopic.objects.get_topics_by_type(special))
-            result = set([topic for topic in send_to if topic not in DeviceTopicManager.special_topics])
-            with get_interface() as publisher:
-                for topic in result:
-                    publisher.publish(
-                        body={},
-                        exchange=publisher.config.exchanges.get("internal"),
-                        routing_key=format_routing_key(SkabenQueue.CLIENT_UPDATE.value, topic, "all"),
-                    )
-            return Response({"update_requested": _topics, "update_sent": result})
+            topics = serializer.data.get("topics", [])
+            result = update_devices(topics)
+            return Response({"update_requested": topics, "update_sent": result})
         except Exception as e:
             return Response(
                 {"exception": f"{e} {traceback.format_exc()}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR

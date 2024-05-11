@@ -65,6 +65,9 @@ class AlertService:
 
         Приводит к изменению статуса тревоги, если значение попадает в диапазон значений срабатывания.
         """
+        last = self.get_last_counter()
+        if value == last:
+            return
         counter = AlertCounter(value=value, comment=comment)
         counter.save(event_source=self.init_by)
 
@@ -102,7 +105,7 @@ class AlertService:
     @property
     def max_alert_value(self) -> int:
         """Получает максимальное значение счетчика тревоги."""
-        states = [state.threshold for state in AlertState.objects.all().order_by("threshold")]
+        states = [state.threshold for state in AlertState.objects.get_ingame().order_by("threshold")]
         return max(states) if states else self.min_alert_value
 
     @staticmethod
