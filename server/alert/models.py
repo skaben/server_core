@@ -216,8 +216,5 @@ class AlertState(models.Model):
     is_final.fget.short_description = "Финальный игровой статус"
 
     def __str__(self):
-        s = f"[{self.order}] State: {self.name} ({self.info})"
-        if self.current:
-            return "[ACTIVE]" + s
-        else:
-            return s
+        active = "[active]" if self.current else ""
+        return f"Уровень тревоги: {self.name} ({self.id}) {active}"

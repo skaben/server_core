@@ -11,10 +11,10 @@ class TerminalDevice(SkabenDevice):
         verbose_name = "Терминал"
         verbose_name_plural = "Терминалы"
 
-    powered = models.BooleanField(default=False)
-    blocked = models.BooleanField(default=False)
-    hacked = models.BooleanField(default=False)
+    powered = models.BooleanField(default=False, verbose_name="Питание подключено")
+    blocked = models.BooleanField(default=False, verbose_name="Устройство заблокировано")
+    account_set = models.ManyToManyField("peripheral_behavior.TerminalAccount")
 
     def get_hash(self) -> str:
-        watch_list = ["alert", "closed", "blocked", "sound"]
+        watch_list = ["alert", "powered", "blocked"]
         return super().hash_from_attrs(watch_list)

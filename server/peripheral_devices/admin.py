@@ -6,7 +6,7 @@ from peripheral_devices.models.terminal import TerminalDevice
 from peripheral_devices.models.passive import PassiveConfig
 
 
-class PermissionInline(admin.TabularInline):
+class PermissionInline(admin.StackedInline):
     model = Permission
     extra = 1
 
@@ -78,7 +78,28 @@ class LockAdmin(DeviceAdmin):
     )
 
 
+class TerminalAdmin(DeviceAdmin):
+    list_display = DeviceAdmin.list_display + ("blocked", "powered")
+    list_editable = DeviceAdmin.list_editable + ("blocked", "powered")
+    fieldsets = DeviceAdmin.fieldsets + (
+        (
+            "Настройки терминала",
+            {
+                "classes": ("none",),
+                "fields": ("powered", "blocked"),
+            },
+        ),
+        (
+            "Настройки аккаунтов",
+            {
+                "classes": ("none",),
+                "fields": ("account_set",),
+            },
+        ),
+    )
+
+
 admin.site.register(LockDevice, LockAdmin, site=base_site)
-admin.site.register(TerminalDevice, DeviceAdmin, site=base_site)
+admin.site.register(TerminalDevice, TerminalAdmin, site=base_site)
 # регистрируется как девайс, т.к. нет отдельного поведения
 admin.site.register(PassiveConfig, PassiveDeviceAdmin, site=base_site)
