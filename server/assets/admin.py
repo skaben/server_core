@@ -1,4 +1,7 @@
+from core.admin import base_site
 from django.contrib import admin
+from .models.input import UserInput
+from .models.files import VideoFile, AudioFile, ImageFile, TextFile
 
 
 class FileAdmin(admin.ModelAdmin):
@@ -10,9 +13,8 @@ class TextFileAdmin(admin.ModelAdmin):
     readonly_fields = ("uri",)
 
 
-# admin.site.register(AudioFile, FileAdmin, site=base_site)
-# admin.site.register(VideoFile, FileAdmin, site=base_site)
-# admin.site.register(ImageFile, FileAdmin, site=base_site)
-# admin.site.register(UserInput, site=base_site)
-# admin.site.register(HackGame, site=base_site)
-# admin.site.register(TextFile, TextFileAdmin, site=base_site)
+admin.site.register(AudioFile, FileAdmin, site=base_site)
+admin.site.register(VideoFile, FileAdmin, site=base_site)
+admin.site.register(ImageFile, FileAdmin, site=base_site)
+admin.site.register(TextFile, TextFileAdmin, site=base_site)
+admin.site.register(UserInput, admin.ModelAdmin, site=base_site)

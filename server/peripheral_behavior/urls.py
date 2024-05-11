@@ -1,14 +1,11 @@
 from django.urls import include, path
 from rest_framework.routers import SimpleRouter
 
-from .views import AccessCodeViewSet, MenuItemViewSet, PermissionViewSet, WorkModeViewSet
+from .views import MenuViewSet
 
-app_name = "peripherals"
+app_name = "behavior"
 
 router = SimpleRouter()
-router.register("accesscode", AccessCodeViewSet)
-router.register("permission", PermissionViewSet)
-router.register("menuitem", MenuItemViewSet)
-router.register("workmode", WorkModeViewSet)
+router.register("menu", MenuViewSet)
 
 urlpatterns = [path("", include(router.urls))]
