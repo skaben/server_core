@@ -6,6 +6,7 @@ from .models.files import VideoFile, AudioFile, ImageFile, TextFile
 
 class FileAdmin(admin.ModelAdmin):
     exclude = ("hash",)
+    readonly_fields = ("uri",)
 
 
 class TextFileAdmin(admin.ModelAdmin):
@@ -13,8 +14,16 @@ class TextFileAdmin(admin.ModelAdmin):
     readonly_fields = ("uri",)
 
 
-admin.site.register(AudioFile, FileAdmin, site=base_site)
+class ImageFileAdmin(FileAdmin):
+    readonly_fields = ["uri", "image_tag"]
+
+
+class AudioFileAdmin(FileAdmin):
+    readonly_fields = ["uri", "audio_tag"]
+
+
+admin.site.register(AudioFile, AudioFileAdmin, site=base_site)
 admin.site.register(VideoFile, FileAdmin, site=base_site)
-admin.site.register(ImageFile, FileAdmin, site=base_site)
+admin.site.register(ImageFile, ImageFileAdmin, site=base_site)
 admin.site.register(TextFile, TextFileAdmin, site=base_site)
 admin.site.register(UserInput, admin.ModelAdmin, site=base_site)
