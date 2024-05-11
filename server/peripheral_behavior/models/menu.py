@@ -30,13 +30,16 @@ class MenuItem(BaseModelPolymorphic):
         default=0, verbose_name="Время доступа", help_text="Ограничение на просмотр этого контента в секундах"
     )
     label = models.CharField(max_length=128, verbose_name="Надпись на кнопке")
+    comment = models.CharField(
+        max_length=128, blank=True, default="", verbose_name="Комментарий", help_text="Не будет виден игроку"
+    )
 
     class Meta:
         verbose_name = "Пункт меню"
         verbose_name_plural = "Пункты меню"
 
     def __str__(self):
-        return f"<MenuItem> {self.label}"
+        return f"Пункт меню [{self.label}] {self.comment}"
 
 
 class MenuItemAudio(MenuItem):
@@ -46,6 +49,9 @@ class MenuItemAudio(MenuItem):
         verbose_name = "Аудио-документ"
         verbose_name_plural = "Аудио-документы"
 
+    def __str__(self):
+        return f"Меню: аудио [{self.label}]"
+
 
 class MenuItemVideo(MenuItem):
     content = models.ForeignKey(asset_models.VideoFile, on_delete=models.CASCADE, verbose_name="Связанное видео")
@@ -53,6 +59,9 @@ class MenuItemVideo(MenuItem):
     class Meta:
         verbose_name = "Видео-документ"
         verbose_name_plural = "Видео-документы"
+
+    def __str__(self):
+        return f"Меню: видео [{self.label}]"
 
 
 class MenuItemImage(MenuItem):
@@ -62,6 +71,9 @@ class MenuItemImage(MenuItem):
         verbose_name = "Изображение"
         verbose_name_plural = "Изображения"
 
+    def __str__(self):
+        return f"Меню: изображение [{self.label}]"
+
 
 class MenuItemText(MenuItem):
     content = models.ForeignKey(asset_models.TextFile, on_delete=models.CASCADE, verbose_name="Связанный текст")
@@ -69,6 +81,9 @@ class MenuItemText(MenuItem):
     class Meta:
         verbose_name = "Текстовый документ"
         verbose_name_plural = "Текстовые документы"
+
+    def __str__(self):
+        return f"Меню: текст [{self.label}]"
 
 
 class MenuItemUserInput(MenuItem):
@@ -92,6 +107,9 @@ class MenuItemUserInput(MenuItem):
     class Meta:
         verbose_name = "Пользовательский ввод"
         verbose_name_plural = "Пользовательский ввод"
+
+    def __str__(self):
+        return f"Меню: ввод [{self.label}]"
 
 
 class TerminalAccount(BaseModelUUID):

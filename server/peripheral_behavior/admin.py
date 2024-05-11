@@ -41,26 +41,31 @@ class PolymorphicChildInvisible(PolymorphicChildModelAdmin):
 class MenuItemAudioAdmin(PolymorphicChildInvisible):
     model = MenuItemAudio
     fields = menu_inline_fields
+    verbose_name = "Меню: аудио"
 
 
 class MenuItemVideoAdmin(PolymorphicChildInvisible):
     model = MenuItemVideo
     fields = menu_inline_fields
+    verbose_name = "Меню: видео"
 
 
 class MenuItemImageAdmin(PolymorphicChildInvisible):
     model = MenuItemImage
     fields = menu_inline_fields
+    verbose_name = "Меню: изображение"
 
 
 class MenuItemTextAdmin(PolymorphicChildInvisible):
     model = MenuItemText
     fields = menu_inline_fields
+    verbose_name = "Меню: текст"
 
 
 class MenuItemUserInputAdmin(PolymorphicChildInvisible):
     model = MenuItemUserInput
     fields = ("label", "content", "input_label", "input_description", "timer")
+    verbose_name = "Меню: пользовательский ввод"
 
 
 class TerminalAccountAdmin(PolymorphicInlineSupportMixin, admin.ModelAdmin):
