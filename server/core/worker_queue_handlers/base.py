@@ -8,7 +8,7 @@ from core.transport.publish import publish
 from django.conf import settings
 from kombu import Message
 from kombu.mixins import ConsumerProducerMixin
-from redis_pool import get_redis_client
+from core.redis_pool import get_redis_client
 
 __all__ = ["BaseHandler"]
 

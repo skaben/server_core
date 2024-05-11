@@ -26,6 +26,7 @@ class PassiveConfig(models.Model):
         unique_together = ("state", "topic")
 
     config = models.JSONField(default=dict, help_text="JSON-объект с конфигурацией устройства.")
+    comment = models.CharField(max_length=256, blank=True, null=True)
     topic = models.CharField(choices=SIMPLE_DEVICES, blank=False, help_text="Канал MQTT.")
     state = models.ForeignKey(
         "alert.AlertState",

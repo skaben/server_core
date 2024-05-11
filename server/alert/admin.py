@@ -6,9 +6,9 @@ from django.contrib import admin
 class AlertStateCustomAdmin(admin.ModelAdmin):
     """Админка статусов тревоги."""
 
-    list_display = ("name", "current", "ingame", "info", "order", "threshold", "counter_increase", "counter_decrease")
-
-    list_filter = ["current"]
+    ordering = ["order"]
+    list_display = ("name", "id", "current", "ingame", "info", "threshold", "counter_increase", "counter_decrease")
+    list_filter = ["ingame"]
 
     fieldsets = (
         (

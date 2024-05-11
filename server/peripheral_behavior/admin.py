@@ -9,4 +9,3 @@ class WorkModeAdmin(admin.ModelAdmin):
 
 admin.site.register(SkabenUser, admin.ModelAdmin, site=base_site)
 admin.site.register(AccessCode, admin.ModelAdmin, site=base_site)
-# admin.site.register(Permission, admin.ModelAdmin, site=base_site)

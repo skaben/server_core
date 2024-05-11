@@ -75,13 +75,12 @@ class AlertEventContext(SkabenEventContext):
         if source != ALERT_COUNTER:
             with AlertService(init_by=source) as service:
                 _new_counter_value = event.value
-                if event.value != service.get_last_counter():
-                    if event.change == "set":
-                        service.set_alert_counter(value=event.value, comment=event.comment)
-                    else:
-                        is_increased = event.change != "decrease"
-                        service.change_alert_counter(value=event.value, increase=is_increased, comment=event.comment)
-                        _new_counter_value = service.get_last_counter()
+                if event.change == "set":
+                    service.set_alert_counter(value=event.value, comment=event.comment)
+                else:
+                    is_increased = event.change != "decrease"
+                    service.change_alert_counter(value=event.value, increase=is_increased, comment=event.comment)
+                    _new_counter_value = service.get_last_counter()
                 # изменяем уровень тревоги, если счетчик попадает в диапазон срабатывания
                 new_state = service.get_state_by_alert(_new_counter_value)
                 old_state = service.get_state_current()

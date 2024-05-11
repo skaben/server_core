@@ -3,7 +3,7 @@ from django.conf import settings
 from core.transport.events import SkabenEventContext, ContextEventLevels
 from event_contexts.exceptions import StopContextError
 from peripheral_behavior.models import AccessCode
-from peripheral_devices.models import LockDevice as Lock
+from peripheral_devices.models.lock import LockDevice as Lock
 
 
 class LockEventContext(SkabenEventContext):

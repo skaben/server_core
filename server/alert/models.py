@@ -128,7 +128,7 @@ class AlertState(models.Model):
     )
     current = models.BooleanField(verbose_name="Сейчас активен", default=False)
     order = models.IntegerField(
-        verbose_name="Цифровой id статуса",
+        verbose_name="Порядок",
         help_text="используется для идентификации и упорядочивания статуса без привязки к id в БД",
         blank=False,
         unique=True,

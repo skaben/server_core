@@ -1,6 +1,5 @@
 from admin_extended.views import download_example_csv, upload_csv_view
 from core.models.mqtt import ControlReaction, DeviceTopic
-from core.models.system import System
 from django.contrib import admin
 from django.contrib.auth.models import Group, User
 from django.urls import path
@@ -41,6 +40,5 @@ class DeviceTopicAdmin(admin.ModelAdmin):
 
 
 admin.site.register(ControlReaction, ControlCommandAdmin, site=base_site)
-admin.site.register(System, SystemAdmin, site=base_site)
 admin.site.register(DeviceTopic, DeviceTopicAdmin, site=base_site)
 admin.site.register(StreamRecord, site=base_site)

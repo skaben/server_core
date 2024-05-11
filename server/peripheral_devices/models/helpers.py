@@ -1,7 +1,8 @@
 from typing import Type
 
-from peripheral_devices.models import LockDevice, TerminalDevice
-from peripheral_devices.serializers import LockSerializer, TerminalSerializer
+from peripheral_devices.models.lock import LockDevice
+from peripheral_devices.models.terminal import TerminalDevice
+from peripheral_devices.serializers.api import LockSerializer, TerminalSerializer
 
 
 def get_model_by_topic(topic: str) -> Type[LockDevice | TerminalDevice]:

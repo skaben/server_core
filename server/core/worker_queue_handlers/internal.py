@@ -74,7 +74,7 @@ class InternalHandler(BaseHandler):
         with device_context() as context:
             context.apply(event_headers, event_data)
             context_events.extend(context.events)
-        self.handle_context_events(context_events)
+        # self.handle_context_events(context_events)
 
     def handle_context_events(self, events: List[SkabenEvent]):
         """Обработка событий, возникших в процессе выполнения контекста.

@@ -2,6 +2,8 @@ import logging
 
 from typing import Literal, Optional, Tuple
 
+from django.conf import settings
+
 from event_contexts.alert.events import AlertCounterEvent
 from alert.models import AlertState, ALERT_INCREASE, ALERT_DECREASE
 from alert.service import AlertService
@@ -23,7 +25,7 @@ def create_alert_reaction_event(reason: str, change: Literal["increase", "decrea
     )
 
 
-def create_alert_auto_event() -> Optional[Tuple[AlertCounterEvent, int]]:
+def create_alert_auto_event() -> Tuple[Optional[AlertCounterEvent], int]:
     """Создает событие изменения счетчика."""
 
     with AlertService(init_by="scheduler") as service:
@@ -34,7 +36,7 @@ def create_alert_auto_event() -> Optional[Tuple[AlertCounterEvent, int]]:
             logging.warning("Current AlertCounter is not in current AlertState range.")
 
         if state.auto_level == 0 or state.auto_timeout == 0:
-            return
+            return None, settings.SCHEDULER_TASK_TIMEOUT
 
         message = ""
         dampener = 30  # смягчает изменение уровня при переходе между состояниями тревоги
@@ -47,7 +49,7 @@ def create_alert_auto_event() -> Optional[Tuple[AlertCounterEvent, int]]:
             if counter + level > next_state.threshold:
                 change_type = "set"
                 if not next_state.ingame:
-                    level = next_state.threshold - 1
+                    level = service.max_alert_value
                 elif counter + level > next_state.threshold + dampener:
                     level = next_state.threshold + dampener
 
