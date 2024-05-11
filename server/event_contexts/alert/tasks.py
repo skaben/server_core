@@ -32,11 +32,14 @@ def create_alert_auto_event() -> Tuple[Optional[AlertCounterEvent], int]:
         state = service.get_state_current()
         counter = service.get_last_counter()
         expected_state = service.get_state_by_alert(counter)
-        if expected_state.ingame and state.ingame and expected_state != state:
-            logging.warning("Current AlertCounter is not in current AlertState range.")
+        if not state or not expected_state:
+            return None, settings.SCHEDULER_TASK_TIMEOUT
 
         if state.auto_level == 0 or state.auto_timeout == 0:
             return None, settings.SCHEDULER_TASK_TIMEOUT
+
+        if expected_state.ingame and state.ingame and expected_state != state:
+            logging.warning("Current AlertCounter is not in current AlertState range.")
 
         message = ""
         dampener = 30  # смягчает изменение уровня при переходе между состояниями тревоги

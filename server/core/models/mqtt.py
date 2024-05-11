@@ -20,6 +20,12 @@ class DeviceTopicManager(models.Manager):
     def get_topics_permitted(self) -> Set[str]:
         return set(list(self.get_queryset().values_list("channel", flat=True)) + self.special_topics)
 
+    def get_topics_smart(self) -> List[str]:
+        return self.get_topics_by_type(SMART)
+
+    def get_topics_simple(self) -> List[str]:
+        return self.get_topics_by_type(SIMPLE)
+
     def get_topics_by_type(self, _type: str) -> List[str]:
         permitted = self.get_topics_permitted()
         if _type not in permitted:

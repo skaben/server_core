@@ -1,10 +1,10 @@
 import logging
 from alert.models import AlertState
+from core.models.base import DeviceKeepalive
 from core.helpers import get_server_timestamp, get_hash_from
-from django.conf import settings
 from django.db import models
 from core.transport.publish import get_interface
-from peripheral_devices.validators import mac_validator
+from core.validators import mac_validator
 from peripheral_devices.serializers.schema import BaseDeviceSchema
 from peripheral_devices.service.packet_format import cup_packet_from_model
 
@@ -30,7 +30,12 @@ class SkabenDevice(models.Model):
 
     @property
     def online(self) -> bool:
-        return self.timestamp + settings.DEVICE_KEEPALIVE_TIMEOUT > get_server_timestamp()
+        try:
+            keepalive = DeviceKeepalive.objects.get(mac_addr=self.mac_addr)
+            return keepalive.online
+        except DeviceKeepalive.DoesNotExist:
+            DeviceKeepalive.objects.create(timestamp=get_server_timestamp(), mac_addr=self.mac_addr)
+            return False
 
     online.fget.short_description = "Онлайн"
 

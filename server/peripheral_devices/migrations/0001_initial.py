@@ -2,7 +2,7 @@
 
 import core.helpers
 import django.db.models.deletion
-import peripheral_devices.validators
+from core.validators import mac_validator
 from django.db import migrations, models
 
 
@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('ip', models.GenericIPAddressField(blank=True, null=True, verbose_name='IP-адрес')),
-                ('mac_addr', models.CharField(max_length=12, unique=True, validators=[peripheral_devices.validators.mac_validator], verbose_name='MAC')),
+                ('mac_addr', models.CharField(max_length=12, unique=True, validators=[mac_validator], verbose_name='MAC')),
                 ('description', models.CharField(default='smart complex device', max_length=128, verbose_name='Описание')),
                 ('timestamp', models.IntegerField(default=core.helpers.get_server_timestamp, verbose_name='Время последнего ответа')),
                 ('override', models.BooleanField(default=False, verbose_name='Отключить авто-обновление')),
@@ -40,7 +40,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('ip', models.GenericIPAddressField(blank=True, null=True, verbose_name='IP-адрес')),
-                ('mac_addr', models.CharField(max_length=12, unique=True, validators=[peripheral_devices.validators.mac_validator], verbose_name='MAC')),
+                ('mac_addr', models.CharField(max_length=12, unique=True, validators=[mac_validator], verbose_name='MAC')),
                 ('description', models.CharField(default='smart complex device', max_length=128, verbose_name='Описание')),
                 ('timestamp', models.IntegerField(default=core.helpers.get_server_timestamp, verbose_name='Время последнего ответа')),
                 ('override', models.BooleanField(default=False, verbose_name='Отключить авто-обновление')),
