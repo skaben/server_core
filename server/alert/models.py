@@ -82,6 +82,12 @@ class AlertStateManager(models.Manager):
         except AlertState.DoesNotExist:
             raise ConfigException("management (`white`) state is not configured in DB")
 
+    def get_lockdown_state(self):
+        try:
+            return self.get_queryset().filter(name="black").get()
+        except AlertState.DoesNotExist:
+            raise ConfigException("management (`white`) state is not configured in DB")
+
 
 ALERT_INCREASE = "increase"
 ALERT_DECREASE = "decrease"

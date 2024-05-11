@@ -12,8 +12,6 @@ class TerminalDevice(SkabenDevice):
         verbose_name = "Терминал"
         verbose_name_plural = "Терминалы"
 
-    powered = models.BooleanField(default=False, verbose_name="Питание подключено")
-    blocked = models.BooleanField(default=False, verbose_name="Устройство заблокировано")
     account_set = models.ManyToManyField("peripheral_behavior.TerminalAccount")
 
     @property

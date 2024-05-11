@@ -65,3 +65,14 @@ class TerminalMenuSet(models.Model):
 
     def __str__(self):
         return "Аккаунт пользователя"
+
+
+class LockWorkMode(models.Model):
+    """Набор доступных режимов работы замка."""
+
+    work_mode = models.ForeignKey("peripheral_behavior.LockBehavior", verbose_name="Режим", on_delete=models.CASCADE)
+    device = models.ForeignKey("peripheral_devices.LockDevice", verbose_name="Замок", on_delete=models.CASCADE)
+    state_id = models.ManyToManyField("alert.AlertState", verbose_name="Уровень тревоги")
+
+    def __str__(self):
+        return "Режим работы замка"

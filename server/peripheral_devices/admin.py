@@ -1,9 +1,14 @@
 from core.admin import base_site
 from django.contrib import admin
-from peripheral_behavior.models import Permission, TerminalMenuSet
+from peripheral_behavior.models import Permission, TerminalMenuSet, LockWorkMode
 from peripheral_devices.models.lock import LockDevice
 from peripheral_devices.models.terminal import TerminalDevice
 from peripheral_devices.models.passive import PassiveConfig
+
+
+class LockWorkModeInline(admin.StackedInline):
+    model = LockWorkMode
+    extra = 1
 
 
 class PermissionInline(admin.StackedInline):
@@ -69,41 +74,41 @@ class DeviceAdmin(admin.ModelAdmin):
 
 
 class LockAdmin(DeviceAdmin):
-    inlines = [PermissionInline]
-    list_display = DeviceAdmin.list_display + ("closed", "blocked", "sound", "override")
-    list_editable = DeviceAdmin.list_editable + ("closed", "blocked", "sound")
-    fieldsets = DeviceAdmin.fieldsets + (
-        (
-            "Настройки замка",
-            {
-                "classes": ("none",),
-                "fields": ("closed", "blocked", "sound", "timer"),
-            },
-        ),
-    )
+    inlines = [LockWorkModeInline, PermissionInline]
+    # list_display = DeviceAdmin.list_display + ("closed", "blocked", "sound", "override")
+    # list_editable = DeviceAdmin.list_editable + ("closed", "blocked", "sound")
+    # fieldsets = DeviceAdmin.fieldsets + (
+    #     (
+    #         "Настройки замка",
+    #         {
+    #             "classes": ("none",),
+    #             "fields": ("closed", "blocked", "sound", "timer"),
+    #         },
+    #     ),
+    # )
 
 
 class TerminalAdmin(DeviceAdmin):
     inlines = [TerminalMenuSetInline]
-    list_display = DeviceAdmin.list_display + ("blocked", "powered")
-    list_editable = DeviceAdmin.list_editable + ("blocked", "powered")
-    fieldsets = DeviceAdmin.fieldsets + (
-        (
-            "Настройки терминала",
-            {
-                "classes": ("none",),
-                "fields": ("powered", "blocked"),
-            },
-        ),
-        # (
-        #     "Список аккаунтов",
-        #     {
-        #         "classes": ("none",),
-        #         "fields": ("account_set",),
-        #         "description": "Список аккаунтов, доступных в различных режимах"
-        #     },
-        # ),
-    )
+    # list_display = DeviceAdmin.list_display + ("blocked", "powered")
+    # list_editable = DeviceAdmin.list_editable + ("blocked", "powered")
+    # fieldsets = DeviceAdmin.fieldsets + (
+    #     (
+    #         "Настройки терминала",
+    #         {
+    #             "classes": ("none",),
+    #             "fields": ("powered", "blocked"),
+    #         },
+    #     ),
+    #     # (
+    #     #     "Список аккаунтов",
+    #     #     {
+    #     #         "classes": ("none",),
+    #     #         "fields": ("account_set",),
+    #     #         "description": "Список аккаунтов, доступных в различных режимах"
+    #     #     },
+    #     # ),
+    # )
 
 
 admin.site.register(LockDevice, LockAdmin, site=base_site)

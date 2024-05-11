@@ -26,3 +26,11 @@ class SkabenDeviceEvent(SkabenEvent):
         if v not in topics.all:  # todo: get from DeviceTopics model
             raise ValidationError(f"Invalid topic. Allowed values are: {topics.all}")
         return v
+
+
+class SkabenControlEvent(SkabenDeviceEvent):
+    command: str = ""
+
+    @property
+    def headers(self) -> List[str]:
+        return super().headers + ["device_type", "device_uid", "command"]

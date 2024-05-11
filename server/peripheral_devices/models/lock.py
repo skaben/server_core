@@ -1,4 +1,5 @@
 from django.db import models
+from alert.service import AlertState
 from peripheral_devices.models.base import SkabenDevice
 from peripheral_devices.serializers.schema import LockDeviceSchema
 
@@ -12,10 +13,7 @@ class LockDevice(SkabenDevice):
         verbose_name = "Лазерная дверь"
         verbose_name_plural = "Лазерные двери"
 
-    sound = models.BooleanField(verbose_name="Звук замка", default=False)
-    closed = models.BooleanField(verbose_name="Закрыт", default=True)
-    blocked = models.BooleanField(verbose_name="Заблокирован", default=False)
-    timer = models.IntegerField(verbose_name="Время автоматического закрытия", default=10)
+    work_mode = models.ManyToManyField("peripheral_behavior.LockWorkMode")
 
     def permissions(self) -> dict:
         """Получает словарь связанных карт-кодов и статусов тревоги, в которых они открывают замок."""
@@ -32,11 +30,15 @@ class LockDevice(SkabenDevice):
 
     def to_mqtt_config(self):
         validated_base = super().to_mqtt_config()
+        current = AlertState.objects.get_current()
+        work_mode = self.work_mode.filter(state_id__pk=current.id)
+        if not work_mode:
+            return  # todo: add defaults
         to_be_validated = dict(
-            sound=self.sound,
-            timer=self.timer,
-            closed=self.closed,
-            blocked=self.blocked,
+            sound=work_mode.sound,
+            timer=work_mode.timer,
+            closed=work_mode.closed,
+            blocked=work_mode.blocked,
             permissions=self.permissions(),
         )
         schema = LockDeviceSchema.model_validate(validated_base | to_be_validated)

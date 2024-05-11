@@ -16,12 +16,11 @@ class DeviceEventContext(SkabenEventContext):
         device_type = event_headers.get("device_type", "")
         try:
             if event_type == "device":
-                ctx = self.context_dispatcher.get(device_type)
-                if not ctx:
-                    raise ValueError(f"cannot find context for handling `{event_headers}` `{event_data}`")
-                with ctx() as context:
-                    context.apply(event_headers=event_headers, event_data=event_data)
-                    self.events = context.events[:]
+                context_specific = self.context_dispatcher.get(device_type)
+                if context_specific:
+                    with context_specific() as context:
+                        context.apply(event_headers=event_headers, event_data=event_data)
+                        self.events = context.events[:]
         except StopContextError as e:
             self.add_event(message=e.error, level=ContextEventLevels.ERROR)
         except ValueError as e:

@@ -7,6 +7,7 @@ from peripheral_behavior.models import (
     AccessCode,
     SkabenUser,
     TerminalAccount,
+    LockBehavior,
     MenuItem,
     MenuItemImage,
     MenuItemVideo,
@@ -90,3 +91,4 @@ admin.site.register(MenuItemUserInput, MenuItemUserInputAdmin)
 admin.site.register(SkabenUser, admin.ModelAdmin, site=base_site)
 admin.site.register(AccessCode, admin.ModelAdmin, site=base_site)
 admin.site.register(TerminalAccount, TerminalAccountAdmin, site=base_site)
+admin.site.register(LockBehavior, admin.ModelAdmin, site=base_site)
