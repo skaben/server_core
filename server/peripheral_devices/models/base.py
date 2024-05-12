@@ -18,6 +18,7 @@ class SkabenDevice(models.Model, HashModelMixin):
     """Abstract device."""
 
     objects = SkabenDeviceManager()
+    _prev_hash = ""
 
     class Meta:
         abstract = True
@@ -79,5 +80,6 @@ class SkabenDevice(models.Model, HashModelMixin):
 
         super().save(*args, **kwargs)
 
-        if send_update:
+        if send_update and self._prev_hash != self.get_hash():
             self._send_update()
+            self._prev_hash = self.get_hash()

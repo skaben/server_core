@@ -16,6 +16,7 @@ class FileSerializer(serializers.ModelSerializer):
     class Meta:
         model = SkabenFile
         abstract = True
+        exclude = ("uuid", "hash")
 
     def get_file_url(self, obj):
         return self.context["request"].build_absolute_uri(obj.file.path)
@@ -24,28 +25,25 @@ class FileSerializer(serializers.ModelSerializer):
 class AudioFileSerializer(FileSerializer):
     class Meta:
         model = AudioFile
-        fields = "__all__"
-        read_only_fields = ("hash",)
+        exclude = FileSerializer.Meta.exclude
 
 
 class VideoFileSerializer(FileSerializer):
     class Meta:
         model = VideoFile
-        fields = "__all__"
-        read_only_fields = ("hash",)
+        exclude = FileSerializer.Meta.exclude
 
 
 class ImageFileSerializer(FileSerializer):
     class Meta:
         model = ImageFile
-        fields = "__all__"
-        read_only_fields = ("hash",)
+        exclude = FileSerializer.Meta.exclude
 
 
 class TextFileSerializer(serializers.ModelSerializer):
     class Meta:
         model = TextFile
-        fields = "__all__"
+        exclude = FileSerializer.Meta.exclude + ("ident", "content")
 
 
 class HackGameSerializer(serializers.ModelSerializer):
