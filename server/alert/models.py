@@ -49,7 +49,7 @@ class AlertCounter(models.Model):
 
     def save(self, *args, **kwargs):
         """Сохранение, связывающее модели AlertCounter и AlertState."""
-        source = ""
+        source = ALERT_COUNTER
 
         if kwargs.get("event_source"):
             source = kwargs.pop("event_source")
@@ -76,11 +76,11 @@ class AlertStateManager(models.Manager):
     def get_ingame(self):
         return self.get_queryset().filter(ingame=True)
 
-    def get_management_state(self):
-        try:
-            return self.get_queryset().filter(name="white").get()
-        except AlertState.DoesNotExist:
-            raise ConfigException("management (`white`) state is not configured in DB")
+    def is_management_state(self):
+        return self.get_queryset().filter(name="white", current=True).first()
+
+    def is_lockdown_state(self):
+        return self.get_queryset().filter(name="black", current=True).first()
 
 
 ALERT_INCREASE = "increase"
@@ -128,7 +128,7 @@ class AlertState(models.Model):
     )
     current = models.BooleanField(verbose_name="Сейчас активен", default=False)
     order = models.IntegerField(
-        verbose_name="Цифровой id статуса",
+        verbose_name="Порядок",
         help_text="используется для идентификации и упорядочивания статуса без привязки к id в БД",
         blank=False,
         unique=True,
@@ -196,7 +196,7 @@ class AlertState(models.Model):
             other_states = AlertState.objects.all().exclude(pk=self.id)
             other_states.update(current=False)
 
-        source = ""
+        source = ALERT_STATE
 
         if kwargs.get("event_source"):
             source = kwargs.pop("event_source")
@@ -216,8 +216,5 @@ class AlertState(models.Model):
     is_final.fget.short_description = "Финальный игровой статус"
 
     def __str__(self):
-        s = f"[{self.order}] State: {self.name} ({self.info})"
-        if self.current:
-            return "[ACTIVE]" + s
-        else:
-            return s
+        active = "[active]" if self.current else ""
+        return f"Уровень тревоги: {self.name} ({self.id}) {active}"

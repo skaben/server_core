@@ -48,6 +48,9 @@ class Permission(models.Model):
         verbose_name = "Доступ ключ-карты (права)"
         verbose_name_plural = "Доступы ключ-карт (права)"
 
-    card = models.ForeignKey("peripheral_behavior.AccessCode", on_delete=models.CASCADE)
-    lock = models.ForeignKey("peripheral_devices.LockDevice", on_delete=models.CASCADE)
-    state_id = models.ManyToManyField("alert.AlertState")
+    card = models.ForeignKey("peripheral_behavior.AccessCode", verbose_name="Ключ-карта", on_delete=models.CASCADE)
+    lock = models.ForeignKey("peripheral_devices.LockDevice", verbose_name="Замок", on_delete=models.CASCADE)
+    state_id = models.ManyToManyField("alert.AlertState", verbose_name="Уровень тревоги")
+
+    def __str__(self):
+        return f"Доступ {self.lock} - {self.card}"

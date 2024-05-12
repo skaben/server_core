@@ -4,9 +4,9 @@ info:
   version: 1.0.0
   description: SKABEN Dungeon API
 paths:
-  /api/alert_counter/:
+  /api/alert/alert_counter/:
     get:
-      operationId: api_alert_counter_list
+      operationId: api_alert_alert_counter_list
       description: Alert counter viewset
       tags:
       - api
@@ -20,7 +20,7 @@ paths:
                   $ref: '#/components/schemas/AlertCounter'
           description: ''
     post:
-      operationId: api_alert_counter_create
+      operationId: api_alert_alert_counter_create
       description: Alert counter viewset
       tags:
       - api
@@ -42,9 +42,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/AlertCounter'
           description: ''
-  /api/alert_counter/{id}/:
+  /api/alert/alert_counter/{id}/:
     get:
-      operationId: api_alert_counter_retrieve
+      operationId: api_alert_alert_counter_retrieve
       description: Alert counter viewset
       parameters:
       - in: path
@@ -62,9 +62,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/AlertCounter'
           description: ''
-  /api/alert_counter/get_latest/:
+  /api/alert/alert_counter/get_latest/:
     get:
-      operationId: api_alert_counter_get_latest_retrieve
+      operationId: api_alert_alert_counter_get_latest_retrieve
       description: Alert counter viewset
       tags:
       - api
@@ -75,9 +75,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/AlertCounter'
           description: ''
-  /api/alert_counter/purge_history/:
+  /api/alert/alert_counter/purge_history/:
     get:
-      operationId: api_alert_counter_purge_history_retrieve
+      operationId: api_alert_alert_counter_purge_history_retrieve
       description: Alert counter viewset
       tags:
       - api
@@ -88,9 +88,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/AlertCounter'
           description: ''
-  /api/alert_state/:
+  /api/alert/alert_state/:
     get:
-      operationId: api_alert_state_list
+      operationId: api_alert_alert_state_list
       description: Global alert state viewset
       parameters:
       - in: query
@@ -108,9 +108,9 @@ paths:
                 items:
                   $ref: '#/components/schemas/AlertState'
           description: ''
-  /api/alert_state/{id}/:
+  /api/alert/alert_state/{id}/:
     get:
-      operationId: api_alert_state_retrieve
+      operationId: api_alert_alert_state_retrieve
       description: Global alert state viewset
       parameters:
       - in: path
@@ -128,9 +128,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/AlertState'
           description: ''
-  /api/alert_state/{id}/set_current/:
+  /api/alert/alert_state/{id}/set_current/:
     post:
-      operationId: api_alert_state_set_current_create
+      operationId: api_alert_alert_state_set_current_create
       description: Set Alert State as current
       parameters:
       - in: path
@@ -144,9 +144,9 @@ paths:
       responses:
         '200':
           description: No response body
-  /api/audiofile/:
+  /api/assets/audiofile/:
     get:
-      operationId: api_audiofile_list
+      operationId: api_assets_audiofile_list
       description: Manage locks in database
       tags:
       - api
@@ -160,7 +160,7 @@ paths:
                   $ref: '#/components/schemas/AudioFile'
           description: ''
     post:
-      operationId: api_audiofile_create
+      operationId: api_assets_audiofile_create
       description: Manage locks in database
       tags:
       - api
@@ -182,9 +182,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/AudioFile'
           description: ''
-  /api/audiofile/{id}/:
+  /api/assets/audiofile/{id}/:
     get:
-      operationId: api_audiofile_retrieve
+      operationId: api_assets_audiofile_retrieve
       description: Manage locks in database
       parameters:
       - in: path
@@ -203,7 +203,7 @@ paths:
                 $ref: '#/components/schemas/AudioFile'
           description: ''
     put:
-      operationId: api_audiofile_update
+      operationId: api_assets_audiofile_update
       description: Manage locks in database
       parameters:
       - in: path
@@ -233,7 +233,7 @@ paths:
                 $ref: '#/components/schemas/AudioFile'
           description: ''
     patch:
-      operationId: api_audiofile_partial_update
+      operationId: api_assets_audiofile_partial_update
       description: Manage locks in database
       parameters:
       - in: path
@@ -263,7 +263,7 @@ paths:
                 $ref: '#/components/schemas/AudioFile'
           description: ''
     delete:
-      operationId: api_audiofile_destroy
+      operationId: api_assets_audiofile_destroy
       description: Manage locks in database
       parameters:
       - in: path
@@ -271,6 +271,681 @@ paths:
         schema:
           type: integer
         description: A unique integer value identifying this Аудио.
+        required: true
+      tags:
+      - api
+      responses:
+        '204':
+          description: No response body
+  /api/assets/hackgame/:
+    get:
+      operationId: api_assets_hackgame_list
+      description: Manage locks in database
+      tags:
+      - api
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HackGame'
+          description: ''
+    post:
+      operationId: api_assets_hackgame_create
+      description: Manage locks in database
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HackGame'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/HackGame'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/HackGame'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HackGame'
+          description: ''
+  /api/assets/hackgame/{id}/:
+    get:
+      operationId: api_assets_hackgame_retrieve
+      description: Manage locks in database
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Настройки мини-игры Fallout
+          Hack.
+        required: true
+      tags:
+      - api
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HackGame'
+          description: ''
+    put:
+      operationId: api_assets_hackgame_update
+      description: Manage locks in database
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Настройки мини-игры Fallout
+          Hack.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HackGame'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/HackGame'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/HackGame'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HackGame'
+          description: ''
+    patch:
+      operationId: api_assets_hackgame_partial_update
+      description: Manage locks in database
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Настройки мини-игры Fallout
+          Hack.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedHackGame'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedHackGame'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedHackGame'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HackGame'
+          description: ''
+    delete:
+      operationId: api_assets_hackgame_destroy
+      description: Manage locks in database
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Настройки мини-игры Fallout
+          Hack.
+        required: true
+      tags:
+      - api
+      responses:
+        '204':
+          description: No response body
+  /api/assets/imagefile/:
+    get:
+      operationId: api_assets_imagefile_list
+      description: Manage locks in database
+      tags:
+      - api
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ImageFile'
+          description: ''
+    post:
+      operationId: api_assets_imagefile_create
+      description: Manage locks in database
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImageFile'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ImageFile'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ImageFile'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageFile'
+          description: ''
+  /api/assets/imagefile/{id}/:
+    get:
+      operationId: api_assets_imagefile_retrieve
+      description: Manage locks in database
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Изображение.
+        required: true
+      tags:
+      - api
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageFile'
+          description: ''
+    put:
+      operationId: api_assets_imagefile_update
+      description: Manage locks in database
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Изображение.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImageFile'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ImageFile'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ImageFile'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageFile'
+          description: ''
+    patch:
+      operationId: api_assets_imagefile_partial_update
+      description: Manage locks in database
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Изображение.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedImageFile'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedImageFile'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedImageFile'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageFile'
+          description: ''
+    delete:
+      operationId: api_assets_imagefile_destroy
+      description: Manage locks in database
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Изображение.
+        required: true
+      tags:
+      - api
+      responses:
+        '204':
+          description: No response body
+  /api/assets/textfile/:
+    get:
+      operationId: api_assets_textfile_list
+      description: Manage locks in database
+      tags:
+      - api
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TextFile'
+          description: ''
+    post:
+      operationId: api_assets_textfile_create
+      description: Manage locks in database
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TextFile'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TextFile'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TextFile'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TextFile'
+          description: ''
+  /api/assets/textfile/{id}/:
+    get:
+      operationId: api_assets_textfile_retrieve
+      description: Manage locks in database
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Текстовый файл.
+        required: true
+      tags:
+      - api
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TextFile'
+          description: ''
+    put:
+      operationId: api_assets_textfile_update
+      description: Manage locks in database
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Текстовый файл.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TextFile'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TextFile'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TextFile'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TextFile'
+          description: ''
+    patch:
+      operationId: api_assets_textfile_partial_update
+      description: Manage locks in database
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Текстовый файл.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedTextFile'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedTextFile'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedTextFile'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TextFile'
+          description: ''
+    delete:
+      operationId: api_assets_textfile_destroy
+      description: Manage locks in database
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Текстовый файл.
+        required: true
+      tags:
+      - api
+      responses:
+        '204':
+          description: No response body
+  /api/assets/userinput/:
+    get:
+      operationId: api_assets_userinput_list
+      description: Manage user input actions in database
+      tags:
+      - api
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserInput'
+          description: ''
+    post:
+      operationId: api_assets_userinput_create
+      description: Manage user input actions in database
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserInput'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserInput'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserInput'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInput'
+          description: ''
+  /api/assets/userinput/{uuid}/:
+    get:
+      operationId: api_assets_userinput_retrieve
+      description: Manage user input actions in database
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Пользовательский интерфейс ввода.
+        required: true
+      tags:
+      - api
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInput'
+          description: ''
+    put:
+      operationId: api_assets_userinput_update
+      description: Manage user input actions in database
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Пользовательский интерфейс ввода.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserInput'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserInput'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserInput'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInput'
+          description: ''
+    patch:
+      operationId: api_assets_userinput_partial_update
+      description: Manage user input actions in database
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Пользовательский интерфейс ввода.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUserInput'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUserInput'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUserInput'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInput'
+          description: ''
+    delete:
+      operationId: api_assets_userinput_destroy
+      description: Manage user input actions in database
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Пользовательский интерфейс ввода.
+        required: true
+      tags:
+      - api
+      responses:
+        '204':
+          description: No response body
+  /api/assets/videofile/:
+    get:
+      operationId: api_assets_videofile_list
+      description: Manage locks in database
+      tags:
+      - api
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VideoFile'
+          description: ''
+    post:
+      operationId: api_assets_videofile_create
+      description: Manage locks in database
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VideoFile'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/VideoFile'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VideoFile'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VideoFile'
+          description: ''
+  /api/assets/videofile/{id}/:
+    get:
+      operationId: api_assets_videofile_retrieve
+      description: Manage locks in database
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Видео.
+        required: true
+      tags:
+      - api
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VideoFile'
+          description: ''
+    put:
+      operationId: api_assets_videofile_update
+      description: Manage locks in database
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Видео.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VideoFile'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/VideoFile'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VideoFile'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VideoFile'
+          description: ''
+    patch:
+      operationId: api_assets_videofile_partial_update
+      description: Manage locks in database
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Видео.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedVideoFile'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedVideoFile'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedVideoFile'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VideoFile'
+          description: ''
+    delete:
+      operationId: api_assets_videofile_destroy
+      description: Manage locks in database
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Видео.
         required: true
       tags:
       - api
@@ -302,9 +977,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/AuthToken'
           description: ''
-  /api/device/lock/:
+  /api/devices/lock/:
     get:
-      operationId: api_device_lock_list
+      operationId: api_devices_lock_list
       description: Manage locks in database
       tags:
       - api
@@ -318,7 +993,7 @@ paths:
                   $ref: '#/components/schemas/Lock'
           description: ''
     post:
-      operationId: api_device_lock_create
+      operationId: api_devices_lock_create
       description: Manage locks in database
       tags:
       - api
@@ -340,9 +1015,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/Lock'
           description: ''
-  /api/device/lock/{id}/:
+  /api/devices/lock/{id}/:
     get:
-      operationId: api_device_lock_retrieve
+      operationId: api_devices_lock_retrieve
       description: Manage locks in database
       parameters:
       - in: path
@@ -361,7 +1036,7 @@ paths:
                 $ref: '#/components/schemas/Lock'
           description: ''
     put:
-      operationId: api_device_lock_update
+      operationId: api_devices_lock_update
       description: Manage locks in database
       parameters:
       - in: path
@@ -391,7 +1066,7 @@ paths:
                 $ref: '#/components/schemas/Lock'
           description: ''
     patch:
-      operationId: api_device_lock_partial_update
+      operationId: api_devices_lock_partial_update
       description: Manage locks in database
       parameters:
       - in: path
@@ -421,7 +1096,7 @@ paths:
                 $ref: '#/components/schemas/Lock'
           description: ''
     delete:
-      operationId: api_device_lock_destroy
+      operationId: api_devices_lock_destroy
       description: Manage locks in database
       parameters:
       - in: path
@@ -435,9 +1110,9 @@ paths:
       responses:
         '204':
           description: No response body
-  /api/device/terminal/:
+  /api/devices/terminal/:
     get:
-      operationId: api_device_terminal_list
+      operationId: api_devices_terminal_list
       description: Manage terminals in database
       tags:
       - api
@@ -451,7 +1126,7 @@ paths:
                   $ref: '#/components/schemas/Terminal'
           description: ''
     post:
-      operationId: api_device_terminal_create
+      operationId: api_devices_terminal_create
       description: Manage terminals in database
       tags:
       - api
@@ -473,9 +1148,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/Terminal'
           description: ''
-  /api/device/terminal/{id}/:
+  /api/devices/terminal/{id}/:
     get:
-      operationId: api_device_terminal_retrieve
+      operationId: api_devices_terminal_retrieve
       description: Manage terminals in database
       parameters:
       - in: path
@@ -494,7 +1169,7 @@ paths:
                 $ref: '#/components/schemas/Terminal'
           description: ''
     put:
-      operationId: api_device_terminal_update
+      operationId: api_devices_terminal_update
       description: Manage terminals in database
       parameters:
       - in: path
@@ -524,7 +1199,7 @@ paths:
                 $ref: '#/components/schemas/Terminal'
           description: ''
     patch:
-      operationId: api_device_terminal_partial_update
+      operationId: api_devices_terminal_partial_update
       description: Manage terminals in database
       parameters:
       - in: path
@@ -554,7 +1229,7 @@ paths:
                 $ref: '#/components/schemas/Terminal'
           description: ''
     delete:
-      operationId: api_device_terminal_destroy
+      operationId: api_devices_terminal_destroy
       description: Manage terminals in database
       parameters:
       - in: path
@@ -568,9 +1243,9 @@ paths:
       responses:
         '204':
           description: No response body
-  /api/events/:
+  /api/streams/events/:
     get:
-      operationId: api_events_list
+      operationId: api_streams_events_list
       description: Events in database
       parameters:
       - name: ordering
@@ -597,7 +1272,7 @@ paths:
                   $ref: '#/components/schemas/StreamRecord'
           description: ''
     post:
-      operationId: api_events_create
+      operationId: api_streams_events_create
       description: Events in database
       tags:
       - api
@@ -620,9 +1295,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/StreamRecord'
           description: ''
-  /api/events/{uuid}/:
+  /api/streams/events/{uuid}/:
     get:
-      operationId: api_events_retrieve
+      operationId: api_streams_events_retrieve
       description: Events in database
       parameters:
       - in: path
@@ -642,7 +1317,7 @@ paths:
                 $ref: '#/components/schemas/StreamRecord'
           description: ''
     put:
-      operationId: api_events_update
+      operationId: api_streams_events_update
       description: Events in database
       parameters:
       - in: path
@@ -674,7 +1349,7 @@ paths:
                 $ref: '#/components/schemas/StreamRecord'
           description: ''
     patch:
-      operationId: api_events_partial_update
+      operationId: api_streams_events_partial_update
       description: Events in database
       parameters:
       - in: path
@@ -705,7 +1380,7 @@ paths:
                 $ref: '#/components/schemas/StreamRecord'
           description: ''
     delete:
-      operationId: api_events_destroy
+      operationId: api_streams_events_destroy
       description: Events in database
       parameters:
       - in: path
@@ -714,947 +1389,6 @@ paths:
           type: string
           format: uuid
         description: A UUID string identifying this Игровое событие.
-        required: true
-      tags:
-      - api
-      responses:
-        '204':
-          description: No response body
-  /api/hackgame/:
-    get:
-      operationId: api_hackgame_list
-      description: Manage locks in database
-      tags:
-      - api
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/HackGame'
-          description: ''
-    post:
-      operationId: api_hackgame_create
-      description: Manage locks in database
-      tags:
-      - api
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/HackGame'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/HackGame'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/HackGame'
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HackGame'
-          description: ''
-  /api/hackgame/{id}/:
-    get:
-      operationId: api_hackgame_retrieve
-      description: Manage locks in database
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this Настройки мини-игры Fallout
-          Hack.
-        required: true
-      tags:
-      - api
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HackGame'
-          description: ''
-    put:
-      operationId: api_hackgame_update
-      description: Manage locks in database
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this Настройки мини-игры Fallout
-          Hack.
-        required: true
-      tags:
-      - api
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/HackGame'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/HackGame'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/HackGame'
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HackGame'
-          description: ''
-    patch:
-      operationId: api_hackgame_partial_update
-      description: Manage locks in database
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this Настройки мини-игры Fallout
-          Hack.
-        required: true
-      tags:
-      - api
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedHackGame'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedHackGame'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedHackGame'
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HackGame'
-          description: ''
-    delete:
-      operationId: api_hackgame_destroy
-      description: Manage locks in database
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this Настройки мини-игры Fallout
-          Hack.
-        required: true
-      tags:
-      - api
-      responses:
-        '204':
-          description: No response body
-  /api/imagefile/:
-    get:
-      operationId: api_imagefile_list
-      description: Manage locks in database
-      tags:
-      - api
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ImageFile'
-          description: ''
-    post:
-      operationId: api_imagefile_create
-      description: Manage locks in database
-      tags:
-      - api
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ImageFile'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/ImageFile'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/ImageFile'
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ImageFile'
-          description: ''
-  /api/imagefile/{id}/:
-    get:
-      operationId: api_imagefile_retrieve
-      description: Manage locks in database
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this Изображение.
-        required: true
-      tags:
-      - api
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ImageFile'
-          description: ''
-    put:
-      operationId: api_imagefile_update
-      description: Manage locks in database
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this Изображение.
-        required: true
-      tags:
-      - api
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ImageFile'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/ImageFile'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/ImageFile'
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ImageFile'
-          description: ''
-    patch:
-      operationId: api_imagefile_partial_update
-      description: Manage locks in database
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this Изображение.
-        required: true
-      tags:
-      - api
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedImageFile'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedImageFile'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedImageFile'
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ImageFile'
-          description: ''
-    delete:
-      operationId: api_imagefile_destroy
-      description: Manage locks in database
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this Изображение.
-        required: true
-      tags:
-      - api
-      responses:
-        '204':
-          description: No response body
-  /api/lock/:
-    get:
-      operationId: api_lock_list
-      description: Manage locks in database
-      tags:
-      - api
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Lock'
-          description: ''
-    post:
-      operationId: api_lock_create
-      description: Manage locks in database
-      tags:
-      - api
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Lock'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/Lock'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/Lock'
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Lock'
-          description: ''
-  /api/lock/{id}/:
-    get:
-      operationId: api_lock_retrieve
-      description: Manage locks in database
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this Лазерная дверь.
-        required: true
-      tags:
-      - api
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Lock'
-          description: ''
-    put:
-      operationId: api_lock_update
-      description: Manage locks in database
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this Лазерная дверь.
-        required: true
-      tags:
-      - api
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Lock'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/Lock'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/Lock'
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Lock'
-          description: ''
-    patch:
-      operationId: api_lock_partial_update
-      description: Manage locks in database
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this Лазерная дверь.
-        required: true
-      tags:
-      - api
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedLock'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedLock'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedLock'
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Lock'
-          description: ''
-    delete:
-      operationId: api_lock_destroy
-      description: Manage locks in database
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this Лазерная дверь.
-        required: true
-      tags:
-      - api
-      responses:
-        '204':
-          description: No response body
-  /api/terminal/:
-    get:
-      operationId: api_terminal_list
-      description: Manage terminals in database
-      tags:
-      - api
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Terminal'
-          description: ''
-    post:
-      operationId: api_terminal_create
-      description: Manage terminals in database
-      tags:
-      - api
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Terminal'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/Terminal'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/Terminal'
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Terminal'
-          description: ''
-  /api/terminal/{id}/:
-    get:
-      operationId: api_terminal_retrieve
-      description: Manage terminals in database
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this Терминал.
-        required: true
-      tags:
-      - api
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Terminal'
-          description: ''
-    put:
-      operationId: api_terminal_update
-      description: Manage terminals in database
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this Терминал.
-        required: true
-      tags:
-      - api
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Terminal'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/Terminal'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/Terminal'
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Terminal'
-          description: ''
-    patch:
-      operationId: api_terminal_partial_update
-      description: Manage terminals in database
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this Терминал.
-        required: true
-      tags:
-      - api
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedTerminal'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedTerminal'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedTerminal'
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Terminal'
-          description: ''
-    delete:
-      operationId: api_terminal_destroy
-      description: Manage terminals in database
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this Терминал.
-        required: true
-      tags:
-      - api
-      responses:
-        '204':
-          description: No response body
-  /api/textfile/:
-    get:
-      operationId: api_textfile_list
-      description: Manage locks in database
-      tags:
-      - api
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/TextFile'
-          description: ''
-    post:
-      operationId: api_textfile_create
-      description: Manage locks in database
-      tags:
-      - api
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TextFile'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/TextFile'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/TextFile'
-        required: true
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TextFile'
-          description: ''
-  /api/textfile/{id}/:
-    get:
-      operationId: api_textfile_retrieve
-      description: Manage locks in database
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this Текстовый файл.
-        required: true
-      tags:
-      - api
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TextFile'
-          description: ''
-    put:
-      operationId: api_textfile_update
-      description: Manage locks in database
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this Текстовый файл.
-        required: true
-      tags:
-      - api
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TextFile'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/TextFile'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/TextFile'
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TextFile'
-          description: ''
-    patch:
-      operationId: api_textfile_partial_update
-      description: Manage locks in database
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this Текстовый файл.
-        required: true
-      tags:
-      - api
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedTextFile'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedTextFile'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedTextFile'
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TextFile'
-          description: ''
-    delete:
-      operationId: api_textfile_destroy
-      description: Manage locks in database
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this Текстовый файл.
-        required: true
-      tags:
-      - api
-      responses:
-        '204':
-          description: No response body
-  /api/userinput/:
-    get:
-      operationId: api_userinput_list
-      description: Manage user input actions in database
-      tags:
-      - api
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UserInput'
-          description: ''
-    post:
-      operationId: api_userinput_create
-      description: Manage user input actions in database
-      tags:
-      - api
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserInput'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/UserInput'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/UserInput'
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserInput'
-          description: ''
-  /api/userinput/{uuid}/:
-    get:
-      operationId: api_userinput_retrieve
-      description: Manage user input actions in database
-      parameters:
-      - in: path
-        name: uuid
-        schema:
-          type: string
-          format: uuid
-        description: A UUID string identifying this Пользовательский интерфейс ввода.
-        required: true
-      tags:
-      - api
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserInput'
-          description: ''
-    put:
-      operationId: api_userinput_update
-      description: Manage user input actions in database
-      parameters:
-      - in: path
-        name: uuid
-        schema:
-          type: string
-          format: uuid
-        description: A UUID string identifying this Пользовательский интерфейс ввода.
-        required: true
-      tags:
-      - api
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserInput'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/UserInput'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/UserInput'
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserInput'
-          description: ''
-    patch:
-      operationId: api_userinput_partial_update
-      description: Manage user input actions in database
-      parameters:
-      - in: path
-        name: uuid
-        schema:
-          type: string
-          format: uuid
-        description: A UUID string identifying this Пользовательский интерфейс ввода.
-        required: true
-      tags:
-      - api
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedUserInput'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedUserInput'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedUserInput'
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserInput'
-          description: ''
-    delete:
-      operationId: api_userinput_destroy
-      description: Manage user input actions in database
-      parameters:
-      - in: path
-        name: uuid
-        schema:
-          type: string
-          format: uuid
-        description: A UUID string identifying this Пользовательский интерфейс ввода.
-        required: true
-      tags:
-      - api
-      responses:
-        '204':
-          description: No response body
-  /api/videofile/:
-    get:
-      operationId: api_videofile_list
-      description: Manage locks in database
-      tags:
-      - api
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/VideoFile'
-          description: ''
-    post:
-      operationId: api_videofile_create
-      description: Manage locks in database
-      tags:
-      - api
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/VideoFile'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/VideoFile'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/VideoFile'
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/VideoFile'
-          description: ''
-  /api/videofile/{id}/:
-    get:
-      operationId: api_videofile_retrieve
-      description: Manage locks in database
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this Видео.
-        required: true
-      tags:
-      - api
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/VideoFile'
-          description: ''
-    put:
-      operationId: api_videofile_update
-      description: Manage locks in database
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this Видео.
-        required: true
-      tags:
-      - api
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/VideoFile'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/VideoFile'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/VideoFile'
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/VideoFile'
-          description: ''
-    patch:
-      operationId: api_videofile_partial_update
-      description: Manage locks in database
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this Видео.
-        required: true
-      tags:
-      - api
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedVideoFile'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedVideoFile'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedVideoFile'
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/VideoFile'
-          description: ''
-    delete:
-      operationId: api_videofile_destroy
-      description: Manage locks in database
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this Видео.
         required: true
       tags:
       - api
@@ -1740,7 +1474,7 @@ components:
           type: integer
           maximum: 2147483647
           minimum: -2147483648
-          title: Цифровой id статуса
+          title: Порядок
           description: используется для идентификации и упорядочивания статуса без
             привязки к id в БД
         auto_change:
@@ -1891,7 +1625,7 @@ components:
         hash:
           type: string
           readOnly: true
-        alert_state:
+        alert:
           type: string
           readOnly: true
         online:
@@ -1935,7 +1669,7 @@ components:
           title: Время автоматического закрытия
       required:
       - acl
-      - alert_state
+      - alert
       - hash
       - id
       - mac_addr
@@ -2007,7 +1741,7 @@ components:
         hash:
           type: string
           readOnly: true
-        alert_state:
+        alert:
           type: string
           readOnly: true
         online:
@@ -2091,7 +1825,7 @@ components:
         hash:
           type: string
           readOnly: true
-        alert_state:
+        alert:
           type: string
           readOnly: true
         ip:
@@ -2150,16 +1884,15 @@ components:
       properties:
         action:
           type: string
-          title: Уникальное имя операции
+          title: Передаваемое значение
+          description: 'Значение будет передано в составе INFO пакета `action: <значение>`'
           maxLength: 64
         expected:
           type: string
-          title: Ожидаемое значение ввода
+          title: Ожидаемое значение
+          description: По этому значению может быть выполнена проверка поля `user_input`
+            INFO пакета
           maxLength: 128
-        message:
-          type: string
-          nullable: true
-          title: Сообщение для пользователя на экране ввода
         delay:
           type: integer
           maximum: 2147483647
@@ -2227,7 +1960,7 @@ components:
         hash:
           type: string
           readOnly: true
-        alert_state:
+        alert:
           type: string
           readOnly: true
         ip:
@@ -2256,7 +1989,7 @@ components:
         hacked:
           type: boolean
       required:
-      - alert_state
+      - alert
       - hash
       - id
       - mac_addr
@@ -2297,16 +2030,15 @@ components:
       properties:
         action:
           type: string
-          title: Уникальное имя операции
+          title: Передаваемое значение
+          description: 'Значение будет передано в составе INFO пакета `action: <значение>`'
           maxLength: 64
         expected:
           type: string
-          title: Ожидаемое значение ввода
+          title: Ожидаемое значение
+          description: По этому значению может быть выполнена проверка поля `user_input`
+            INFO пакета
           maxLength: 128
-        message:
-          type: string
-          nullable: true
-          title: Сообщение для пользователя на экране ввода
         delay:
           type: integer
           maximum: 2147483647

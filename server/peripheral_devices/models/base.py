@@ -1,27 +1,42 @@
-import netaddr
+import logging
 from alert.models import AlertState
-from core.helpers import format_routing_key, get_server_timestamp, get_hash_from
-from core.transport.config import SkabenQueue
-from core.transport.publish import get_interface
-from django.conf import settings
+from core.models.base import DeviceKeepalive, HashModelMixin
+from core.helpers import get_server_timestamp
 from django.db import models
+from core.transport.publish import get_interface
+from core.validators import mac_validator
+from peripheral_devices.serializers.schema import BaseDeviceSchema
+from peripheral_devices.service.packet_format import cup_packet_from_model
 
 
-class SkabenDevice(models.Model):
+class SkabenDeviceManager(models.Manager):
+    def not_overridden(self):
+        return self.get_queryset().exclude(override=True)
+
+
+class SkabenDevice(models.Model, HashModelMixin):
     """Abstract device."""
+
+    objects = SkabenDeviceManager()
+    _prev_hash = ""
 
     class Meta:
         abstract = True
 
     ip = models.GenericIPAddressField(null=True, blank=True, verbose_name="IP-адрес")
-    mac_addr = models.CharField(max_length=12, unique=True, verbose_name="MAC")
+    mac_addr = models.CharField(max_length=12, unique=True, verbose_name="MAC", validators=[mac_validator])
     description = models.CharField(max_length=128, default="smart complex device", verbose_name="Описание")
     timestamp = models.IntegerField(default=get_server_timestamp, verbose_name="Время последнего ответа")
     override = models.BooleanField(default=False, verbose_name="Отключить авто-обновление")
 
     @property
     def online(self) -> bool:
-        return self.timestamp + settings.DEVICE_KEEPALIVE_TIMEOUT > get_server_timestamp()
+        try:
+            keepalive = DeviceKeepalive.objects.get(mac_addr=self.mac_addr)
+            return keepalive.online
+        except DeviceKeepalive.DoesNotExist:
+            DeviceKeepalive.objects.create(timestamp=get_server_timestamp(), mac_addr=self.mac_addr)
+            return False
 
     online.fget.short_description = "Онлайн"
 
@@ -33,37 +48,38 @@ class SkabenDevice(models.Model):
     alert.fget.short_description = "Уровень тревоги"
 
     @property
-    def topic(self):
+    def topic(self) -> str:
         raise NotImplementedError("abstract class property")
 
     topic.fget.short_description = "MQTT-топик"
 
-    def hash_from_attrs(self, attrs: list[str]) -> str:
-        return get_hash_from({attr: getattr(self, attr) for attr in attrs})
+    def to_mqtt_config(self):
+        # todo: remove double validation in inherited models
+        schema = BaseDeviceSchema.model_validate(
+            dict(
+                alert=self.alert,
+                override=self.override,
+            )
+        )
+        return schema.dict()
 
-    def get_hash(self) -> str:
-        return get_hash_from(list(self.__dict__.keys()))
+    def _send_update(self):
+        if self.override:
+            logging.warning("Device %s <%s> is under override rule", self.topic, self.mac_addr)
+        else:
+            packet = cup_packet_from_model(self)
+            with get_interface() as interface:
+                interface.send_mqtt(packet)
 
     def save(self, *args, **kwargs):
         """Сохранение, отправляющее конфиг устройству, если передан параметр send_update=True."""
-        send_update = False
+        send_update = True
 
         if kwargs.get("send_update"):
             send_update = kwargs.pop("send_update")
 
-        try:
-            if len(self.mac_addr) < 12:
-                raise ValueError
-            self.mac_addr = str(netaddr.EUI(self.mac_addr, dialect=netaddr.mac_bare)).lower()
-        except (netaddr.AddrFormatError, ValueError):
-            raise ValueError(f"Invalid MAC address format: {self.mac_addr}")
-
         super().save(*args, **kwargs)
 
-        if send_update:
-            with get_interface() as publisher:
-                publisher.publish(
-                    body={},
-                    exchange=publisher.config.exchanges.get("internal"),
-                    routing_key=format_routing_key(SkabenQueue.CLIENT_UPDATE.value, self.mac_addr, "all"),
-                )
+        if send_update and self._prev_hash != self.get_hash():
+            self._send_update()
+            self._prev_hash = self.get_hash()

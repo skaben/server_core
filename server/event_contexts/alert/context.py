@@ -75,13 +75,12 @@ class AlertEventContext(SkabenEventContext):
         if source != ALERT_COUNTER:
             with AlertService(init_by=source) as service:
                 _new_counter_value = event.value
-                if event.value != service.get_last_counter():
-                    if event.change == "set":
-                        service.set_alert_counter(value=event.value, comment=event.comment)
-                    else:
-                        is_increased = event.change != "decrease"
-                        service.change_alert_counter(value=event.value, increase=is_increased, comment=event.comment)
-                        _new_counter_value = service.get_last_counter()
+                if event.change == "set":
+                    service.set_alert_counter(value=event.value, comment=event.comment)
+                else:
+                    is_increased = event.change != "decrease"
+                    service.change_alert_counter(value=event.value, increase=is_increased, comment=event.comment)
+                    _new_counter_value = service.get_last_counter()
                 # изменяем уровень тревоги, если счетчик попадает в диапазон срабатывания
                 new_state = service.get_state_by_alert(_new_counter_value)
                 old_state = service.get_state_current()
@@ -97,10 +96,10 @@ class AlertEventContext(SkabenEventContext):
         # В случае, когда событие инициировано ALERT_STATE апдейт для шкалы уже был отправлен
         if source == ALERT_COUNTER:
             with AlertService(init_by=source) as service:
-                old_state = service.get_state_current()
-                service.set_state_by_last_counter()
-                new_state = service.get_state_current()
-                if old_state != new_state:
+                current_state = service.get_state_current()
+                new_state = service.get_state_by_alert(event.value)
+                if new_state != current_state:
+                    service.set_state_current(new_state)
                     self.add_event(
                         f"alert state switched from {old_state} to {new_state} by counter", level=ContextEventLevels.LOG
                     )

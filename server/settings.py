@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "django.contrib.admin",
     "django.contrib.auth",
+    "polymorphic",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
@@ -88,7 +89,7 @@ MIDDLEWARE = [
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [os.path.join(BASE_DIR, "templates")],
+        "DIRS": [os.path.join(BASE_DIR, "server", "templates")],
         "APP_DIRS": True,
         "OPTIONS": {
             "debug": DEBUG,
@@ -142,10 +143,7 @@ CACHES = {"default": {"BACKEND": "django.core.cache.backends.db.DatabaseCache", 
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": ("rest_framework.authentication.TokenAuthentication",),
-    "DEFAULT_RENDERER_CLASSES": (
-        "rest_framework.renderers.JSONRenderer",
-        "rest_framework.renderers.BrowsableAPIRenderer",
-    ),
+    "DEFAULT_RENDERER_CLASSES": ("rest_framework.renderers.JSONRenderer",),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
@@ -156,7 +154,12 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
 }
 
+# FORMATS AND ASSETS
+
 MACADDRESS_DEFAULT_DIALECT = "netaddr.mac_eui48"
+AUDIO_ASSET_MAX_SIZE = 30  # MB
+VIDEO_ASSET_MAX_SIZE = 120  # MB
+IMAGE_ASSET_MAX_SIZE = 5  # MB
 
 # LOGGING
 
@@ -197,7 +200,7 @@ SCHEDULER_TASK_TIMEOUT = 10
 
 # INGAME SETTINGS
 
-ACCESS_CARD_CODE_LEN = 6
+ACCESS_CODE_CARD_LEN = 6
 DEVICE_KEEPALIVE_TIMEOUT = 60
 
 PWR_STATE_DISPATCH_TABLE = {"aux": "cyan", "on": "green"}

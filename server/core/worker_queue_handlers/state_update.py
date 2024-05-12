@@ -1,3 +1,4 @@
+import logging
 from typing import Dict
 
 from core.models.mqtt import DeviceTopic
@@ -34,16 +35,20 @@ class StateUpdateHandler(BaseHandler):
             body (dict): The message body.
             message (Message): The message instance.
         """
-        routing_data = message.delivery_info.get("routing_key").split(".")
-        [incoming_mark, device_topic, device_uid, packet_type] = routing_data
+        try:
+            routing_data = message.delivery_info.get("routing_key").split(".")
+            [incoming_mark, device_topic, device_uid, packet_type] = routing_data
+        except ValueError:
+            logging.exception("cannot handle state update message")
+            return message.reject()
 
         if incoming_mark != self.incoming_mark:
             return message.requeue()
 
         if packet_type == SkabenPacketTypes.SUP:
             if device_topic in DeviceTopic.objects.get_topics_by_type("smart"):
+                model = get_model_by_topic(device_topic)
                 try:
-                    model = get_model_by_topic(device_topic)
                     serializer = get_serializer_by_topic(device_topic)
                     instance = model.objects.get(uid=device_uid)
                 except model.DoesNotExist:

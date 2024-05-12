@@ -1,6 +1,5 @@
 from admin_extended.views import download_example_csv, upload_csv_view
 from core.models.mqtt import ControlReaction, DeviceTopic
-from core.models.system import System
 from django.contrib import admin
 from django.contrib.auth.models import Group, User
 from django.urls import path
@@ -9,8 +8,8 @@ from streams.models import StreamRecord
 
 class BaseSiteAdmin(admin.AdminSite):
     site_title = "SKABEN"
-    site_header = "Dungeon admin"
-    index_title = "Управление системами"
+    site_header = "DUNGEON CONTROL"
+    index_title = "Django admin"
 
 
 base_site = BaseSiteAdmin()
@@ -35,7 +34,11 @@ class ControlCommandAdmin(admin.ModelAdmin):
     )
 
 
-admin.site.register(ControlReaction, ControlCommandAdmin, site=base_site)
-admin.site.register(System, SystemAdmin, site=base_site)
-admin.site.register(DeviceTopic, SystemAdmin, site=base_site)
-admin.site.register(StreamRecord, site=base_site)
+class DeviceTopicAdmin(admin.ModelAdmin):
+    list_editable = ("active",)
+    list_display = ("channel", "type", "active", "comment")
+
+
+base_site.register(ControlReaction, ControlCommandAdmin)
+base_site.register(DeviceTopic, DeviceTopicAdmin)
+base_site.register(StreamRecord)

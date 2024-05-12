@@ -1,0 +1,34 @@
+{% extends "admin/index.html" %}
+
+{% block extrahead %}
+<div style="
+    display: flex;
+    gap: 24px;
+    font-size: 1.25em;
+    font-family: monospace;
+    letter-spacing: 0.1px;
+    max-width: 800px;
+    padding: 8px 40px;
+    text-transform: uppercase;
+">
+    <a href="http://{{ request.get_host }}" target="_blank">Операторская</a>
+    <span style="height: 1em; width: 1px; background: black;"></span>
+    <a href="http://{{ request.get_host }}:15672" target="_blank">RabbitMQ</a>
+    <span style="height: 1em; width: 1px; background: black;"></span>
+    <span style="display: inline-flex; gap: 16px; flex-grow: 1;">
+        <span>API docs:</span>
+        <a href="http://{{ request.get_host }}/api/schema/swagger-ui/" target="_blank">Swagger</a>
+        <a href="http://{{ request.get_host }}/api/schema/redoc/" target="_blank">Redoc</a>
+    </span>
+</div>
+{% endblock %}
+
+<div class="skaben-content">
+    {% block content %}
+        {{ block.super }}
+    {% endblock %}
+    {% block sidebar  %}
+    <div class="skaben-sidebar">
+    </div>
+    {% endblock %}
+</div>

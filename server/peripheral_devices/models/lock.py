@@ -1,11 +1,31 @@
 from django.db import models
-from peripheral_devices.models.base import SkabenDevice
+from peripheral_devices.models.base import SkabenDevice, SkabenDeviceManager
+from peripheral_devices.serializers.schema import LockDeviceSchema
 
 __all__ = ("LockDevice",)
 
 
+class LockDeviceManager(SkabenDeviceManager):
+    """Менеджер замков.
+
+    Все обновления вызываются через for для того, чтобы работал метод .save() модели
+    """
+
+    def set_closed_all(self, value: bool):
+        for lock in self.objects.all():
+            lock.closed = value
+            lock.save()
+
+    def set_blocked_all(self, value: bool):
+        for lock in self.objects.all():
+            lock.blocked = value
+            lock.save()
+
+
 class LockDevice(SkabenDevice):
     """Laser lock device."""
+
+    objects = LockDeviceManager()
 
     class Meta:
         verbose_name = "Лазерная дверь"
@@ -16,6 +36,7 @@ class LockDevice(SkabenDevice):
     blocked = models.BooleanField(verbose_name="Заблокирован", default=False)
     timer = models.IntegerField(verbose_name="Время автоматического закрытия", default=10)
 
+    @property
     def permissions(self) -> dict:
         """Получает словарь связанных карт-кодов и статусов тревоги, в которых они открывают замок."""
         acl = {}
@@ -26,8 +47,20 @@ class LockDevice(SkabenDevice):
         return acl
 
     def get_hash(self) -> str:
-        watch_list = ["closed", "blocked", "sound"]
-        return super().hash_from_attrs(watch_list)
+        watch_list = ["closed", "blocked", "sound", "override", "permissions"]
+        return super()._hash_from_attrs(watch_list)
+
+    def to_mqtt_config(self):
+        validated_base = super().to_mqtt_config()
+        to_be_validated = dict(
+            sound=self.sound,
+            timer=self.timer,
+            closed=self.closed,
+            blocked=self.blocked,
+            permissions=self.permissions,
+        )
+        schema = LockDeviceSchema.model_validate(validated_base | to_be_validated)
+        return schema.dict()
 
     @property
     def topic(self):
@@ -36,4 +69,4 @@ class LockDevice(SkabenDevice):
 
     def __str__(self):
         """Строковое представление модели."""
-        return f"LOCK [ip: {self.ip}] {self.description}"
+        return f"Замок <{self.mac_addr}> [ip: {self.ip}] {self.description}"

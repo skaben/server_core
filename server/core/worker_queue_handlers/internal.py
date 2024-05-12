@@ -74,7 +74,7 @@ class InternalHandler(BaseHandler):
         with device_context() as context:
             context.apply(event_headers, event_data)
             context_events.extend(context.events)
-        self.handle_context_events(context_events)
+        # self.handle_context_events(context_events)
 
     def handle_context_events(self, events: List[SkabenEvent]):
         """Обработка событий, возникших в процессе выполнения контекста.
@@ -93,14 +93,18 @@ class InternalHandler(BaseHandler):
                     exchange=self.config.exchanges.get("internal"),
                 )
             else:
-                record = StreamRecord(
-                    message=event.message,
-                    message_data=event.message_data,
-                    stream=StreamTypes.LOG,
-                    source=event.event_source,
-                    mark=event.level,
-                )
-                save_as_records.append(record)
+                try:
+                    record = StreamRecord(
+                        message=event.message,
+                        message_data=event.message_data,
+                        stream=StreamTypes.LOG,
+                        source=event.event_source,
+                        mark=event.level,
+                    )
+                    save_as_records.append(record)
+                except Exception:  # noqa
+                    logging.exception("cannot create stream record:")
+                    continue
         StreamRecord.objects.bulk_create(save_as_records)
 
     def route_message(self, body: Dict, message: Message) -> None:
@@ -110,8 +114,12 @@ class InternalHandler(BaseHandler):
             body (dict): Тело сообщения.
             message (Message): Экземпляр сообщения.
         """
-        routing_data: List[str] = message.delivery_info.get("routing_key").split(".")
-        [incoming_mark, device_type, device_uid, packet_type] = routing_data
+        try:
+            routing_data: List[str] = message.delivery_info.get("routing_key").split(".")
+            [incoming_mark, device_type, device_uid, packet_type] = routing_data
+        except ValueError:
+            logging.exception("cannot handle internal queue message")
+            return message.reject()
 
         if incoming_mark != self.incoming_mark:
             return message.requeue()

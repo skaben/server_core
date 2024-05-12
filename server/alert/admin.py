@@ -6,9 +6,9 @@ from django.contrib import admin
 class AlertStateCustomAdmin(admin.ModelAdmin):
     """Админка статусов тревоги."""
 
-    list_display = ("name", "current", "ingame", "info", "order", "threshold", "counter_increase", "counter_decrease")
-
-    list_filter = ["current"]
+    ordering = ["order"]
+    list_display = ("name", "id", "current", "ingame", "info", "threshold", "counter_increase", "counter_decrease")
+    list_filter = ["ingame"]
 
     fieldsets = (
         (
@@ -39,5 +39,5 @@ class AlertCounterCustomAdmin(admin.ModelAdmin):
     readonly_fields = ("timestamp",)
 
 
-admin.site.register(AlertCounter, AlertCounterCustomAdmin, site=base_site)
-admin.site.register(AlertState, AlertStateCustomAdmin, site=base_site)
+base_site.register(AlertCounter, AlertCounterCustomAdmin, site=base_site)
+base_site.register(AlertState, AlertStateCustomAdmin, site=base_site)
