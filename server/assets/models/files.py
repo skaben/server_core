@@ -38,6 +38,7 @@ class AudioFile(SkabenFile):
 
     file = models.FileField(
         storage=storages.audio_storage,
+        upload_to="audio/",
         help_text="поддерживаются .ogg, .wav, .mp3 файлы",
         validators=[audio_validator],
     )
@@ -55,7 +56,10 @@ class VideoFile(SkabenFile):
         verbose_name_plural = "Видео файлы"
 
     file = models.FileField(
-        storage=storages.video_storage, help_text="поддерживаются .webm, .mp4 файлы", validators=[video_validator]
+        storage=storages.video_storage,
+        upload_to="video/",
+        help_text="поддерживаются .webm, .mp4 файлы",
+        validators=[video_validator],
     )
 
     @property
@@ -71,7 +75,10 @@ class ImageFile(SkabenFile):
         verbose_name_plural = "Изображения"
 
     file = models.ImageField(
-        storage=storages.image_storage, help_text="поддерживаются .png, .jpg, .webp файлы", validators=[image_validator]
+        storage=storages.image_storage,
+        upload_to="image/",
+        help_text="поддерживаются .png, .jpg, .webp файлы",
+        validators=[image_validator],
     )
 
     @property
@@ -101,6 +108,7 @@ class TextFile(SkabenFile):
     )
     file = models.FileField(
         storage=storages.text_storage,
+        upload_to="text/",
         null=True,
         blank=True,
     )

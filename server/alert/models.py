@@ -76,11 +76,11 @@ class AlertStateManager(models.Manager):
     def get_ingame(self):
         return self.get_queryset().filter(ingame=True)
 
-    def get_management_state(self):
-        try:
-            return self.get_queryset().filter(name="white").get()
-        except AlertState.DoesNotExist:
-            raise ConfigException("management (`white`) state is not configured in DB")
+    def is_management_state(self):
+        return self.get_queryset().filter(name="white", current=True).first()
+
+    def is_lockdown_state(self):
+        return self.get_queryset().filter(name="black", current=True).first()
 
 
 ALERT_INCREASE = "increase"

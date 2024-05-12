@@ -16,8 +16,7 @@ class LockEventContext(SkabenEventContext):
     @staticmethod
     def create_lock_device(mac_addr: str) -> str:
         """Создает новое устройство типа 'Лазерная дверь'."""
-        mgmt_state = AlertState.objects.get_management_state()
-        if not mgmt_state.current:
+        if not AlertState.objects.is_management_state():
             return "Устройство не зарегистрировано и должно быть создано в режиме управления средой (white)."
 
         new_lock = Lock.objects.create(mac_addr=mac_addr)
@@ -28,8 +27,7 @@ class LockEventContext(SkabenEventContext):
     def create_new_access_record(lock_name: str, access_code: str) -> str:
         if str(access_code) != settings.ACCESS_CODE_CARD_LEN:
             raise StopContextError(f"Код не является картой и его нет в базе - {access_code}")
-        mgmt_state = AlertState.objects.get_management_state()
-        if not mgmt_state.current:
+        if not AlertState.objects.is_management_state():
             raise StopContextError(
                 f"Первая попытка авторизации {access_code} в {lock_name} -> не может быть добавлен (white статус не активен)."
             )

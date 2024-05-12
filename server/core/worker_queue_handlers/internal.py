@@ -114,8 +114,12 @@ class InternalHandler(BaseHandler):
             body (dict): Тело сообщения.
             message (Message): Экземпляр сообщения.
         """
-        routing_data: List[str] = message.delivery_info.get("routing_key").split(".")
-        [incoming_mark, device_type, device_uid, packet_type] = routing_data
+        try:
+            routing_data: List[str] = message.delivery_info.get("routing_key").split(".")
+            [incoming_mark, device_type, device_uid, packet_type] = routing_data
+        except ValueError:
+            logging.exception("cannot handle internal queue message")
+            return message.reject()
 
         if incoming_mark != self.incoming_mark:
             return message.requeue()

@@ -9,7 +9,7 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, Spec
 from alert.urls import router as alert_router
 from assets.urls import router as assets_router
 
-# from peripheral_behavior.urls import router as behavior_router
+from peripheral_behavior.urls import router as behavior_router
 from peripheral_devices.urls import router as device_router
 from streams.urls import router as stream_router
 
@@ -20,6 +20,7 @@ urlpatterns = [
     path("api/alert/", include((alert_router.urls, "alert"), namespace="alert")),
     path("api/streams/", include((stream_router.urls, "streams"), namespace="streams")),
     path("api/devices/", include((device_router.urls, "devices"), namespace="devices")),
+    path("api/behavior/", include((behavior_router.urls, "behavior"), namespace="behavior")),
     path("api/auth/token/", views.CreateTokenView.as_view(), name="token"),
     path("api/auth/login/", views.login_view, name="login"),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),

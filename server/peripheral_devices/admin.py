@@ -95,14 +95,6 @@ class TerminalAdmin(DeviceAdmin):
                 "fields": ("powered", "blocked"),
             },
         ),
-        # (
-        #     "Список аккаунтов",
-        #     {
-        #         "classes": ("none",),
-        #         "fields": ("account_set",),
-        #         "description": "Список аккаунтов, доступных в различных режимах"
-        #     },
-        # ),
     )
 
 

@@ -1,4 +1,4 @@
-from typing import Optional, Dict, List, Union
+from typing import Optional, Dict, List, Union, ClassVar
 from pydantic import ValidationError, field_validator
 
 from core.transport.topics import SkabenTopics
@@ -11,6 +11,7 @@ class SkabenDeviceEvent(SkabenEvent):
     Эти события сообщают об изменениях внутреннего состояния устройств и о взаимодействии пользователей с ними.
     """
 
+    _event_type: ClassVar[str] = "device"  # todo: merge with event_type
     event_type: str = "device"
     device_type: str
     device_uid: Optional[str]

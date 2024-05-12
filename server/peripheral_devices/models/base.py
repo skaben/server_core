@@ -1,7 +1,7 @@
 import logging
 from alert.models import AlertState
-from core.models.base import DeviceKeepalive
-from core.helpers import get_server_timestamp, get_hash_from
+from core.models.base import DeviceKeepalive, HashModelMixin
+from core.helpers import get_server_timestamp
 from django.db import models
 from core.transport.publish import get_interface
 from core.validators import mac_validator
@@ -14,7 +14,7 @@ class SkabenDeviceManager(models.Manager):
         return self.get_queryset().exclude(override=True)
 
 
-class SkabenDevice(models.Model):
+class SkabenDevice(models.Model, HashModelMixin):
     """Abstract device."""
 
     objects = SkabenDeviceManager()
@@ -61,12 +61,6 @@ class SkabenDevice(models.Model):
             )
         )
         return schema.dict()
-
-    def hash_from_attrs(self, attrs: list[str]) -> str:
-        return get_hash_from({attr: getattr(self, attr) for attr in attrs})
-
-    def get_hash(self) -> str:
-        return get_hash_from(list(self.__dict__.keys()))
 
     def _send_update(self):
         if self.override:

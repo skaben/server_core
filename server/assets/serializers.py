@@ -24,18 +24,21 @@ class FileSerializer(serializers.ModelSerializer):
 class AudioFileSerializer(FileSerializer):
     class Meta:
         model = AudioFile
+        fields = "__all__"
         read_only_fields = ("hash",)
 
 
 class VideoFileSerializer(FileSerializer):
     class Meta:
         model = VideoFile
+        fields = "__all__"
         read_only_fields = ("hash",)
 
 
 class ImageFileSerializer(FileSerializer):
     class Meta:
         model = ImageFile
+        fields = "__all__"
         read_only_fields = ("hash",)
 
 

@@ -1,5 +1,6 @@
 from dataclasses import dataclass
-from core.models.base import BaseModelPolymorphic, BaseModelUUID
+from core.models.base import BaseModelPolymorphic, BaseModelUUID, HashModelMixin
+from core.helpers import get_hash_from
 from django.db import models
 import assets.models as asset_models
 from peripheral_behavior.models import SkabenUser
@@ -25,7 +26,7 @@ class MenuItemTypes:
 MENU_ITEM_CHOICES = ((key, val) for key, val in MenuItemTypes.CHOICES.items())
 
 
-class MenuItem(BaseModelPolymorphic):
+class MenuItem(BaseModelPolymorphic, HashModelMixin):
     timer = models.SmallIntegerField(
         default=0, verbose_name="Время доступа", help_text="Ограничение на просмотр этого контента в секундах"
     )
@@ -37,6 +38,18 @@ class MenuItem(BaseModelPolymorphic):
     class Meta:
         verbose_name = "Пункт меню"
         verbose_name_plural = "Пункты меню"
+
+    def get_hash(self) -> str:
+        content_hash = ""
+        if getattr(self, "content", None):
+            content_hash = getattr(self.content, "hash", "")
+        attrs_hash = super()._hash_from_attrs(
+            [
+                "timer",
+                "label",
+            ]
+        )
+        return get_hash_from([content_hash, attrs_hash])
 
     def __str__(self):
         return f"Пункт меню [{self.label}] {self.comment}"
@@ -108,11 +121,25 @@ class MenuItemUserInput(MenuItem):
         verbose_name = "Пользовательский ввод"
         verbose_name_plural = "Пользовательский ввод"
 
+    def get_hash(self) -> str:
+        content_hash = ""
+        if getattr(self, "content", None):
+            content_hash = getattr(self.content, "hash", "")
+        attrs_hash = super()._hash_from_attrs(
+            [
+                "input_label",
+                "input_description",
+                "timer",
+                "label",
+            ]
+        )
+        return get_hash_from([content_hash, attrs_hash])
+
     def __str__(self):
         return f"Меню: ввод [{self.label}]"
 
 
-class TerminalAccount(BaseModelUUID):
+class TerminalAccount(BaseModelUUID, HashModelMixin):
     """Terminal user account."""
 
     class Meta:
@@ -140,6 +167,22 @@ class TerminalAccount(BaseModelUUID):
                 files.update({related.hash: related.uri})
         return files
 
+    def get_hash(self) -> str:
+        attrs_hash = super()._hash_from_attrs(["password", "header", "footer"])
+        menu_items_hash = [item.get_hash() for item in self.menu_items.all()]
+        return get_hash_from([attrs_hash, menu_items_hash])
+
     def __str__(self):
         protected = "PROTECTED" if self.password else "PUBLIC"
         return f"{self.user} <{protected}> terminal account"
+
+
+class TerminalMenuSet(models.Model):
+    """Набор доступных аккаунтов терминала."""
+
+    account = models.ForeignKey("peripheral_behavior.TerminalAccount", verbose_name="Аккаунт", on_delete=models.CASCADE)
+    terminal = models.ForeignKey("peripheral_devices.TerminalDevice", verbose_name="Терминал", on_delete=models.CASCADE)
+    state_id = models.ManyToManyField("alert.AlertState", verbose_name="Уровень тревоги")
+
+    def __str__(self):
+        return "Аккаунт пользователя"

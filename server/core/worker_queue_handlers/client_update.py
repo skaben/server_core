@@ -36,11 +36,15 @@ class ClientUpdateHandler(BaseHandler):
 
     def handle_message(self, body: Dict, message: Message) -> None:
         """Обрабатывает входящее сообщение."""
-        routing_key = message.delivery_info.get("routing_key")
-        routing_data = routing_key.split(".")
-        incoming_mark = routing_data[0]
-        device_topic = routing_data[1]
-        device_uid = None
+        try:
+            routing_key = message.delivery_info.get("routing_key")
+            routing_data = routing_key.split(".")
+            incoming_mark = routing_data[0]
+            device_topic = routing_data[1]
+            device_uid = None
+        except ValueError:
+            logging.exception("cannot handle client update message")
+            return message.reject()
 
         if len(routing_data) > 2:
             device_uid = routing_data[2]
@@ -67,7 +71,7 @@ class ClientUpdateHandler(BaseHandler):
                 if device_uid == "all":
                     targets = list(model.objects.not_overridden())
                 if device_uid and device_uid != "all":
-                    targets = list(model.objects.filter(mac_address=device_uid))
+                    targets = list(model.objects.filter(mac_addr=device_uid))
 
                 if targets:
                     with get_interface() as interface:

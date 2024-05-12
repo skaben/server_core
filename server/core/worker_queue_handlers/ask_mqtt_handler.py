@@ -1,5 +1,6 @@
 """Описывает работу обработчика для ask exchange - входящих MQTT пакетов."""
 
+import logging
 from typing import Dict, Union
 
 from core.helpers import from_json, get_server_timestamp
@@ -39,19 +40,14 @@ class AskHandler(BaseHandler):
             body (Union[str, Dict]): The message body.
             message (Message): The message instance.
         """
-        routing_key = message.delivery_info.get("routing_key")
-        [routing_type, device_type, device_uid, packet_type] = routing_key.split(".")
-
-        if routing_type != self.incoming_mark:
-            message.requeue()
-            return
-
-        # todo: improve de-dup
-        # if the same key has already handled in time interval (default = 10) - ack and do nothing
-        # if self.get_locked(routing_key):
-        #     message.ack()
-        #     return
-        # self.set_locked(routing_key)
+        try:
+            routing_key = message.delivery_info.get("routing_key")
+            [routing_type, device_type, device_uid, packet_type] = routing_key.split(".")
+            if routing_type != self.incoming_mark:
+                return message.requeue()
+        except ValueError:
+            logging.exception("cannot handle message routing key")
+            return message.reject()
 
         timestamp = 0
         try:

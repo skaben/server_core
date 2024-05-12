@@ -1,6 +1,6 @@
 from django.db import models
 
-__all__ = ["SkabenUser", "AccessCode", "Permission", "TerminalMenuSet"]
+__all__ = ["SkabenUser", "AccessCode", "Permission"]
 
 
 MAX_USER_LENGTH = 96
@@ -54,14 +54,3 @@ class Permission(models.Model):
 
     def __str__(self):
         return f"Доступ {self.lock} - {self.card}"
-
-
-class TerminalMenuSet(models.Model):
-    """Набор доступных аккаунтов терминала."""
-
-    account = models.ForeignKey("peripheral_behavior.TerminalAccount", verbose_name="Аккаунт", on_delete=models.CASCADE)
-    terminal = models.ForeignKey("peripheral_devices.TerminalDevice", verbose_name="Терминал", on_delete=models.CASCADE)
-    state_id = models.ManyToManyField("alert.AlertState", verbose_name="Уровень тревоги")
-
-    def __str__(self):
-        return "Аккаунт пользователя"

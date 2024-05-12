@@ -1,4 +1,4 @@
-from typing import Dict, Optional, Union, List, Literal
+from typing import Dict, Optional, Union, List, Literal, ClassVar
 
 from dataclasses import dataclass
 
@@ -30,6 +30,7 @@ class SkabenEvent(BaseModel):
         save (bool): Определяет, нужно ли сохранить сообщение в БД.
     """
 
+    _event_type: ClassVar[str] = "change_me"  # todo: merge with event_type
     event_type: str = "change_me"
     event_source: str = "default"
 
@@ -60,6 +61,16 @@ class SkabenEvent(BaseModel):
             **_converted_event_data,
         }
 
+    @classmethod
+    def from_event_data(cls, event_headers: dict, event_data: Union[str, dict]) -> Optional["SkabenEvent"]:
+        if cls.is_mine(event_type=event_headers.get("event_type", "")):
+            decoded = cls.decode(event_headers, event_data)
+            return cls(**decoded)
+
+    @classmethod
+    def is_mine(cls, event_type: str):
+        return cls._event_type == event_type
+
 
 @dataclass(frozen=True)
 class ContextEventLevels:
@@ -71,6 +82,7 @@ class ContextEventLevels:
 class InternalLogEvent(SkabenEvent):
     """Событие внутри контекста, требующее логирования."""
 
+    _event_type: ClassVar[str] = "log"
     event_type: str = "log"
     level: Literal["error", "log", "info"] = ContextEventLevels.INFO
     message: str
