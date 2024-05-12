@@ -9,7 +9,7 @@ from streams.models import StreamRecord
 class BaseSiteAdmin(admin.AdminSite):
     site_title = "SKABEN"
     site_header = "Dungeon admin"
-    index_title = "Управление системами"
+    index_title = ""
 
 
 base_site = BaseSiteAdmin()
@@ -39,6 +39,6 @@ class DeviceTopicAdmin(admin.ModelAdmin):
     list_display = ("channel", "type", "active", "comment")
 
 
-admin.site.register(ControlReaction, ControlCommandAdmin, site=base_site)
-admin.site.register(DeviceTopic, DeviceTopicAdmin, site=base_site)
-admin.site.register(StreamRecord, site=base_site)
+base_site.register(ControlReaction, ControlCommandAdmin)
+base_site.register(DeviceTopic, DeviceTopicAdmin)
+base_site.register(StreamRecord)

@@ -78,15 +78,15 @@ class TerminalAccountAdmin(PolymorphicInlineSupportMixin, admin.ModelAdmin):
     )
 
 
-admin.site.register(MenuItem, MenuItemAdmin, site=base_site)
+base_site.register(MenuItem, MenuItemAdmin, site=base_site)
 
 # registering invisible polymorphic child admins
-admin.site.register(MenuItemText, MenuItemTextAdmin)
-admin.site.register(MenuItemAudio, MenuItemAudioAdmin)
-admin.site.register(MenuItemVideo, MenuItemVideoAdmin)
-admin.site.register(MenuItemImage, MenuItemImageAdmin)
-admin.site.register(MenuItemUserInput, MenuItemUserInputAdmin)
+base_site.register(MenuItemText, MenuItemTextAdmin)
+base_site.register(MenuItemAudio, MenuItemAudioAdmin)
+base_site.register(MenuItemVideo, MenuItemVideoAdmin)
+base_site.register(MenuItemImage, MenuItemImageAdmin)
+base_site.register(MenuItemUserInput, MenuItemUserInputAdmin)
 
-admin.site.register(SkabenUser, admin.ModelAdmin, site=base_site)
-admin.site.register(AccessCode, admin.ModelAdmin, site=base_site)
-admin.site.register(TerminalAccount, TerminalAccountAdmin, site=base_site)
+base_site.register(SkabenUser, admin.ModelAdmin, site=base_site)
+base_site.register(AccessCode, admin.ModelAdmin, site=base_site)
+base_site.register(TerminalAccount, TerminalAccountAdmin, site=base_site)

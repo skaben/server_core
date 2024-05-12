@@ -1,9 +1,9 @@
 from core import views
 from django.conf import settings
 from django.conf.urls.static import static
-from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.urls import include, path
+from core.admin import base_site
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
 from alert.urls import router as alert_router
@@ -15,7 +15,7 @@ from streams.urls import router as stream_router
 
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
+    path("admin/", base_site.urls),
     path("api/assets/", include((assets_router.urls, "assets"), namespace="assets")),
     path("api/alert/", include((alert_router.urls, "alert"), namespace="alert")),
     path("api/streams/", include((stream_router.urls, "streams"), namespace="streams")),

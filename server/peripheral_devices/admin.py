@@ -98,7 +98,7 @@ class TerminalAdmin(DeviceAdmin):
     )
 
 
-admin.site.register(LockDevice, LockAdmin, site=base_site)
-admin.site.register(TerminalDevice, TerminalAdmin, site=base_site)
+base_site.register(LockDevice, LockAdmin, site=base_site)
+base_site.register(TerminalDevice, TerminalAdmin, site=base_site)
 # регистрируется как девайс, т.к. нет отдельного поведения
-admin.site.register(PassiveConfig, PassiveDeviceAdmin, site=base_site)
+base_site.register(PassiveConfig, PassiveDeviceAdmin, site=base_site)

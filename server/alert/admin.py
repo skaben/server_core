@@ -39,5 +39,5 @@ class AlertCounterCustomAdmin(admin.ModelAdmin):
     readonly_fields = ("timestamp",)
 
 
-admin.site.register(AlertCounter, AlertCounterCustomAdmin, site=base_site)
-admin.site.register(AlertState, AlertStateCustomAdmin, site=base_site)
+base_site.register(AlertCounter, AlertCounterCustomAdmin, site=base_site)
+base_site.register(AlertState, AlertStateCustomAdmin, site=base_site)

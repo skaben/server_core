@@ -5,7 +5,6 @@ from assets.serializers import (
     VideoFileSerializer,
     ImageFileSerializer,
     TextFileSerializer,
-    UserInputSerializer,
 )
 from peripheral_behavior.models import (
     MenuItem,
@@ -60,8 +59,6 @@ class MenuItemTextSerializer(serializers.ModelSerializer):
 
 
 class MenuItemUserInputSerializer(serializers.ModelSerializer):
-    content = UserInputSerializer()
-
     class Meta:
         model = MenuItemUserInput
         fields = MenuItemSerializer.Meta.fields + ("input_label", "input_description")

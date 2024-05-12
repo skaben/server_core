@@ -22,8 +22,8 @@ class AudioFileAdmin(FileAdmin):
     readonly_fields = ["uri", "audio_tag"]
 
 
-admin.site.register(AudioFile, AudioFileAdmin, site=base_site)
-admin.site.register(VideoFile, FileAdmin, site=base_site)
-admin.site.register(ImageFile, ImageFileAdmin, site=base_site)
-admin.site.register(TextFile, TextFileAdmin, site=base_site)
-admin.site.register(UserInput, admin.ModelAdmin, site=base_site)
+base_site.register(AudioFile, AudioFileAdmin, site=base_site)
+base_site.register(VideoFile, FileAdmin, site=base_site)
+base_site.register(ImageFile, ImageFileAdmin, site=base_site)
+base_site.register(TextFile, TextFileAdmin, site=base_site)
+base_site.register(UserInput, admin.ModelAdmin, site=base_site)
