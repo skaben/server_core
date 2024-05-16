@@ -3,8 +3,11 @@
 import logging
 from typing import Dict, Union
 
+from django.conf import settings
+
 from core.helpers import from_json, get_server_timestamp
 from core.models.base import DeviceKeepalive
+from core.models.mqtt import DeviceTopic
 from core.transport.config import MQConfig, SkabenQueue
 from core.transport.packets import SkabenPacketTypes
 from core.worker_queue_handlers.base import BaseHandler
@@ -52,13 +55,16 @@ class AskHandler(BaseHandler):
         try:
             payload_data = from_json(body)
             if packet_type in self.datahold_packet_mark:
-                send_config = False
                 payload_data.update(self.parse_datahold(payload_data))
                 # сейчас адресация по маку поддерживается только для SMART устройств
-                # if device_type in DeviceTopic.objects.get_topics_smart():
-                #     # todo: keepalive_status
-                #     timestamp, send_config = self.keepalive_status(device_uid, get_server_timestamp())
-                if send_config:
+                # todo: адресация по маку для простых устройств
+                _timestamp = payload_data.get("timestamp", 0)
+                if device_type in DeviceTopic.objects.get_topics_smart():
+                    timestamp, is_online = self.keepalive_status(device_uid, _timestamp)
+                else:
+                    timestamp, is_online = self.get_simple_keepalive(_timestamp)
+
+                if not is_online:
                     # Любой пакет от устройства с просроченным timestamp будет отброшен
                     # Вместо ответа на пакет сервер посылает текущий конфиг устройства
                     self.dispatch(
@@ -79,6 +85,13 @@ class AskHandler(BaseHandler):
         )
 
     @staticmethod
+    def get_simple_keepalive(timestamp: int) -> [int, bool]:
+        if timestamp + settings.KEEPALIVE_INTERVAL > get_server_timestamp():
+            return timestamp, True
+        else:
+            return get_server_timestamp(), False
+
+    @staticmethod
     def keepalive_status(mac_addr: str, timestamp: int) -> [int, bool]:
         try:
             keepalive = DeviceKeepalive.objects.get(mac_addr=mac_addr)
@@ -87,8 +100,8 @@ class AskHandler(BaseHandler):
             keepalive.save()
         except DeviceKeepalive.DoesNotExist:
             timestamp = get_server_timestamp()
-            DeviceKeepalive.objects.create(timestamp=timestamp, mac_addr=mac_addr)
-            result = timestamp, True
+            DeviceKeepalive.objects.create(timestamp=timestamp, previous_timestamp=timestamp, mac_addr=mac_addr)
+            result = timestamp, False
         return result
 
     @staticmethod
