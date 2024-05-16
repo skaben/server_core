@@ -5,7 +5,6 @@ from typing import Dict, Union
 
 from core.helpers import from_json, get_server_timestamp
 from core.models.base import DeviceKeepalive
-from core.models.mqtt import DeviceTopic
 from core.transport.config import MQConfig, SkabenQueue
 from core.transport.packets import SkabenPacketTypes
 from core.worker_queue_handlers.base import BaseHandler
@@ -56,8 +55,9 @@ class AskHandler(BaseHandler):
                 send_config = False
                 payload_data.update(self.parse_datahold(payload_data))
                 # сейчас адресация по маку поддерживается только для SMART устройств
-                if device_type in DeviceTopic.objects.get_topics_smart():
-                    timestamp, send_config = self.keepalive_status(device_uid, get_server_timestamp())
+                # if device_type in DeviceTopic.objects.get_topics_smart():
+                #     # todo: keepalive_status
+                #     timestamp, send_config = self.keepalive_status(device_uid, get_server_timestamp())
                 if send_config:
                     # Любой пакет от устройства с просроченным timestamp будет отброшен
                     # Вместо ответа на пакет сервер посылает текущий конфиг устройства
