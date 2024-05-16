@@ -43,3 +43,6 @@ class DeviceKeepalive(models.Model):
     def save(self, *args, **kwargs):
         self.mac_addr = re.sub(r"[^a-zA-Z0-9]", "", self.mac_addr)
         super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Keepalive: {self.mac_addr} {self.online}"
