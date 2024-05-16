@@ -5,9 +5,10 @@ from core.models import DeviceTopic
 from core.transport.config import MQConfig, SkabenQueue
 from core.transport.publish import get_interface
 from core.transport.topics import get_topics
+from core.transport.packets import SkabenPacketTypes
 from core.worker_queue_handlers.base import BaseHandler
 from kombu import Message
-from peripheral_devices.service.packet_format import cup_packet_from_model
+from peripheral_devices.service.packet_format import cup_packet_from_smart
 from peripheral_devices.service.passive_config import get_passive_config
 from peripheral_devices.models.helpers import get_model_by_topic
 
@@ -62,7 +63,11 @@ class ClientUpdateHandler(BaseHandler):
 
             if device_topic in DeviceTopic.objects.get_topics_by_type("simple"):
                 address = device_uid or "all"  # 'all' маркирует броадкастовую рассылку
-                self.dispatch(routing_data=[device_topic, address], data=get_passive_config(device_topic))
+                self.dispatch(
+                    routing_data=[device_topic, address, SkabenPacketTypes.CUP],
+                    data=get_passive_config(device_topic),
+                    exchange="mqtt",
+                )
                 return message.ack()
 
             if device_topic in DeviceTopic.objects.get_topics_by_type("smart"):
@@ -76,7 +81,7 @@ class ClientUpdateHandler(BaseHandler):
                 if targets:
                     with get_interface() as interface:
                         for target in targets:
-                            packet = cup_packet_from_model(target)
+                            packet = cup_packet_from_smart(target)
                             if packet:
                                 interface.send_mqtt(packet)
 
@@ -96,7 +101,7 @@ class ClientUpdateHandler(BaseHandler):
             if instance.override:
                 logging.warning(f"device {device_uid} is under override policy. skipping update")
                 return
-            update_packet = cup_packet_from_model(instance)
+            update_packet = cup_packet_from_smart(instance)
             if message.headers.get("force_update") or instance.get_hash() != body.get("hash", 1):
                 return update_packet
 

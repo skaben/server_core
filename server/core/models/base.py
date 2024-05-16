@@ -37,6 +37,7 @@ class DeviceKeepalive(models.Model):
     mac_addr = models.CharField(max_length=32, validators=[mac_validator])
     timestamp = models.PositiveIntegerField()
 
+    @property
     def online(self):
         return self.timestamp + settings.DEVICE_KEEPALIVE_TIMEOUT > get_server_timestamp()
 

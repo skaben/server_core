@@ -1,6 +1,6 @@
 import logging
 from datetime import timedelta
-from typing import Dict, List
+from typing import Dict, List, Literal
 
 from core.helpers import format_routing_key
 from core.transport.config import MQConfig, get_connection
@@ -57,16 +57,20 @@ class BaseHandler(ConsumerProducerMixin):
         """
         raise NotImplementedError
 
-    def dispatch(self, data, routing_data: List[str], **kwargs) -> None:
+    def dispatch(
+        self, data, routing_data: List[str], exchange: Literal["internal", "mqtt"] = "internal", **kwargs
+    ) -> None:
         """
         Dispatches message.
 
         Args:
             data (dict): The message data.
+            exchange (Literal['internal', 'mqtt']): The message exchange
             routing_data (list): The message routing data.
         """
-        exchange = kwargs.get("exchange", self.config.internal_exchange)
-        publish(body=data, exchange=exchange, routing_key=format_routing_key(*routing_data), **kwargs)
+        exchanges = {"internal": self.config.internal_exchange, "mqtt": self.config.mqtt_exchange}
+        _exchange = exchanges.get(exchange)
+        publish(body=data, exchange=_exchange, routing_key=format_routing_key(*routing_data), **kwargs)
 
     def set_locked(self, key: str, timeout: int = 0):
         """

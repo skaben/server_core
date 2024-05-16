@@ -6,7 +6,7 @@ from core.helpers import get_server_timestamp
 from core.transport.packets import CUP
 
 
-def cup_packet_from_model(model) -> Optional[CUP]:
+def cup_packet_from_smart(model) -> Optional[CUP]:
     """Формирует пакет с данными для апдейта клиента."""
     try:
         packet = CUP(

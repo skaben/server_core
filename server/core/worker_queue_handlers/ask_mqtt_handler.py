@@ -7,7 +7,6 @@ from django.conf import settings
 
 from core.helpers import from_json, get_server_timestamp
 from core.models.base import DeviceKeepalive
-from core.models.mqtt import DeviceTopic
 from core.transport.config import MQConfig, SkabenQueue
 from core.transport.packets import SkabenPacketTypes
 from core.worker_queue_handlers.base import BaseHandler
@@ -44,45 +43,48 @@ class AskHandler(BaseHandler):
         """
         try:
             routing_key = message.delivery_info.get("routing_key")
-            [routing_type, device_type, device_uid, packet_type] = routing_key.split(".")
+            _routing_data = dict(enumerate(routing_key.split(".")))
+
+            if len(_routing_data.keys()) < 4:
+                logging.error("bad packet routing key: %s", routing_key)
+                return message.reject()
+
+            routing_type = _routing_data.get(0)
+            device_type = _routing_data.get(1)
+            device_uid = _routing_data.get(2)
+            packet_type = _routing_data.get(3)
             if routing_type != self.incoming_mark:
                 return message.requeue()
         except ValueError:
             logging.exception("cannot handle message routing key")
             return message.reject()
 
-        timestamp = 0
         try:
             payload_data = from_json(body)
+            _timestamp = payload_data.get("timestamp", 0)
+            timestamp, is_online = self.keepalive_status(device_uid, _timestamp)
+
             if packet_type in self.datahold_packet_mark:
                 payload_data.update(self.parse_datahold(payload_data))
-                # сейчас адресация по маку поддерживается только для SMART устройств
-                # todo: адресация по маку для простых устройств
-                _timestamp = payload_data.get("timestamp", 0)
-                if device_type in DeviceTopic.objects.get_topics_smart():
-                    timestamp, is_online = self.keepalive_status(device_uid, _timestamp)
-                else:
-                    timestamp, is_online = self.get_simple_keepalive(_timestamp)
 
-                if not is_online:
-                    # Любой пакет от устройства с просроченным timestamp будет отброшен
-                    # Вместо ответа на пакет сервер посылает текущий конфиг устройства
-                    self.dispatch(
-                        data={},
-                        routing_data=[self.outgoing_mark, device_type, device_uid, SkabenPacketTypes.CUP],
-                        headers={"timestamp": timestamp},
-                    )
-                    return message.ack()
-        except Exception as e:
-            message.reject()
-            raise Exception(f"cannot parse message payload `{body}` >> {e}")
+            if not is_online:
+                # Любой пакет от устройства с просроченным timestamp будет отброшен
+                # Вместо ответа на пакет сервер посылает текущий конфиг устройства
+                self.dispatch(
+                    data={},
+                    routing_data=[self.outgoing_mark, device_type, device_uid, SkabenPacketTypes.CUP],
+                )
+                return message.ack()
+        except Exception:
+            logging.exception("cannot parse message payload")
+            return message.reject()
 
-        message.ack()
         self.dispatch(
             data=payload_data,
             routing_data=[self.outgoing_mark, device_type, device_uid, packet_type],
-            headers={"timestamp": timestamp},
         )
+        if not message.acknowledged:
+            message.ack()
 
     @staticmethod
     def get_simple_keepalive(timestamp: int) -> [int, bool]:
@@ -100,7 +102,7 @@ class AskHandler(BaseHandler):
             keepalive.save()
         except DeviceKeepalive.DoesNotExist:
             timestamp = get_server_timestamp()
-            DeviceKeepalive.objects.create(timestamp=timestamp, previous_timestamp=timestamp, mac_addr=mac_addr)
+            DeviceKeepalive.objects.create(timestamp=timestamp, mac_addr=mac_addr)
             result = timestamp, False
         return result
 

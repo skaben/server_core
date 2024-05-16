@@ -89,7 +89,6 @@ class InternalHandler(BaseHandler):
                     data=encoded.data,
                     headers=encoded.headers,
                     routing_data=[f"{SkabenQueue.INTERNAL.value}"],
-                    exchange=self.config.exchanges.get("internal"),
                 )
             else:
                 try:
@@ -127,6 +126,8 @@ class InternalHandler(BaseHandler):
             if message.headers.get("timestamp", 0) + settings.DEVICE_KEEPALIVE_TIMEOUT < get_server_timestamp():
                 self.dispatch(data=body, routing_data=[self.client_update_queue_mark, device_type, device_uid])
             return message.ack()
+
+        # todo: здесь пакет должен терминироваться и превращаться в SkabenEvent
 
         if packet_type == self.state_save_packet_mark:
             self.dispatch(data=body["datahold"], routing_data=[self.state_save_queue_mark, device_type, device_uid])
