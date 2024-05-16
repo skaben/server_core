@@ -57,7 +57,7 @@ class LockDevice(SkabenDevice):
             timer=self.timer,
             closed=self.closed,
             blocked=self.blocked,
-            permissions=self.permissions,
+            acl=self.permissions,
         )
         schema = LockDeviceSchema.model_validate(validated_base | to_be_validated)
         return schema.dict()

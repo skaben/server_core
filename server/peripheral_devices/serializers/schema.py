@@ -12,7 +12,7 @@ class LockDeviceSchema(BaseDeviceSchema):
     closed: bool
     blocked: bool
     timer: int
-    permissions: Dict[str, List[int]]
+    acl: Dict[str, List[int]]
 
 
 class TerminalDeviceSchema(BaseDeviceSchema):
