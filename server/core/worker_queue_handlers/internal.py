@@ -11,7 +11,6 @@ from core.transport.packets import SkabenPacketTypes
 from event_contexts.device.events import SkabenDeviceEvent
 from streams.models import StreamRecord, StreamTypes
 from core.worker_queue_handlers.base import BaseHandler
-from django.db import models
 from event_contexts.alert.context import AlertEventContext as alert_context
 from event_contexts.device.context import DeviceEventContext as device_context
 from kombu import Message
@@ -130,9 +129,7 @@ class InternalHandler(BaseHandler):
             return message.ack()
 
         if packet_type == self.state_save_packet_mark:
-            self.dispatch(
-                data=body["datahold"], routing_data=[self.state_save_queue_mark, device_type, device_uid, packet_type]
-            )
+            self.dispatch(data=body["datahold"], routing_data=[self.state_save_queue_mark, device_type, device_uid])
             return message.ack()
 
         if packet_type == self.client_update_packet_mark:
@@ -160,17 +157,3 @@ class InternalHandler(BaseHandler):
 
         if not message.acknowledged:
             return message.ack()
-
-    @staticmethod
-    def get_instance(model: models.Model, uid: str):
-        """
-        Получает экземпляр модели.
-
-        Args:
-            model (type): The model type.
-            uid (str): The model UID.
-
-        Returns:
-            The model instance.
-        """
-        return model.objects.get(uid=uid)
