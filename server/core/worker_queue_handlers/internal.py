@@ -122,6 +122,7 @@ class InternalHandler(BaseHandler):
         if incoming_mark != self.incoming_mark:
             return message.requeue()
 
+        # todo: check if deprecated
         if packet_type == self.keepalive_packet_mark:
             if message.headers.get("timestamp", 0) + settings.DEVICE_KEEPALIVE_TIMEOUT < get_server_timestamp():
                 self.dispatch(data=body, routing_data=[self.client_update_queue_mark, device_type, device_uid])
