@@ -3,7 +3,6 @@ from core.models.mqtt import ControlReaction, DeviceTopic
 from django.contrib import admin
 from django.contrib.auth.models import Group, User
 from django.urls import path
-from streams.models import StreamRecord
 
 
 class BaseSiteAdmin(admin.AdminSite):
@@ -41,4 +40,3 @@ class DeviceTopicAdmin(admin.ModelAdmin):
 
 base_site.register(ControlReaction, ControlCommandAdmin)
 base_site.register(DeviceTopic, DeviceTopicAdmin)
-base_site.register(StreamRecord)

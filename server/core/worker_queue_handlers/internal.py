@@ -66,16 +66,18 @@ class InternalHandler(BaseHandler):
             headers (dict): Мета-данные события, включающие тип.
             event_data (dict): Полезная нагрузка события.
         """
-        context_events = []
-        with alert_context() as context:
-            context.apply(event_headers, event_data)
-            context_events.extend(context.events)
-        with device_context() as context:
-            context.apply(event_headers, event_data)
-            context_events.extend(context.events)
-        # self.handle_context_events(context_events)
+        events = []
+        for context in [
+            alert_context,
+            device_context,
+        ]:
+            with context() as ctx:
+                ctx.apply(event_headers, event_data)
+                events.extend(ctx.events)
+        self.handle_context_events(events)
 
-    def handle_context_events(self, events: List[SkabenEvent]):
+    @staticmethod
+    def handle_context_events(events: List[SkabenEvent]):
         """Обработка событий, возникших в процессе выполнения контекста.
 
         Все события с типом log отправляются в выделенный stream RabbitMQ.
@@ -83,26 +85,18 @@ class InternalHandler(BaseHandler):
         """
         save_as_records = []
         for event in events:
-            if event.event_type != "log":
-                encoded = event.encode()
-                self.dispatch(
-                    data=encoded.data,
-                    headers=encoded.headers,
-                    routing_data=[f"{SkabenQueue.INTERNAL.value}"],
+            try:
+                record = StreamRecord(
+                    message=event.message,
+                    message_data=event.message_data,
+                    stream=StreamTypes.LOG,
+                    source=event.event_source,
+                    mark=event.level,
                 )
-            else:
-                try:
-                    record = StreamRecord(
-                        message=event.message,
-                        message_data=event.message_data,
-                        stream=StreamTypes.LOG,
-                        source=event.event_source,
-                        mark=event.level,
-                    )
-                    save_as_records.append(record)
-                except Exception:  # noqa
-                    logging.exception("cannot create stream record:")
-                    continue
+                save_as_records.append(record)
+            except Exception:  # noqa
+                logging.exception("cannot create stream record:")
+                continue
         StreamRecord.objects.bulk_create(save_as_records)
 
     def route_message(self, body: Dict, message: Message) -> None:
@@ -113,14 +107,22 @@ class InternalHandler(BaseHandler):
             message (Message): Экземпляр сообщения.
         """
         try:
-            routing_data: List[str] = message.delivery_info.get("routing_key").split(".")
-            [incoming_mark, device_type, device_uid, packet_type] = routing_data
+            routing_key = message.delivery_info.get("routing_key")
+            _routing_data = dict(enumerate(routing_key.split(".")))
+
+            if len(_routing_data.keys()) < 4:
+                logging.error("bad packet routing key: %s", routing_key)
+                return message.reject()
+
+            incoming_mark = _routing_data.get(0)
+            device_type = _routing_data.get(1)
+            device_uid = _routing_data.get(2)
+            packet_type = _routing_data.get(3)
+            if incoming_mark != self.incoming_mark:
+                return message.requeue()
         except ValueError:
             logging.exception("cannot handle internal queue message")
             return message.reject()
-
-        if incoming_mark != self.incoming_mark:
-            return message.requeue()
 
         # todo: check if deprecated
         if packet_type == self.keepalive_packet_mark:

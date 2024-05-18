@@ -39,20 +39,17 @@ class ClientUpdateHandler(BaseHandler):
         """Обрабатывает входящее сообщение."""
         try:
             routing_key = message.delivery_info.get("routing_key")
-            routing_data = routing_key.split(".")
-            incoming_mark = routing_data[0]
-            device_topic = routing_data[1]
+            _routing_data = dict(enumerate(routing_key.split(".")))
+            incoming_mark = _routing_data.get(0)
+            device_topic = _routing_data.get(1)
             device_uid = None
+            if incoming_mark != self.incoming_mark:
+                return message.requeue()
+            if len(_routing_data) > 2:
+                device_uid = _routing_data.get(2)
         except ValueError:
             logging.exception("cannot handle client update message")
             return message.reject()
-
-        if len(routing_data) > 2:
-            device_uid = routing_data[2]
-
-        if incoming_mark != self.incoming_mark:
-            return message.requeue()
-
         if device_topic not in DeviceTopic.objects.get_topics_active():
             return message.ack()
 

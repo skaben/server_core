@@ -19,6 +19,7 @@ class DeviceEventContext(SkabenEventContext):
         try:
             event_type = event_headers.get("event_type", "")
             device_type = event_headers.get("device_type", "")
+            event_data = event_data.get("payload", {})
             if not SkabenDeviceEvent.is_mine(event_type):
                 logging.debug("cannot handle event - unknown event_type %s", event_type)
                 return False

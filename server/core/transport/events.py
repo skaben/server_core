@@ -102,6 +102,9 @@ class SkabenEventContext:
 
     events: List[SkabenEvent] = []
 
+    def __init__(self):
+        self.events = []
+
     def apply(self, event_headers: dict, event_data: dict):
         raise NotImplementedError("abstract class method")
 
@@ -124,6 +127,7 @@ class SkabenEventContext:
         return type(self).__name__.lower()
 
     def __enter__(self):
+        self.events = []
         return self
 
     def __exit__(self, type, value, traceback):

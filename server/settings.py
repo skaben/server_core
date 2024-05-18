@@ -9,11 +9,11 @@ from django.core.management.utils import get_random_secret_key
 # основные настройки проекта
 
 ENVIRONMENT = os.environ.get("ENVIRONMENT", "")
-DEBUG = False
 
 if not ENVIRONMENT:
     raise ValueError("Environment not set!")
 
+DEBUG = False
 if not ENVIRONMENT.startswith("prod"):
     DEBUG = True
 
@@ -163,6 +163,7 @@ IMAGE_ASSET_MAX_SIZE = 5  # MB
 
 # LOGGING
 
+LOGGING_LEVEL = "INFO" if not DEBUG else "DEBUG"
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -172,8 +173,20 @@ LOGGING = {
         },
         "simple": {"format": "%(levelname)s %(message)s"},
     },
-    "queue_handlers": {"console": {"level": "DEBUG", "class": "logging.StreamHandler", "formatter": "verbose"}},
-    "loggers": {"django": {"queue_handlers": ["console"], "level": "INFO", "propagate": True}},
+    "queue_handlers": {
+        "console": {"level": LOGGING_LEVEL, "class": "logging.StreamHandler", "formatter": "verbose"},
+    },
+    "loggers": {
+        "django": {"queue_handlers": ["console"], "level": LOGGING_LEVEL, "propagate": True},
+        "django.db.backends": {
+            "level": "INFO",
+            "queue_handlers": ["console"],
+        },
+        "django.utils": {
+            "level": "INFO",
+            "queue_handlers": ["console"],
+        },
+    },
 }
 
 # REDIS

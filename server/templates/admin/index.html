@@ -19,7 +19,8 @@
     });
   }
 </script>
-<div style="
+<style>
+.skaben-overhead {
     display: flex;
     gap: 24px;
     font-size: 1.25em;
@@ -28,7 +29,9 @@
     max-width: 800px;
     padding: 8px 40px;
     text-transform: uppercase;
-">
+}
+</style>
+<div class="skaben-overhead">
     <a href="http://{{ request.get_host }}" target="_blank">Операторская</a>
     <span style="height: 1em; width: 1px; background: black;"></span>
     <a href="http://{{ request.get_host }}:15672" target="_blank">RabbitMQ</a>
@@ -42,13 +45,8 @@
     </span>
 </div>
 {% endblock %}
-
-<div class="skaben-content">
-    {% block content %}
-        {{ block.super }}
-    {% endblock %}
-    {% block sidebar  %}
-    <div class="skaben-sidebar">
-    </div>
-    {% endblock %}
-</div>
+{% block content %}
+{{ block.super }}
+{% endblock %}
+{% block sidebar  %}
+{% endblock %}
