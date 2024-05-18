@@ -1,10 +1,8 @@
 import logging
 from typing import Dict, List
 
-import settings
 
 from pydantic import ValidationError
-from core.helpers import get_server_timestamp
 from core.transport.events import SkabenEvent, SkabenLogEvent
 from core.transport.config import MQConfig, SkabenQueue
 from core.transport.packets import SkabenPacketTypes
@@ -128,12 +126,6 @@ class InternalHandler(BaseHandler):
         except ValueError:
             logging.exception("cannot handle internal queue message")
             return message.reject()
-
-        # todo: check if deprecated
-        if packet_type == self.keepalive_packet_mark:
-            if message.headers.get("timestamp", 0) + settings.DEVICE_KEEPALIVE_TIMEOUT < get_server_timestamp():
-                self.dispatch(data=body, routing_data=[self.client_update_queue_mark, device_type, device_uid])
-            return message.ack()
 
         # todo: здесь пакет должен терминироваться и превращаться в SkabenEvent
 
