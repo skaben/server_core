@@ -2,7 +2,7 @@ from alert.models import AlertState
 from django.conf import settings
 from core.transport.events import SkabenEventContext, ContextEventLevels
 from event_contexts.exceptions import StopContextError
-from peripheral_behavior.models import AccessCode
+from peripheral_behavior.models import AccessCode, SkabenUser
 from peripheral_devices.models.lock import LockDevice as Lock
 
 
@@ -33,7 +33,10 @@ class LockEventContext(SkabenEventContext):
                 "не может быть добавлен (white статус не активен)."
             )
 
-        instance = AccessCode.objects.create(code=access_code, name=f"AUTO: {access_code} from {lock}")
+        user, created = SkabenUser.objects.get_or_create(
+            name="skaben_default", description="системный пользователь по умолчанию"
+        )
+        instance = AccessCode.objects.create(code=access_code, user=user)
         return f"Первая попытка авторизации {instance.code} в {lock} -> {instance.code} добавлен в БД."
 
     def apply(self, event_headers: dict, event_data: dict):

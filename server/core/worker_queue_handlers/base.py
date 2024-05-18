@@ -1,9 +1,10 @@
 import logging
 from datetime import timedelta
-from typing import Dict, List, Literal
+from typing import Dict, List, Literal, Optional
 
 from core.helpers import format_routing_key
-from core.transport.config import MQConfig, get_connection
+from core.transport.events import SkabenLogEvent
+from core.transport.config import MQConfig, get_connection, SkabenQueue
 from core.transport.publish import publish
 from django.conf import settings
 from kombu import Message
@@ -72,6 +73,29 @@ class BaseHandler(ConsumerProducerMixin):
         _exchange = exchanges.get(exchange)
         publish(body=data, exchange=_exchange, routing_key=format_routing_key(*routing_data), **kwargs)
 
+    def send_log(
+        self,
+        message: str,
+        event_source: str = None,
+        level: Literal["info", "error", "log"] = "info",
+        message_data: Optional[dict] = None,
+        save: bool = True,
+    ):
+        event_source = event_source or f"worker_handler: {self}"
+        event = SkabenLogEvent(
+            message=message,
+            message_data=message_data or {},
+            event_source=event_source,
+            level=level,
+            save=save,
+        )
+        encoded = event.encode()
+        self.dispatch(
+            data=encoded.data,
+            headers=encoded.headers,
+            routing_data=[f"{SkabenQueue.INTERNAL.value}"],
+        )
+
     def set_locked(self, key: str, timeout: int = 0):
         """
         Sets a lock for the given key using Redis.
@@ -113,7 +137,7 @@ class BaseHandler(ConsumerProducerMixin):
         logging.info(f"acquired broker connection with {consumer}")
         return [consumer]
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         """
         Returns a string representation of the BaseHandler.
 

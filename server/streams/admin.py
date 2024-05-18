@@ -5,6 +5,7 @@ from streams.models import StreamRecord
 
 
 class StreamRecordAdmin(admin.ModelAdmin):
+    ordering = ("-timestamp",)
     list_display = ("human_time", "stream", "source", "mark", "message")
     list_filter = ("stream", "source", "mark")
     search_fields = ("stream", "source", "mark", "message")

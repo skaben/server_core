@@ -5,7 +5,7 @@ import settings
 
 from pydantic import ValidationError
 from core.helpers import get_server_timestamp
-from core.transport.events import SkabenEvent
+from core.transport.events import SkabenEvent, SkabenLogEvent
 from core.transport.config import MQConfig, SkabenQueue
 from core.transport.packets import SkabenPacketTypes
 from event_contexts.device.events import SkabenDeviceEvent
@@ -67,6 +67,11 @@ class InternalHandler(BaseHandler):
             event_data (dict): Полезная нагрузка события.
         """
         events = []
+        if SkabenLogEvent.is_mine(event_headers.get("event_type")):
+            log_event = SkabenLogEvent.from_event_data(event_headers, event_data)
+            if log_event.save:
+                return self.handle_context_events([log_event])
+
         for context in [
             alert_context,
             device_context,

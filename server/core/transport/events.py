@@ -79,11 +79,13 @@ class ContextEventLevels:
     INFO: Literal["info"] = "info"
 
 
-class InternalLogEvent(SkabenEvent):
+# todo: move to streams
+class SkabenLogEvent(SkabenEvent):
     """Событие внутри контекста, требующее логирования."""
 
     _event_type: ClassVar[str] = "log"
     event_type: str = "log"
+    event_source: str
     level: Literal["error", "log", "info"] = ContextEventLevels.INFO
     message: str
     message_data: Optional[Dict[str, Union[str, int, bool, dict, list]]]
@@ -114,7 +116,7 @@ class SkabenEventContext:
         level: Literal["error", "log", "info"] = ContextEventLevels.INFO,
         message_data: Optional[Dict[str, Union[str, int, bool, dict, list]]] = None,
     ) -> List[SkabenEvent]:
-        event = InternalLogEvent(
+        event = SkabenLogEvent(
             message=message,
             message_data=message_data,
             event_source=self._get_context_name(),

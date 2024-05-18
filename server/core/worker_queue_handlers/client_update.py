@@ -4,10 +4,12 @@ from typing import Dict
 from core.models import DeviceTopic
 from core.transport.config import MQConfig, SkabenQueue
 from core.transport.publish import get_interface
-from core.transport.topics import get_topics
+from core.transport.topics import get_topics, SkabenTopics
 from core.transport.packets import SkabenPacketTypes
 from core.worker_queue_handlers.base import BaseHandler
+from event_contexts.device.lock_access_context import LockEventContext
 from kombu import Message
+from peripheral_devices.models.lock import LockDevice
 from peripheral_devices.service.packet_format import cup_packet_from_smart
 from peripheral_devices.service.passive_config import get_passive_config
 from peripheral_devices.models.helpers import get_model_by_topic
@@ -73,24 +75,21 @@ class ClientUpdateHandler(BaseHandler):
                 if device_uid == "all":
                     targets = list(model.objects.not_overridden())
                 if device_uid and device_uid != "all":
-                    targets = list(model.objects.filter(mac_addr=device_uid))
+                    targets = [self.get_device_instance(device_topic, device_uid, body, message)]
+                for target in targets:
+                    with get_interface() as publisher:
+                        packet = cup_packet_from_smart(target)
+                        publisher.send_mqtt(packet)
 
-                if targets:
-                    with get_interface() as interface:
-                        for target in targets:
-                            packet = cup_packet_from_smart(target)
-                            if packet:
-                                interface.send_mqtt(packet)
-
-        except Exception:  # noqa
+        except Exception as e:  # noqa
+            self.send_log(str(e), level="error")
             logging.exception("Exception while handling client update.")
             return message.reject()
 
         if not message.acknowledged:
             return message.ack()
 
-    @staticmethod
-    def get_device_config(device_topic: str, device_uid: str, body: dict, message: Message):
+    def get_device_instance(self, device_topic: str, device_uid: str, body: dict, message: Message):
         """Получает актуальную конфигурацию устройства."""
         model = get_model_by_topic(device_topic)
         try:
@@ -98,10 +97,17 @@ class ClientUpdateHandler(BaseHandler):
             if instance.override:
                 logging.warning(f"device {device_uid} is under override policy. skipping update")
                 return
-            update_packet = cup_packet_from_smart(instance)
             if message.headers.get("force_update") or instance.get_hash() != body.get("hash", 1):
-                return update_packet
-
+                return instance
         except model.DoesNotExist:
-            # todo: operation of new device approval is not implemented yet
-            logging.error(f"device of type {device_topic} with MAC {device_uid} not found in DB")
+            return self._create_missing_devices(device_topic, device_uid)
+
+    def _create_missing_devices(self, device_topic: str, device_uid: str):
+        try:
+            if device_topic == SkabenTopics.LOCK:
+                with LockEventContext() as context:
+                    message = context.create_lock_device(device_uid)
+                    self.send_log(message)
+                    return LockDevice.objects.get(mac_addr=device_uid)
+        except Exception as e:
+            self.send_log(str(e), level="error")
