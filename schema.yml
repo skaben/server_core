@@ -175,6 +175,7 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/AudioFile'
+        required: true
       responses:
         '201':
           content:
@@ -182,16 +183,17 @@ paths:
               schema:
                 $ref: '#/components/schemas/AudioFile'
           description: ''
-  /api/assets/audiofile/{id}/:
+  /api/assets/audiofile/{uuid}/:
     get:
       operationId: api_assets_audiofile_retrieve
       description: Manage locks in database
       parameters:
       - in: path
-        name: id
+        name: uuid
         schema:
-          type: integer
-        description: A unique integer value identifying this Аудио.
+          type: string
+          format: uuid
+        description: A UUID string identifying this Аудио файл.
         required: true
       tags:
       - api
@@ -207,10 +209,11 @@ paths:
       description: Manage locks in database
       parameters:
       - in: path
-        name: id
+        name: uuid
         schema:
-          type: integer
-        description: A unique integer value identifying this Аудио.
+          type: string
+          format: uuid
+        description: A UUID string identifying this Аудио файл.
         required: true
       tags:
       - api
@@ -225,6 +228,7 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/AudioFile'
+        required: true
       responses:
         '200':
           content:
@@ -237,10 +241,11 @@ paths:
       description: Manage locks in database
       parameters:
       - in: path
-        name: id
+        name: uuid
         schema:
-          type: integer
-        description: A unique integer value identifying this Аудио.
+          type: string
+          format: uuid
+        description: A UUID string identifying this Аудио файл.
         required: true
       tags:
       - api
@@ -267,10 +272,11 @@ paths:
       description: Manage locks in database
       parameters:
       - in: path
-        name: id
+        name: uuid
         schema:
-          type: integer
-        description: A unique integer value identifying this Аудио.
+          type: string
+          format: uuid
+        description: A UUID string identifying this Аудио файл.
         required: true
       tags:
       - api
@@ -445,6 +451,7 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/ImageFile'
+        required: true
       responses:
         '201':
           content:
@@ -452,16 +459,17 @@ paths:
               schema:
                 $ref: '#/components/schemas/ImageFile'
           description: ''
-  /api/assets/imagefile/{id}/:
+  /api/assets/imagefile/{uuid}/:
     get:
       operationId: api_assets_imagefile_retrieve
       description: Manage locks in database
       parameters:
       - in: path
-        name: id
+        name: uuid
         schema:
-          type: integer
-        description: A unique integer value identifying this Изображение.
+          type: string
+          format: uuid
+        description: A UUID string identifying this Изображение.
         required: true
       tags:
       - api
@@ -477,10 +485,11 @@ paths:
       description: Manage locks in database
       parameters:
       - in: path
-        name: id
+        name: uuid
         schema:
-          type: integer
-        description: A unique integer value identifying this Изображение.
+          type: string
+          format: uuid
+        description: A UUID string identifying this Изображение.
         required: true
       tags:
       - api
@@ -495,6 +504,7 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/ImageFile'
+        required: true
       responses:
         '200':
           content:
@@ -507,10 +517,11 @@ paths:
       description: Manage locks in database
       parameters:
       - in: path
-        name: id
+        name: uuid
         schema:
-          type: integer
-        description: A unique integer value identifying this Изображение.
+          type: string
+          format: uuid
+        description: A UUID string identifying this Изображение.
         required: true
       tags:
       - api
@@ -537,10 +548,11 @@ paths:
       description: Manage locks in database
       parameters:
       - in: path
-        name: id
+        name: uuid
         schema:
-          type: integer
-        description: A unique integer value identifying this Изображение.
+          type: string
+          format: uuid
+        description: A UUID string identifying this Изображение.
         required: true
       tags:
       - api
@@ -586,16 +598,17 @@ paths:
               schema:
                 $ref: '#/components/schemas/TextFile'
           description: ''
-  /api/assets/textfile/{id}/:
+  /api/assets/textfile/{uuid}/:
     get:
       operationId: api_assets_textfile_retrieve
       description: Manage locks in database
       parameters:
       - in: path
-        name: id
+        name: uuid
         schema:
-          type: integer
-        description: A unique integer value identifying this Текстовый файл.
+          type: string
+          format: uuid
+        description: A UUID string identifying this Текстовый файл.
         required: true
       tags:
       - api
@@ -611,10 +624,11 @@ paths:
       description: Manage locks in database
       parameters:
       - in: path
-        name: id
+        name: uuid
         schema:
-          type: integer
-        description: A unique integer value identifying this Текстовый файл.
+          type: string
+          format: uuid
+        description: A UUID string identifying this Текстовый файл.
         required: true
       tags:
       - api
@@ -642,10 +656,11 @@ paths:
       description: Manage locks in database
       parameters:
       - in: path
-        name: id
+        name: uuid
         schema:
-          type: integer
-        description: A unique integer value identifying this Текстовый файл.
+          type: string
+          format: uuid
+        description: A UUID string identifying this Текстовый файл.
         required: true
       tags:
       - api
@@ -672,10 +687,11 @@ paths:
       description: Manage locks in database
       parameters:
       - in: path
-        name: id
+        name: uuid
         schema:
-          type: integer
-        description: A unique integer value identifying this Текстовый файл.
+          type: string
+          format: uuid
+        description: A UUID string identifying this Текстовый файл.
         required: true
       tags:
       - api
@@ -850,6 +866,7 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/VideoFile'
+        required: true
       responses:
         '201':
           content:
@@ -857,16 +874,17 @@ paths:
               schema:
                 $ref: '#/components/schemas/VideoFile'
           description: ''
-  /api/assets/videofile/{id}/:
+  /api/assets/videofile/{uuid}/:
     get:
       operationId: api_assets_videofile_retrieve
       description: Manage locks in database
       parameters:
       - in: path
-        name: id
+        name: uuid
         schema:
-          type: integer
-        description: A unique integer value identifying this Видео.
+          type: string
+          format: uuid
+        description: A UUID string identifying this Видео файл.
         required: true
       tags:
       - api
@@ -882,10 +900,11 @@ paths:
       description: Manage locks in database
       parameters:
       - in: path
-        name: id
+        name: uuid
         schema:
-          type: integer
-        description: A unique integer value identifying this Видео.
+          type: string
+          format: uuid
+        description: A UUID string identifying this Видео файл.
         required: true
       tags:
       - api
@@ -900,6 +919,7 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/VideoFile'
+        required: true
       responses:
         '200':
           content:
@@ -912,10 +932,11 @@ paths:
       description: Manage locks in database
       parameters:
       - in: path
-        name: id
+        name: uuid
         schema:
-          type: integer
-        description: A unique integer value identifying this Видео.
+          type: string
+          format: uuid
+        description: A UUID string identifying this Видео файл.
         required: true
       tags:
       - api
@@ -942,10 +963,11 @@ paths:
       description: Manage locks in database
       parameters:
       - in: path
-        name: id
+        name: uuid
         schema:
-          type: integer
-        description: A unique integer value identifying this Видео.
+          type: string
+          format: uuid
+        description: A UUID string identifying this Видео файл.
         required: true
       tags:
       - api
@@ -977,6 +999,270 @@ paths:
               schema:
                 $ref: '#/components/schemas/AuthToken'
           description: ''
+  /api/behavior/account/:
+    get:
+      operationId: api_behavior_account_list
+      tags:
+      - api
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TerminalAccount'
+          description: ''
+    post:
+      operationId: api_behavior_account_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TerminalAccount'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TerminalAccount'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TerminalAccount'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TerminalAccount'
+          description: ''
+  /api/behavior/account/{uuid}/:
+    get:
+      operationId: api_behavior_account_retrieve
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Пользовательское меню терминала.
+        required: true
+      tags:
+      - api
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TerminalAccount'
+          description: ''
+    put:
+      operationId: api_behavior_account_update
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Пользовательское меню терминала.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TerminalAccount'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TerminalAccount'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TerminalAccount'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TerminalAccount'
+          description: ''
+    patch:
+      operationId: api_behavior_account_partial_update
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Пользовательское меню терминала.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedTerminalAccount'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedTerminalAccount'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedTerminalAccount'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TerminalAccount'
+          description: ''
+    delete:
+      operationId: api_behavior_account_destroy
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Пользовательское меню терминала.
+        required: true
+      tags:
+      - api
+      responses:
+        '204':
+          description: No response body
+  /api/behavior/menu/:
+    get:
+      operationId: api_behavior_menu_list
+      tags:
+      - api
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MenuPolymorphic'
+          description: ''
+    post:
+      operationId: api_behavior_menu_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MenuPolymorphic'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MenuPolymorphic'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MenuPolymorphic'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MenuPolymorphic'
+          description: ''
+  /api/behavior/menu/{uuid}/:
+    get:
+      operationId: api_behavior_menu_retrieve
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Пункт меню.
+        required: true
+      tags:
+      - api
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MenuPolymorphic'
+          description: ''
+    put:
+      operationId: api_behavior_menu_update
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Пункт меню.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MenuPolymorphic'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MenuPolymorphic'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MenuPolymorphic'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MenuPolymorphic'
+          description: ''
+    patch:
+      operationId: api_behavior_menu_partial_update
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Пункт меню.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedMenuPolymorphic'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedMenuPolymorphic'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedMenuPolymorphic'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MenuPolymorphic'
+          description: ''
+    delete:
+      operationId: api_behavior_menu_destroy
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Пункт меню.
+        required: true
+      tags:
+      - api
+      responses:
+        '204':
+          description: No response body
   /api/devices/lock/:
     get:
       operationId: api_devices_lock_list
@@ -1141,6 +1427,7 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/Terminal'
+        required: true
       responses:
         '201':
           content:
@@ -1191,6 +1478,7 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/Terminal'
+        required: true
       responses:
         '200':
           content:
@@ -1522,20 +1810,12 @@ components:
         file:
           type: string
           readOnly: true
-        uuid:
-          type: string
-          format: uuid
-          readOnly: true
         name:
           type: string
           maxLength: 128
-        hash:
-          type: string
-          readOnly: true
       required:
       - file
-      - hash
-      - uuid
+      - name
     AuthToken:
       type: object
       properties:
@@ -1598,20 +1878,12 @@ components:
         file:
           type: string
           readOnly: true
-        uuid:
-          type: string
-          format: uuid
-          readOnly: true
         name:
           type: string
           maxLength: 128
-        hash:
-          type: string
-          readOnly: true
       required:
       - file
-      - hash
-      - uuid
+      - name
     Lock:
       type: object
       description: Lock serializer.
@@ -1676,22 +1948,172 @@ components:
       - online
       - timestamp
       - topic
+    MenuItemAudio:
+      type: object
+      properties:
+        timer:
+          type: integer
+          maximum: 32767
+          minimum: -32768
+          title: Время доступа
+          description: Ограничение на просмотр этого контента в секундах
+        label:
+          type: string
+          title: Надпись на кнопке
+          maxLength: 128
+        content:
+          $ref: '#/components/schemas/AudioFile'
+      required:
+      - content
+      - label
+    MenuItemAudioTyped:
+      allOf:
+      - type: object
+        properties:
+          resourcetype:
+            type: string
+        required:
+        - resourcetype
+      - $ref: '#/components/schemas/MenuItemAudio'
+    MenuItemImage:
+      type: object
+      properties:
+        timer:
+          type: integer
+          maximum: 32767
+          minimum: -32768
+          title: Время доступа
+          description: Ограничение на просмотр этого контента в секундах
+        label:
+          type: string
+          title: Надпись на кнопке
+          maxLength: 128
+        content:
+          $ref: '#/components/schemas/ImageFile'
+      required:
+      - content
+      - label
+    MenuItemImageTyped:
+      allOf:
+      - type: object
+        properties:
+          resourcetype:
+            type: string
+        required:
+        - resourcetype
+      - $ref: '#/components/schemas/MenuItemImage'
+    MenuItemText:
+      type: object
+      properties:
+        timer:
+          type: integer
+          maximum: 32767
+          minimum: -32768
+          title: Время доступа
+          description: Ограничение на просмотр этого контента в секундах
+        label:
+          type: string
+          title: Надпись на кнопке
+          maxLength: 128
+        content:
+          $ref: '#/components/schemas/TextFile'
+      required:
+      - content
+      - label
+    MenuItemTextTyped:
+      allOf:
+      - type: object
+        properties:
+          resourcetype:
+            type: string
+        required:
+        - resourcetype
+      - $ref: '#/components/schemas/MenuItemText'
+    MenuItemUserInput:
+      type: object
+      properties:
+        timer:
+          type: integer
+          maximum: 32767
+          minimum: -32768
+          title: Время доступа
+          description: Ограничение на просмотр этого контента в секундах
+        label:
+          type: string
+          title: Надпись на кнопке
+          maxLength: 128
+        input_label:
+          type: string
+          title: Заголовок поля ввода
+          description: Допустимая длина - 64 символа
+          maxLength: 64
+        input_description:
+          type: string
+          title: Текст на экране
+          description: Сообщение для пользователя на экране ввода (max 256 символов)
+          maxLength: 256
+      required:
+      - label
+    MenuItemUserInputTyped:
+      allOf:
+      - type: object
+        properties:
+          resourcetype:
+            type: string
+        required:
+        - resourcetype
+      - $ref: '#/components/schemas/MenuItemUserInput'
+    MenuItemVideo:
+      type: object
+      properties:
+        timer:
+          type: integer
+          maximum: 32767
+          minimum: -32768
+          title: Время доступа
+          description: Ограничение на просмотр этого контента в секундах
+        label:
+          type: string
+          title: Надпись на кнопке
+          maxLength: 128
+        content:
+          $ref: '#/components/schemas/VideoFile'
+      required:
+      - content
+      - label
+    MenuItemVideoTyped:
+      allOf:
+      - type: object
+        properties:
+          resourcetype:
+            type: string
+        required:
+        - resourcetype
+      - $ref: '#/components/schemas/MenuItemVideo'
+    MenuPolymorphic:
+      oneOf:
+      - $ref: '#/components/schemas/MenuItemAudioTyped'
+      - $ref: '#/components/schemas/MenuItemVideoTyped'
+      - $ref: '#/components/schemas/MenuItemImageTyped'
+      - $ref: '#/components/schemas/MenuItemTextTyped'
+      - $ref: '#/components/schemas/MenuItemUserInputTyped'
+      discriminator:
+        propertyName: resourcetype
+        mapping:
+          MenuItemAudio: '#/components/schemas/MenuItemAudioTyped'
+          MenuItemVideo: '#/components/schemas/MenuItemVideoTyped'
+          MenuItemImage: '#/components/schemas/MenuItemImageTyped'
+          MenuItemText: '#/components/schemas/MenuItemTextTyped'
+          MenuItemUserInput: '#/components/schemas/MenuItemUserInputTyped'
     PatchedAudioFile:
       type: object
       properties:
         file:
           type: string
           readOnly: true
-        uuid:
-          type: string
-          format: uuid
-          readOnly: true
         name:
           type: string
           maxLength: 128
-        hash:
-          type: string
-          readOnly: true
     PatchedHackGame:
       type: object
       properties:
@@ -1718,16 +2140,9 @@ components:
         file:
           type: string
           readOnly: true
-        uuid:
-          type: string
-          format: uuid
-          readOnly: true
         name:
           type: string
           maxLength: 128
-        hash:
-          type: string
-          readOnly: true
     PatchedLock:
       type: object
       description: Lock serializer.
@@ -1783,6 +2198,139 @@ components:
           maximum: 2147483647
           minimum: -2147483648
           title: Время автоматического закрытия
+    PatchedMenuItemAudio:
+      type: object
+      properties:
+        timer:
+          type: integer
+          maximum: 32767
+          minimum: -32768
+          title: Время доступа
+          description: Ограничение на просмотр этого контента в секундах
+        label:
+          type: string
+          title: Надпись на кнопке
+          maxLength: 128
+        content:
+          $ref: '#/components/schemas/AudioFile'
+    PatchedMenuItemAudioTyped:
+      allOf:
+      - type: object
+        properties:
+          resourcetype:
+            type: string
+      - $ref: '#/components/schemas/PatchedMenuItemAudio'
+    PatchedMenuItemImage:
+      type: object
+      properties:
+        timer:
+          type: integer
+          maximum: 32767
+          minimum: -32768
+          title: Время доступа
+          description: Ограничение на просмотр этого контента в секундах
+        label:
+          type: string
+          title: Надпись на кнопке
+          maxLength: 128
+        content:
+          $ref: '#/components/schemas/ImageFile'
+    PatchedMenuItemImageTyped:
+      allOf:
+      - type: object
+        properties:
+          resourcetype:
+            type: string
+      - $ref: '#/components/schemas/PatchedMenuItemImage'
+    PatchedMenuItemText:
+      type: object
+      properties:
+        timer:
+          type: integer
+          maximum: 32767
+          minimum: -32768
+          title: Время доступа
+          description: Ограничение на просмотр этого контента в секундах
+        label:
+          type: string
+          title: Надпись на кнопке
+          maxLength: 128
+        content:
+          $ref: '#/components/schemas/TextFile'
+    PatchedMenuItemTextTyped:
+      allOf:
+      - type: object
+        properties:
+          resourcetype:
+            type: string
+      - $ref: '#/components/schemas/PatchedMenuItemText'
+    PatchedMenuItemUserInput:
+      type: object
+      properties:
+        timer:
+          type: integer
+          maximum: 32767
+          minimum: -32768
+          title: Время доступа
+          description: Ограничение на просмотр этого контента в секундах
+        label:
+          type: string
+          title: Надпись на кнопке
+          maxLength: 128
+        input_label:
+          type: string
+          title: Заголовок поля ввода
+          description: Допустимая длина - 64 символа
+          maxLength: 64
+        input_description:
+          type: string
+          title: Текст на экране
+          description: Сообщение для пользователя на экране ввода (max 256 символов)
+          maxLength: 256
+    PatchedMenuItemUserInputTyped:
+      allOf:
+      - type: object
+        properties:
+          resourcetype:
+            type: string
+      - $ref: '#/components/schemas/PatchedMenuItemUserInput'
+    PatchedMenuItemVideo:
+      type: object
+      properties:
+        timer:
+          type: integer
+          maximum: 32767
+          minimum: -32768
+          title: Время доступа
+          description: Ограничение на просмотр этого контента в секундах
+        label:
+          type: string
+          title: Надпись на кнопке
+          maxLength: 128
+        content:
+          $ref: '#/components/schemas/VideoFile'
+    PatchedMenuItemVideoTyped:
+      allOf:
+      - type: object
+        properties:
+          resourcetype:
+            type: string
+      - $ref: '#/components/schemas/PatchedMenuItemVideo'
+    PatchedMenuPolymorphic:
+      oneOf:
+      - $ref: '#/components/schemas/PatchedMenuItemAudioTyped'
+      - $ref: '#/components/schemas/PatchedMenuItemVideoTyped'
+      - $ref: '#/components/schemas/PatchedMenuItemImageTyped'
+      - $ref: '#/components/schemas/PatchedMenuItemTextTyped'
+      - $ref: '#/components/schemas/PatchedMenuItemUserInputTyped'
+      discriminator:
+        propertyName: resourcetype
+        mapping:
+          MenuItemAudio: '#/components/schemas/PatchedMenuItemAudioTyped'
+          MenuItemVideo: '#/components/schemas/PatchedMenuItemVideoTyped'
+          MenuItemImage: '#/components/schemas/PatchedMenuItemImageTyped'
+          MenuItemText: '#/components/schemas/PatchedMenuItemTextTyped'
+          MenuItemUserInput: '#/components/schemas/PatchedMenuItemUserInputTyped'
     PatchedStreamRecord:
       type: object
       description: Serializer for event objects
@@ -1814,7 +2362,7 @@ components:
           maxLength: 32
     PatchedTerminal:
       type: object
-      description: Lock serializer.
+      description: Terminal serializer.
       properties:
         id:
           type: integer
@@ -1826,6 +2374,13 @@ components:
           type: string
           readOnly: true
         alert:
+          type: string
+          readOnly: true
+        accounts:
+          type: array
+          items:
+            $ref: '#/components/schemas/TerminalAccount'
+        account_state_map:
           type: string
           readOnly: true
         ip:
@@ -1849,31 +2404,45 @@ components:
           title: Отключить авто-обновление
         powered:
           type: boolean
+          title: Питание подключено
         blocked:
           type: boolean
-        hacked:
-          type: boolean
-    PatchedTextFile:
+          title: Устройство заблокировано
+    PatchedTerminalAccount:
       type: object
       properties:
-        id:
-          type: integer
-          readOnly: true
         uuid:
           type: string
           format: uuid
           readOnly: true
-        name:
+        menu_items:
+          type: array
+          items:
+            $ref: '#/components/schemas/MenuPolymorphic'
+          readOnly: true
+        user:
+          type: integer
+          title: Пользователь
+        password:
           type: string
-          maxLength: 128
-        hash:
-          type: string
-          maxLength: 64
+          nullable: true
+          title: Пароль
+          description: Для чтения пунктов меню потребуется известный пароль или успешный
+            взлом терминала
         header:
           type: string
           maxLength: 64
-        content:
+        footer:
           type: string
+          maxLength: 64
+    PatchedTextFile:
+      type: object
+      properties:
+        name:
+          type: string
+          title: Название файла
+          description: Это название файла будет видно игрокам.
+          maxLength: 128
         file:
           type: string
           format: uri
@@ -1905,16 +2474,9 @@ components:
         file:
           type: string
           readOnly: true
-        uuid:
-          type: string
-          format: uuid
-          readOnly: true
         name:
           type: string
           maxLength: 128
-        hash:
-          type: string
-          readOnly: true
     StreamRecord:
       type: object
       description: Serializer for event objects
@@ -1949,7 +2511,7 @@ components:
       - message
     Terminal:
       type: object
-      description: Lock serializer.
+      description: Terminal serializer.
       properties:
         id:
           type: integer
@@ -1961,6 +2523,13 @@ components:
           type: string
           readOnly: true
         alert:
+          type: string
+          readOnly: true
+        accounts:
+          type: array
+          items:
+            $ref: '#/components/schemas/TerminalAccount'
+        account_state_map:
           type: string
           readOnly: true
         ip:
@@ -1984,46 +2553,64 @@ components:
           title: Отключить авто-обновление
         powered:
           type: boolean
+          title: Питание подключено
         blocked:
           type: boolean
-        hacked:
-          type: boolean
+          title: Устройство заблокировано
       required:
+      - account_state_map
+      - accounts
       - alert
       - hash
       - id
       - mac_addr
       - timestamp
       - topic
-    TextFile:
+    TerminalAccount:
       type: object
       properties:
-        id:
-          type: integer
-          readOnly: true
         uuid:
           type: string
           format: uuid
           readOnly: true
-        name:
+        menu_items:
+          type: array
+          items:
+            $ref: '#/components/schemas/MenuPolymorphic'
+          readOnly: true
+        user:
+          type: integer
+          title: Пользователь
+        password:
           type: string
-          maxLength: 128
-        hash:
-          type: string
-          maxLength: 64
+          nullable: true
+          title: Пароль
+          description: Для чтения пунктов меню потребуется известный пароль или успешный
+            взлом терминала
         header:
           type: string
           maxLength: 64
-        content:
+        footer:
           type: string
+          maxLength: 64
+      required:
+      - menu_items
+      - user
+      - uuid
+    TextFile:
+      type: object
+      properties:
+        name:
+          type: string
+          title: Название файла
+          description: Это название файла будет видно игрокам.
+          maxLength: 128
         file:
           type: string
           format: uri
           nullable: true
       required:
-      - content
-      - id
-      - uuid
+      - name
     UserInput:
       type: object
       description: Serializer for menu item objects
@@ -2051,17 +2638,9 @@ components:
         file:
           type: string
           readOnly: true
-        uuid:
-          type: string
-          format: uuid
-          readOnly: true
         name:
           type: string
           maxLength: 128
-        hash:
-          type: string
-          readOnly: true
       required:
       - file
-      - hash
-      - uuid
+      - name

@@ -37,9 +37,13 @@ class DeviceKeepalive(models.Model):
     mac_addr = models.CharField(max_length=32, validators=[mac_validator])
     timestamp = models.PositiveIntegerField()
 
+    @property
     def online(self):
         return self.timestamp + settings.DEVICE_KEEPALIVE_TIMEOUT > get_server_timestamp()
 
     def save(self, *args, **kwargs):
         self.mac_addr = re.sub(r"[^a-zA-Z0-9]", "", self.mac_addr)
         super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Keepalive: {self.mac_addr} {self.online}"

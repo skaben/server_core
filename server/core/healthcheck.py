@@ -5,6 +5,7 @@ from alert.models import AlertState
 from alert.service import AlertService
 from core.exceptions import ConfigException
 from core.models import ControlReaction, DeviceTopic
+from peripheral_behavior.models.access import SkabenUser
 from core.transport.config import SkabenQueue, get_mq_config
 from django.conf import settings
 
@@ -17,6 +18,7 @@ class IntegrationModules:
     ALERT_STATE: str = "ALERT_STATE"
     ALERT_COUNTER: str = "ALERT_COUNTER"
     DEVICE_CHANNELS: str = "DEVICE_CHANNELS"
+    ACCESS_CONTROL: str = "ACCESS_CONTROL"
 
 
 class IntegrityCheck:
@@ -79,6 +81,14 @@ class DeviceIntegrityCheck(IntegrityCheck):
             )
 
 
+class AccessControlIntegrityCheck(IntegrityCheck):
+    def _check(self):
+        try:
+            SkabenUser.objects.get_or_create(name="skaben_default", description="системный пользователь по умолчанию")
+        except Exception:
+            raise ConfigException("Default skaben user cannot be added")
+
+
 class BrokerIntegrityCheck(IntegrityCheck):
     def _check(self):
         config = get_mq_config()
@@ -93,4 +103,5 @@ INTEGRATION_MODULE_MAP = {
     IntegrationModules.ALERT_STATE: AlertStateIntegrityCheck,
     IntegrationModules.ALERT_COUNTER: AlertCounterIntegrityCheck,
     IntegrationModules.DEVICE_CHANNELS: DeviceIntegrityCheck,
+    IntegrationModules.ACCESS_CONTROL: AccessControlIntegrityCheck,
 }

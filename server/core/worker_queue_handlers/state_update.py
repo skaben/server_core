@@ -3,10 +3,9 @@ from typing import Dict
 
 from core.models.mqtt import DeviceTopic
 from core.transport.config import MQConfig, SkabenQueue
-from core.transport.packets import SkabenPacketTypes
 from core.worker_queue_handlers.base import BaseHandler
 from kombu import Message
-from peripheral_devices.models.helpers import get_model_by_topic, get_serializer_by_topic
+from peripheral_devices.models.helpers import get_model_by_topic
 
 
 class StateUpdateHandler(BaseHandler):
@@ -37,32 +36,26 @@ class StateUpdateHandler(BaseHandler):
         """
         try:
             routing_data = message.delivery_info.get("routing_key").split(".")
-            [incoming_mark, device_topic, device_uid, packet_type] = routing_data
+            [incoming_mark, device_topic, device_uid] = routing_data
+            if incoming_mark != self.incoming_mark:
+                return message.requeue()
         except ValueError:
             logging.exception("cannot handle state update message")
             return message.reject()
 
-        if incoming_mark != self.incoming_mark:
-            return message.requeue()
+        if device_topic not in DeviceTopic.objects.get_topics_by_type("smart"):
+            return message.reject()
+        model = get_model_by_topic(device_topic)
+        if not model:
+            logging.error("uknown device %s", device_topic)
 
-        if packet_type == SkabenPacketTypes.SUP:
-            if device_topic in DeviceTopic.objects.get_topics_by_type("smart"):
-                model = get_model_by_topic(device_topic)
-                try:
-                    serializer = get_serializer_by_topic(device_topic)
-                    instance = model.objects.get(uid=device_uid)
-                except model.DoesNotExist:
-                    # todo: dispatch "device_not_found" event
-                    pass
-                except ValueError:
-                    # todo: dispatch "unknown device" event
-                    pass
-
-                serialized = serializer(instance, data=body, partial=True)
-                if serialized.is_valid():
-                    serialized.save()
-                else:
-                    return message.reject()
+        try:
+            parsed_data = model.from_mqtt_config(body)
+            model.objects.filter(mac_addr=device_uid).update(**parsed_data)
+        except model.DoesNotExist:
+            # todo: dispatch "device_not_found" event
+            logging.error("%s does not exists", str(model))
+            pass
 
         if not message.acknowledged:
             message.ack()

@@ -6,7 +6,7 @@ from django.db import models
 from core.transport.publish import get_interface
 from core.validators import mac_validator
 from peripheral_devices.serializers.schema import BaseDeviceSchema
-from peripheral_devices.service.packet_format import cup_packet_from_model
+from peripheral_devices.service.packet_format import cup_packet_from_smart
 
 
 class SkabenDeviceManager(models.Manager):
@@ -67,7 +67,7 @@ class SkabenDevice(models.Model, HashModelMixin):
         if self.override:
             logging.warning("Device %s <%s> is under override rule", self.topic, self.mac_addr)
         else:
-            packet = cup_packet_from_model(self)
+            packet = cup_packet_from_smart(self)
             with get_interface() as interface:
                 interface.send_mqtt(packet)
 

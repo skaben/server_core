@@ -1,6 +1,8 @@
+from typing import Dict, Any
+
 from django.db import models
 from peripheral_devices.models.base import SkabenDevice, SkabenDeviceManager
-from peripheral_devices.serializers.schema import LockDeviceSchema
+from peripheral_devices.serializers.schema import LockDeviceSendSchema, LockDeviceSaveSchema
 
 __all__ = ("LockDevice",)
 
@@ -59,8 +61,13 @@ class LockDevice(SkabenDevice):
             blocked=self.blocked,
             acl=self.permissions,
         )
-        schema = LockDeviceSchema.model_validate(validated_base | to_be_validated)
+        schema = LockDeviceSendSchema.model_validate(validated_base | to_be_validated)
         return schema.dict()
+
+    @staticmethod
+    def from_mqtt_config(mqtt_data: Dict[str, Any]):
+        parsed = LockDeviceSaveSchema.model_validate(mqtt_data)
+        return {k: v for k, v in parsed.dict().items() if v is not None}
 
     @property
     def topic(self):

@@ -5,13 +5,12 @@ import settings
 
 from pydantic import ValidationError
 from core.helpers import get_server_timestamp
-from core.transport.events import SkabenEvent
+from core.transport.events import SkabenEvent, SkabenLogEvent
 from core.transport.config import MQConfig, SkabenQueue
 from core.transport.packets import SkabenPacketTypes
 from event_contexts.device.events import SkabenDeviceEvent
 from streams.models import StreamRecord, StreamTypes
 from core.worker_queue_handlers.base import BaseHandler
-from django.db import models
 from event_contexts.alert.context import AlertEventContext as alert_context
 from event_contexts.device.context import DeviceEventContext as device_context
 from kombu import Message
@@ -67,16 +66,23 @@ class InternalHandler(BaseHandler):
             headers (dict): Мета-данные события, включающие тип.
             event_data (dict): Полезная нагрузка события.
         """
-        context_events = []
-        with alert_context() as context:
-            context.apply(event_headers, event_data)
-            context_events.extend(context.events)
-        with device_context() as context:
-            context.apply(event_headers, event_data)
-            context_events.extend(context.events)
-        # self.handle_context_events(context_events)
+        events = []
+        if SkabenLogEvent.is_mine(event_headers.get("event_type")):
+            log_event = SkabenLogEvent.from_event_data(event_headers, event_data)
+            if log_event.save:
+                return self.handle_context_events([log_event])
 
-    def handle_context_events(self, events: List[SkabenEvent]):
+        for context in [
+            alert_context,
+            device_context,
+        ]:
+            with context() as ctx:
+                ctx.apply(event_headers, event_data)
+                events.extend(ctx.events)
+        self.handle_context_events(events)
+
+    @staticmethod
+    def handle_context_events(events: List[SkabenEvent]):
         """Обработка событий, возникших в процессе выполнения контекста.
 
         Все события с типом log отправляются в выделенный stream RabbitMQ.
@@ -84,27 +90,18 @@ class InternalHandler(BaseHandler):
         """
         save_as_records = []
         for event in events:
-            if event.event_type != "log":
-                encoded = event.encode()
-                self.dispatch(
-                    data=encoded.data,
-                    headers=encoded.headers,
-                    routing_data=[f"{SkabenQueue.INTERNAL.value}"],
-                    exchange=self.config.exchanges.get("internal"),
+            try:
+                record = StreamRecord(
+                    message=event.message,
+                    message_data=event.message_data,
+                    stream=StreamTypes.LOG,
+                    source=event.event_source,
+                    mark=event.level,
                 )
-            else:
-                try:
-                    record = StreamRecord(
-                        message=event.message,
-                        message_data=event.message_data,
-                        stream=StreamTypes.LOG,
-                        source=event.event_source,
-                        mark=event.level,
-                    )
-                    save_as_records.append(record)
-                except Exception:  # noqa
-                    logging.exception("cannot create stream record:")
-                    continue
+                save_as_records.append(record)
+            except Exception:  # noqa
+                logging.exception("cannot create stream record:")
+                continue
         StreamRecord.objects.bulk_create(save_as_records)
 
     def route_message(self, body: Dict, message: Message) -> None:
@@ -115,24 +112,33 @@ class InternalHandler(BaseHandler):
             message (Message): Экземпляр сообщения.
         """
         try:
-            routing_data: List[str] = message.delivery_info.get("routing_key").split(".")
-            [incoming_mark, device_type, device_uid, packet_type] = routing_data
+            routing_key = message.delivery_info.get("routing_key")
+            _routing_data = dict(enumerate(routing_key.split(".")))
+
+            if len(_routing_data.keys()) < 4:
+                logging.error("bad packet routing key: %s", routing_key)
+                return message.reject()
+
+            incoming_mark = _routing_data.get(0)
+            device_type = _routing_data.get(1)
+            device_uid = _routing_data.get(2)
+            packet_type = _routing_data.get(3)
+            if incoming_mark != self.incoming_mark:
+                return message.requeue()
         except ValueError:
             logging.exception("cannot handle internal queue message")
             return message.reject()
 
-        if incoming_mark != self.incoming_mark:
-            return message.requeue()
-
+        # todo: check if deprecated
         if packet_type == self.keepalive_packet_mark:
             if message.headers.get("timestamp", 0) + settings.DEVICE_KEEPALIVE_TIMEOUT < get_server_timestamp():
                 self.dispatch(data=body, routing_data=[self.client_update_queue_mark, device_type, device_uid])
             return message.ack()
 
+        # todo: здесь пакет должен терминироваться и превращаться в SkabenEvent
+
         if packet_type == self.state_save_packet_mark:
-            self.dispatch(
-                data=body["datahold"], routing_data=[self.state_save_queue_mark, device_type, device_uid, packet_type]
-            )
+            self.dispatch(data=body["datahold"], routing_data=[self.state_save_queue_mark, device_type, device_uid])
             return message.ack()
 
         if packet_type == self.client_update_packet_mark:
@@ -160,17 +166,3 @@ class InternalHandler(BaseHandler):
 
         if not message.acknowledged:
             return message.ack()
-
-    @staticmethod
-    def get_instance(model: models.Model, uid: str):
-        """
-        Получает экземпляр модели.
-
-        Args:
-            model (type): The model type.
-            uid (str): The model UID.
-
-        Returns:
-            The model instance.
-        """
-        return model.objects.get(uid=uid)

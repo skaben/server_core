@@ -120,7 +120,7 @@ class AlertEventContext(SkabenEventContext):
         event_type = event_headers.get("event_type", "")
         event_class = self.event_types.get(event_type)
         if not event_class:
-            return
+            return event_headers, event_data
 
         _data = event_class.decode(event_headers=event_headers, event_data=event_data)
         event = event_class.model_validate(_data)
