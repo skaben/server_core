@@ -5,12 +5,11 @@ from core.models import DeviceTopic
 from core.transport.config import MQConfig, SkabenQueue
 from core.transport.publish import get_interface
 from core.transport.topics import get_topics, SkabenTopics
-from core.transport.packets import SkabenPacketTypes
 from core.worker_queue_handlers.base import BaseHandler
 from event_contexts.device.lock_access_context import LockEventContext
 from kombu import Message
 from peripheral_devices.models.lock import LockDevice
-from peripheral_devices.service.packet_format import cup_packet_from_smart
+from peripheral_devices.service.packet_format import cup_packet_from_smart, cup_packet_from_simple
 from peripheral_devices.service.passive_config import get_passive_config
 from peripheral_devices.models.helpers import get_model_by_topic
 
@@ -61,14 +60,11 @@ class ClientUpdateHandler(BaseHandler):
                 return message.reject()
 
             if device_topic in DeviceTopic.objects.get_topics_by_type("simple"):
-                address = device_uid or "all"  # 'all' маркирует броадкастовую рассылку
                 data = get_passive_config(device_topic)
                 if data:
-                    self.dispatch(
-                        data=data,
-                        exchange="mqtt",
-                        routing_data=[device_topic, address, SkabenPacketTypes.CUP],
-                    )
+                    packet = cup_packet_from_simple(topic=device_topic, payload=data, mac_addr=device_uid)
+                    with get_interface() as interface:
+                        interface.send_mqtt(packet)
                 return message.ack()
 
             if device_topic in DeviceTopic.objects.get_topics_by_type("smart"):
