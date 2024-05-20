@@ -62,11 +62,13 @@ class ClientUpdateHandler(BaseHandler):
 
             if device_topic in DeviceTopic.objects.get_topics_by_type("simple"):
                 address = device_uid or "all"  # 'all' маркирует броадкастовую рассылку
-                self.dispatch(
-                    routing_data=[device_topic, address, SkabenPacketTypes.CUP],
-                    data=get_passive_config(device_topic),
-                    exchange="mqtt",
-                )
+                data = get_passive_config(device_topic)
+                if data:
+                    self.dispatch(
+                        data=data,
+                        exchange="mqtt",
+                        routing_data=[device_topic, address, SkabenPacketTypes.CUP],
+                    )
                 return message.ack()
 
             if device_topic in DeviceTopic.objects.get_topics_by_type("smart"):
