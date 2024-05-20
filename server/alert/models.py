@@ -82,6 +82,12 @@ class AlertStateManager(models.Manager):
     def is_lockdown_state(self):
         return self.get_queryset().filter(name="black", current=True).first()
 
+    def is_pre_ignition_state(self):
+        return self.get_queryset().filter(name="blue", current=True).first()
+
+    def is_pre_power_state(self):
+        return self.get_queryset().filter(name="cyan", current=True).first()
+
 
 ALERT_INCREASE = "increase"
 ALERT_DECREASE = "decrease"

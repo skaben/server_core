@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from alert.models import AlertCounter, AlertState
+from alert.models import AlertState
 from alert.service import AlertService
 from core.transport.events import SkabenEventContext
 from event_contexts.exceptions import StopContextError
@@ -41,20 +41,18 @@ class PowerShieldEventContext(SkabenEventContext):
 
             with AlertService() as service:
                 if command == shield.POWER_AUX:
-                    pre_ignition_state = AlertState.objects.filter(name="blue").get()
+                    pre_ignition_state = AlertState.objects.is_pre_ignition_state()
                     # щиток переключает статус только из полностью выключенного режима
-                    if pre_ignition_state.current:
-                        state = AlertState.objects.filter(name="cyan").get()
+                    if pre_ignition_state:
+                        state = AlertState.objects.get(name="cyan")
                         service.set_state_current(state)
-
-                if command == shield.POWER_ON:
-                    current_counter = AlertCounter.objects.get_latest()
-                    # щиток переключает режим в тот, который соответствует текущему счетчику тревоги
-                    state = service.get_state_by_alert(current_counter)
-                    if not state:
-                        raise StopContextError(
-                            f"Error occured when setting state by powershield `{shield.POWER_ON}` command"
-                        )
-                    service.set_state_current(state)
-
-                raise StopContextError(f"state changed to {state}")
+                elif command == shield.POWER_ON:
+                    # щиток переключает режим в первый игровой статус
+                    pre_power_state = AlertState.objects.is_pre_power_state()
+                    if pre_power_state:
+                        state = service.get_ingame_states(sort_by="order").first()
+                        if not state:
+                            raise StopContextError(
+                                f"Error occured when setting state by powershield `{shield.POWER_ON}` command"
+                            )
+                        service.set_state_current(state)
