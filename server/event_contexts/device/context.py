@@ -20,7 +20,7 @@ class DeviceEventContext(SkabenEventContext):
             event_type = event_headers.get("event_type", "")
             device_type = event_headers.get("device_type", "")
             event_data = event_data.get("payload", {})
-            if not SkabenDeviceEvent.is_mine(event_type):
+            if not SkabenDeviceEvent.has_event_type(event_type):
                 logging.debug("cannot handle event - unknown event_type %s", event_type)
                 return False
             ctx = self.context_dispatcher.get(device_type)
@@ -33,9 +33,9 @@ class DeviceEventContext(SkabenEventContext):
                 return result
         except StopContextError as e:
             logging.debug("stop context error: %s", e)
-            self.add_event(message=e.error, level=ContextEventLevels.ERROR)
+            self.add_log_event(message=e.error, level=ContextEventLevels.ERROR)
             return False
         except (ValueError, ValidationError) as e:
             logging.debug("stop context error: %s", e)
-            self.add_event(message=str(e), level=ContextEventLevels.ERROR)
+            self.add_log_event(message=str(e), level=ContextEventLevels.ERROR)
             return False

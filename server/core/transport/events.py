@@ -63,12 +63,12 @@ class SkabenEvent(BaseModel):
 
     @classmethod
     def from_event_data(cls, event_headers: dict, event_data: Union[str, dict]) -> Optional["SkabenEvent"]:
-        if cls.is_mine(event_type=event_headers.get("event_type", "")):
+        if cls.has_event_type(event_type=event_headers.get("event_type", "")):
             decoded = cls.decode(event_headers, event_data)
             return cls(**decoded)
 
     @classmethod
-    def is_mine(cls, event_type: str):
+    def has_event_type(cls, event_type: str):
         return cls._event_type == event_type
 
 
@@ -102,7 +102,7 @@ class SkabenLogEvent(SkabenEvent):
 class SkabenEventContext:
     """Базовый контекст обработчика событий."""
 
-    events: List[SkabenEvent] = []
+    events: List[SkabenEvent | SkabenLogEvent] = []
 
     def __init__(self):
         self.events = []
@@ -110,12 +110,12 @@ class SkabenEventContext:
     def apply(self, event_headers: dict, event_data: dict):
         raise NotImplementedError("abstract class method")
 
-    def add_event(
+    def add_log_event(
         self,
         message: str,
         level: Literal["error", "log", "info"] = ContextEventLevels.INFO,
         message_data: Optional[Dict[str, Union[str, int, bool, dict, list]]] = None,
-    ) -> List[SkabenEvent]:
+    ) -> List[SkabenLogEvent]:
         event = SkabenLogEvent(
             message=message,
             message_data=message_data,

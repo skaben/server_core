@@ -2,7 +2,9 @@ from dataclasses import dataclass
 
 from alert.models import AlertState
 from alert.service import AlertService
+from core.transport.topics import SkabenTopics
 from core.transport.events import SkabenEventContext
+from event_contexts.alert.events import AlertStateEvent
 from event_contexts.exceptions import StopContextError
 
 
@@ -39,20 +41,23 @@ class PowerShieldEventContext(SkabenEventContext):
                 # щиток не переключает статус в этом случае
                 return
 
-            with AlertService() as service:
+            with AlertService(init_by=SkabenTopics.PWR) as service:
                 if command == shield.POWER_AUX:
                     pre_ignition_state = AlertState.objects.is_pre_ignition_state()
                     # щиток переключает статус только из полностью выключенного режима
                     if pre_ignition_state:
-                        state = AlertState.objects.get(name="cyan")
-                        service.set_state_current(state)
+                        event = AlertStateEvent(
+                            event_source=SkabenTopics.PWR,
+                            state="cyan",
+                        )
+                        self.events.append(event)
                 elif command == shield.POWER_ON:
                     # щиток переключает режим в первый игровой статус
                     pre_power_state = AlertState.objects.is_pre_power_state()
-                    if pre_power_state:
-                        state = service.get_ingame_states(sort_by="order").first()
-                        if not state:
-                            raise StopContextError(
-                                f"Error occured when setting state by powershield `{shield.POWER_ON}` command"
-                            )
-                        service.set_state_current(state)
+                    state = service.get_ingame_states(sort_by="order").first()
+                    if pre_power_state and state:
+                        event = AlertStateEvent(
+                            event_source=SkabenTopics.PWR,
+                            state=state.name,
+                        )
+                        self.events.append(event)

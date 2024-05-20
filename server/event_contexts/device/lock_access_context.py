@@ -49,10 +49,10 @@ class LockEventContext(SkabenEventContext):
             access = AccessCode.objects.get(code=access_code)
             success = event_data.get("success")
             result = "доступ разрешен" if success else "доступ запрещен"
-            self.add_event(f"{lock.id} : {result} для {access}")
+            self.add_log_event(f"{lock.id} : {result} для {access}")
         except AccessCode.DoesNotExist:
             message = self.create_new_access_record(lock=source, access_code=access_code)
-            self.add_event(message, level=ContextEventLevels.LOG)
+            self.add_log_event(message, level=ContextEventLevels.LOG)
         except Lock.DoesNotExist:
             message = self.create_lock_device(mac_addr=source)
-            self.add_event(message, level=ContextEventLevels.LOG)
+            self.add_log_event(message, level=ContextEventLevels.LOG)

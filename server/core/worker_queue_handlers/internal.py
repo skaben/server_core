@@ -3,6 +3,7 @@ from typing import Dict, List
 
 
 from pydantic import ValidationError
+from core.transport.publish import get_interface
 from core.transport.events import SkabenEvent, SkabenLogEvent
 from core.transport.config import MQConfig, SkabenQueue
 from core.transport.packets import SkabenPacketTypes
@@ -65,7 +66,7 @@ class InternalHandler(BaseHandler):
             event_data (dict): Полезная нагрузка события.
         """
         events = []
-        if SkabenLogEvent.is_mine(event_headers.get("event_type")):
+        if SkabenLogEvent.has_event_type(event_headers.get("event_type")):
             log_event = SkabenLogEvent.from_event_data(event_headers, event_data)
             if log_event.save:
                 return self.handle_context_events([log_event])
@@ -87,20 +88,29 @@ class InternalHandler(BaseHandler):
         Все события иных типов - повторно добавляются в очередь internal для обработки.
         """
         save_as_records = []
+        send_as_events = []
         for event in events:
-            try:
-                record = StreamRecord(
-                    message=event.message,
-                    message_data=event.message_data,
-                    stream=StreamTypes.LOG,
-                    source=event.event_source,
-                    mark=event.level,
-                )
-                save_as_records.append(record)
-            except Exception:  # noqa
-                logging.exception("cannot create stream record:")
-                continue
-        StreamRecord.objects.bulk_create(save_as_records)
+            if event.has_event_type("log"):
+                try:
+                    record = StreamRecord(
+                        message=event.message,
+                        message_data=event.message_data,
+                        stream=StreamTypes.LOG,
+                        source=event.event_source,
+                        mark=event.level,
+                    )
+                    save_as_records.append(record)
+                except Exception:  # noqa
+                    logging.exception("cannot create stream record:")
+                    continue
+            else:
+                send_as_events.append(event)
+
+        if save_as_records:
+            StreamRecord.objects.bulk_create(save_as_records)
+        if send_as_events:
+            with get_interface() as publisher:
+                [publisher.send_event(event) for event in send_as_events]
 
     def route_message(self, body: Dict, message: Message) -> None:
         """Перенаправляет события в различные очереди, в зависимости от типа пакета.
