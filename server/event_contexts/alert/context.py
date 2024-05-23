@@ -40,7 +40,7 @@ class AlertEventContext(SkabenEventContext):
                 if current and current.name != event.state:
                     # Эта операция создаст новое событие типа alert_state
                     service.set_state_by_name(event.state)
-                    return self.add_event(f"alert state switched to {event.state}", level=ContextEventLevels.LOG)
+                    return self.add_log_event(f"alert state switched to {event.state}", level=ContextEventLevels.LOG)
 
         # Если операция не инициирована счетчиком тревоги и необходимо сбросить этот счетчик
         if source != ALERT_COUNTER and event.counter_reset:
@@ -50,7 +50,7 @@ class AlertEventContext(SkabenEventContext):
                     raise ValueError(f"no state with name {event.state}")
                 # эта операция создаст дополнительное событие типа alert_counter
                 service.set_alert_counter(value=state.threshold, comment=f"reset by alert state {event.state}")
-                self.add_event(f"alert counter reset to {event.state} threshold", level=ContextEventLevels.LOG)
+                self.add_log_event(f"alert counter reset to {event.state} threshold", level=ContextEventLevels.LOG)
 
         # обновление конфигурации устройств при смене уровня тревоги
         # принудительно посылается CUP запрос, в ответ на который сервер пошлет конфигурации
@@ -88,7 +88,7 @@ class AlertEventContext(SkabenEventContext):
                     # новое ALERT_STATE событие, которое отправит конфиги,
                     # будет создано моделью AlertState при сохранении в этой процедуре
                     service.set_state_current(new_state)  # заканчиваем обработку
-                    self.add_event(
+                    self.add_log_event(
                         f"alert state switched from {old_state} to {new_state} by counter",
                         level=ContextEventLevels.LOG,
                     )
@@ -100,7 +100,7 @@ class AlertEventContext(SkabenEventContext):
                 new_state = service.get_state_by_alert(event.value)
                 if new_state != current_state:
                     service.set_state_current(new_state)
-                    self.add_event(
+                    self.add_log_event(
                         f"alert state switched from {old_state} to {new_state} by counter", level=ContextEventLevels.LOG
                     )
             # при изменениях параметра счетчика апдейт отправляется только шкалам

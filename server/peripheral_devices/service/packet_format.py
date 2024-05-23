@@ -20,3 +20,18 @@ def cup_packet_from_smart(model) -> Optional[CUP]:
     except ValidationError:  # noqa
         logging.exception("cannot form cup packet")
         return
+
+
+def cup_packet_from_simple(topic: str, payload: dict, mac_addr: Optional[str] = None) -> Optional[CUP]:
+    device_uid = mac_addr or "all"
+    try:
+        packet = CUP(
+            topic=topic,
+            uid=device_uid,
+            timestamp=get_server_timestamp(),
+            datahold=payload,
+        )
+        return packet
+    except ValidationError:  # noqa
+        logging.exception("cannot form cup packet")
+        return

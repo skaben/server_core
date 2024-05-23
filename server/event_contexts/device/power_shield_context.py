@@ -1,8 +1,10 @@
 from dataclasses import dataclass
 
-from alert.models import AlertCounter, AlertState
+from alert.models import AlertState
 from alert.service import AlertService
+from core.transport.topics import SkabenTopics
 from core.transport.events import SkabenEventContext
+from event_contexts.alert.events import AlertStateEvent
 from event_contexts.exceptions import StopContextError
 
 
@@ -39,22 +41,23 @@ class PowerShieldEventContext(SkabenEventContext):
                 # щиток не переключает статус в этом случае
                 return
 
-            with AlertService() as service:
+            with AlertService(init_by=SkabenTopics.PWR) as service:
                 if command == shield.POWER_AUX:
-                    pre_ignition_state = AlertState.objects.filter(name="blue").get()
+                    pre_ignition_state = AlertState.objects.is_pre_ignition_state()
                     # щиток переключает статус только из полностью выключенного режима
-                    if pre_ignition_state.current:
-                        state = AlertState.objects.filter(name="cyan").get()
-                        service.set_state_current(state)
-
-                if command == shield.POWER_ON:
-                    current_counter = AlertCounter.objects.get_latest()
-                    # щиток переключает режим в тот, который соответствует текущему счетчику тревоги
-                    state = service.get_state_by_alert(current_counter)
-                    if not state:
-                        raise StopContextError(
-                            f"Error occured when setting state by powershield `{shield.POWER_ON}` command"
+                    if pre_ignition_state:
+                        event = AlertStateEvent(
+                            event_source=SkabenTopics.PWR,
+                            state="cyan",
                         )
-                    service.set_state_current(state)
-
-                raise StopContextError(f"state changed to {state}")
+                        self.events.append(event)
+                elif command == shield.POWER_ON:
+                    # щиток переключает режим в первый игровой статус
+                    pre_power_state = AlertState.objects.is_pre_power_state()
+                    state = service.get_ingame_states(sort_by="order").first()
+                    if pre_power_state and state:
+                        event = AlertStateEvent(
+                            event_source=SkabenTopics.PWR,
+                            state=state.name,
+                        )
+                        self.events.append(event)
