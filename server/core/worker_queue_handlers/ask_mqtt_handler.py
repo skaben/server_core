@@ -95,6 +95,10 @@ class AskHandler(BaseHandler):
 
     @staticmethod
     def keepalive_status(mac_addr: str, timestamp: int) -> [int, bool]:
+        if mac_addr == "all":
+            timestamp = get_server_timestamp()
+            return timestamp, True
+
         try:
             keepalive = DeviceKeepalive.objects.get(mac_addr=mac_addr)
             result = timestamp, keepalive.online
