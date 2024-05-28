@@ -53,9 +53,10 @@ class AlertCounterViewSet(
     def _get_latest():
         with AlertService(init_by=ALERT_COUNTER) as service:
             state = service.get_state_current()
-            return service.get_last_counter(backup_value=state.threshold)
+            service.get_last_counter(backup_value=state.threshold)
+        return AlertCounter.objects.last()
 
-    @action(detail=False)
+    @action(methods=["get"], detail=False)
     def get_latest(self, *args, **kwargs):
         latest = self._get_latest()
         serializer = self.get_serializer(latest)
