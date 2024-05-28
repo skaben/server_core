@@ -5,7 +5,7 @@ from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from .models import AlertCounter, AlertState, ALERT_COUNTER
+from .models import AlertCounter, AlertState, ALERT_COUNTER, ALERT_STATE
 from .service import AlertService
 
 
@@ -29,7 +29,7 @@ class AlertStateViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewse
         """Set Alert State as current"""
         try:
             state = self.queryset.get(id=pk)
-            with AlertService() as service:
+            with AlertService(init_by=ALERT_STATE) as service:
                 service.set_state_current(state)
             serializer_resp = serializers.AlertStateSerializer(state)
             return Response(serializer_resp.data)
